@@ -1,0 +1,9 @@
+*.o
+outputs*
+firm_db_*
+__pycache__*
+exp_out*
+experiments/
+schedule.lock
+affinity*
+command*
