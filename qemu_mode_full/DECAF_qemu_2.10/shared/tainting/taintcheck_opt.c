@@ -44,7 +44,6 @@ http://code.google.com/p/decaf-platform/
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <liburing.h>
 #include <errno.h>
 #include "taint_mem_log.h"
 
