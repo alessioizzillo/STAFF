@@ -7,3 +7,6 @@ experiments/
 schedule.lock
 affinity*
 command*
+config.ini
+client
+v2.3.3.tar.gz*
