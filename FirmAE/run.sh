@@ -100,6 +100,51 @@ function cleanup_on_exit() {
     else
         echo "time_web_constraint file not found. Skipping time validation."
     fi
+
+    echo -e "\n[IID] ${IID}\n[\033[33mMODE\033[0m] ${OPTION}"
+    if ($PING_RESULT); then
+        echo -e "[\033[32m+\033[0m] Network will be reachable on ${IP}!"
+    fi
+    if ($WEB_RESULT); then
+        echo -e "[\033[32m+\033[0m] Web service is getting ready on ${IP}"
+        echo true > ${WORK_DIR}/result
+    else
+        echo false > ${WORK_DIR}/result
+    fi
+
+    if [ ! -f "$csv_file_path" ]; then
+        echo "$csv_file_path does not exist!"
+        exit 1
+    fi
+
+    existing_id=""
+    temp_file="$(mktemp)"
+
+    while IFS=, read -r id firmware brand arch result; do
+        if [[ "$id" == "id" ]]; then
+            echo "$id,$firmware,$brand,$arch,$result" > "$temp_file"
+        elif [[ "$firmware" == "$(basename "$INFILE")" ]]; then
+            existing_id="$id"
+            echo "$id,$firmware,$brand,$arch,$WEB_RESULT" >> "$temp_file"
+        else
+            echo "$id,$firmware,$brand,$arch,$result" >> "$temp_file"
+        fi
+    done < "$csv_file_path"
+
+    mv "$temp_file" "$csv_file_path"
+    chmod 777 "$csv_file_path"
+
+    if [ ! ${OPTION} = "check" ]; then
+        if [[ ${MODE} = "run" ]]; then
+            ${WORK_DIR}/run.sh 1
+
+            echo "[*] cleanup"
+            ./flush_interface.sh > /dev/null 2>&1;
+            echo "======================================"
+        else
+            ${WORK_DIR}/run_${MODE}.sh 0
+        fi
+    fi
 }
 
 function run_emulation()
@@ -256,53 +301,6 @@ function run_emulation()
         PING_RESULT=true
         IP=`cat ${WORK_DIR}/ip`
     fi
-
-
-    echo -e "\n[IID] ${IID}\n[\033[33mMODE\033[0m] ${OPTION}"
-    if ($PING_RESULT); then
-        echo -e "[\033[32m+\033[0m] Network will be reachable on ${IP}!"
-    fi
-    if ($WEB_RESULT); then
-        echo -e "[\033[32m+\033[0m] Web service is getting ready on ${IP}"
-        echo true > ${WORK_DIR}/result
-    else
-        echo false > ${WORK_DIR}/result
-    fi
-
-    if [ ! -f "$csv_file_path" ]; then
-        echo "$csv_file_path does not exist!"
-        exit 1
-    fi
-
-    existing_id=""
-    temp_file="$(mktemp)"
-
-    while IFS=, read -r id firmware brand arch result; do
-        if [[ "$id" == "id" ]]; then
-            echo "$id,$firmware,$brand,$arch,$result" > "$temp_file"
-        elif [[ "$firmware" == "$(basename "$INFILE")" ]]; then
-            existing_id="$id"
-            echo "$id,$firmware,$brand,$arch,$WEB_RESULT" >> "$temp_file"
-        else
-            echo "$id,$firmware,$brand,$arch,$result" >> "$temp_file"
-        fi
-    done < "$csv_file_path"
-
-    mv "$temp_file" "$csv_file_path"
-    chmod 777 "$csv_file_path"
-
-    if [ ! ${OPTION} = "check" ]; then
-        if [[ ${MODE} = "run" ]]; then
-            ${WORK_DIR}/run.sh 1
-
-            echo "[*] cleanup"
-            ./flush_interface.sh > /dev/null 2>&1;
-            echo "======================================"
-        else
-            ${WORK_DIR}/run_${MODE}.sh 0
-        fi
-    fi
-
 }
 
 FIRMWARE=${3}
