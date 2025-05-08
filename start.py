@@ -848,52 +848,52 @@ def fuzz(out_dir, container_name):
         print(f"Command failed with error: {e}")
         ret = 1
 
-    if "triforce" in mode:
-        os.chdir(prev_dir)
-        cleanup(work_dir)
-        subprocess.run(["sudo", "-E", "./run.sh", "-f", os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.join(FIRMWARE_DIR, config["GENERAL"]["firmware"]), mode, PSQL_IP])
-        os.chdir(work_dir)
+    # if "triforce" in mode:
+    #     os.chdir(prev_dir)
+    #     cleanup(work_dir)
+    #     subprocess.run(["sudo", "-E", "./run.sh", "-f", os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.join(FIRMWARE_DIR, config["GENERAL"]["firmware"]), mode, PSQL_IP])
+    #     os.chdir(work_dir)
 
-        if out_dir:
-            os.rename(os.path.join(out_dir, "outputs", "plot_data"), os.path.join(out_dir, "outputs", "old_plot_data"))
-        else:
-            os.rename(os.path.join("outputs", "plot_data"), os.path.join("outputs", "old_plot_data"))
+    #     if out_dir:
+    #         os.rename(os.path.join(out_dir, "outputs", "plot_data"), os.path.join(out_dir, "outputs", "old_plot_data"))
+    #     else:
+    #         os.rename(os.path.join("outputs", "plot_data"), os.path.join("outputs", "old_plot_data"))
 
-        os.environ["EXEC_MODE"] = "AFLNET"
-        os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')
-        os.environ["AFL_SKIP_CPUFREQ"] = "1"
-        env = os.environ.copy()
+    #     os.environ["EXEC_MODE"] = "AFLNET"
+    #     os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')
+    #     os.environ["AFL_SKIP_CPUFREQ"] = "1"
+    #     env = os.environ.copy()
 
-        command = ["sudo", "-E"]
-        command += ["./afl-fuzz-net" if x == "./afl-fuzz" else x for x in replay_cmd[2:]]
-        command += ["-Y"]
-        command += ["-QQ"]
-        command += ["--"]
+    #     command = ["sudo", "-E"]
+    #     command += ["./afl-fuzz-net" if x == "./afl-fuzz" else x for x in replay_cmd[2:]]
+    #     command += ["-Y"]
+    #     command += ["-QQ"]
+    #     command += ["--"]
 
-        for arg in afl_qemu_system_trace_cmd.split(" "):
-            if arg != '':
-                command.append(arg.strip())
+    #     for arg in afl_qemu_system_trace_cmd.split(" "):
+    #         if arg != '':
+    #             command.append(arg.strip())
 
-        command.append("-append")
+    #     command.append("-append")
 
-        command.append(afl_qemu_system_trace_cmd_append.strip())
+    #     command.append(afl_qemu_system_trace_cmd_append.strip())
 
-        command.append("--aflFile")
-        command.append("@@")
+    #     command.append("--aflFile")
+    #     command.append("@@")
 
-        try:
-            print(" ".join(command))
-            subprocess.run(
-                command,
-                env=env,
-                input="run\nbt\n",
-                text=True,
-                check=True
-            )
-            ret = 0
-        except subprocess.CalledProcessError as e:
-            print(f"Command failed with error: {e}")
-            ret = 1
+    #     try:
+    #         print(" ".join(command))
+    #         subprocess.run(
+    #             command,
+    #             env=env,
+    #             input="run\nbt\n",
+    #             text=True,
+    #             check=True
+    #         )
+    #         ret = 0
+    #     except subprocess.CalledProcessError as e:
+    #         print(f"Command failed with error: {e}")
+    #         ret = 1
 
     os.chdir(prev_dir)
 
