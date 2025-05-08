@@ -162,9 +162,7 @@ Make sure the following are installed on your system:
 3. **Inside the container**, run:
    ```bash
    ./install.sh
-   make afl-fuzz
-   make afl-fuzz-net
-   make afl-qemu-system-trace-full
+   make
    ```
 
 4. **Detach from the container** by pressing:
