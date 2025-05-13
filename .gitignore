@@ -11,3 +11,4 @@ config.ini
 client
 v2.3.3.tar.gz*
 taint_analysis
+debug

@@ -13,7 +13,8 @@
 #include "../aflnet/alloc-inl.h"
 
 #define RETRY_DELAY 2
-#define DEBUG_DIR "/STAFF/debug"
+
+char *debug_dir = NULL;
 
 void recursive_remove(const char *path) {
     DIR *dir = opendir(path);
@@ -52,11 +53,11 @@ void recursive_remove(const char *path) {
 }
 
 void create_debug_dir() {
-    if (access(DEBUG_DIR, F_OK) == 0) {
-        recursive_remove(DEBUG_DIR);
+    if (access(debug_dir, F_OK) == 0) {
+        recursive_remove(debug_dir);
     }
 
-    if (mkdir(DEBUG_DIR, 0777) != 0) {
+    if (mkdir(debug_dir, 0777) != 0) {
         perror("Error creating debug directory");
         exit(2);
     }
@@ -83,7 +84,8 @@ double calculate_new_average(const char *file_path, double new_avg, int new_coun
 }
 
 void write_avg_response_time(double avg, int count) {
-    const char *avg_file_path = DEBUG_DIR "/avg_response_time";
+    char avg_file_path[256];
+    snprintf(avg_file_path, sizeof(avg_file_path), "%s/avg_response_time", debug_dir);
     double final_avg = calculate_new_average(avg_file_path, avg, count);
 
     FILE *file = fopen(avg_file_path, "w");
@@ -98,12 +100,8 @@ void write_avg_response_time(double avg, int count) {
 
 void write_debug_files(int request_id, const char *request, unsigned int request_len, const char *response, unsigned int response_len) {
     char dir_name[256];
-    snprintf(dir_name, sizeof(dir_name), "%s/%d", DEBUG_DIR, request_id);
-
-    if (mkdir(dir_name, 0777) != 0) {
-        perror("Error creating request subdirectory");
-        exit(2);
-    }
+    snprintf(dir_name, sizeof(dir_name), "%s/%d", debug_dir, request_id);
+    mkdir(dir_name, 0777);
 
     char send_request_file[256];
     snprintf(send_request_file, sizeof(send_request_file), "%s/send_request", dir_name);
@@ -115,15 +113,17 @@ void write_debug_files(int request_id, const char *request, unsigned int request
     fprintf(send_file, "%.*s", request_len, request);
     fclose(send_file);
 
-    char received_response_file[256];
-    snprintf(received_response_file, sizeof(received_response_file), "%s/received_response", dir_name);
-    FILE *response_file = fopen(received_response_file, "w");
-    if (!response_file) {
-        perror("Error opening received_response file");
-        exit(2);
+    if (response && response_len) {
+        char received_response_file[256];
+        snprintf(received_response_file, sizeof(received_response_file), "%s/received_response", dir_name);
+        FILE *response_file = fopen(received_response_file, "w");
+        if (!response_file) {
+            perror("Error opening received_response file");
+            exit(2);
+        }
+        fprintf(response_file, "%.*s", response_len, response);
+        fclose(response_file);
     }
-    fprintf(response_file, "%.*s", response_len, response);
-    fclose(response_file);
 }
 
 int main(int argc, char *argv[]) {
@@ -142,6 +142,21 @@ int main(int argc, char *argv[]) {
         printf("\\x%02X", byte);
     }
     printf("\n");
+
+    char *env_var = getenv("DEBUG_FUZZ");
+    if (env_var) {
+        debug_mode = atoi(env_var);
+    }
+
+    env_var = getenv("DEBUG");
+    if (env_var) {
+        debug_mode = atoi(env_var);
+    }
+
+    env_var = getenv("DEBUG_DIR");
+    if (env_var) {
+        debug_dir = env_var;
+    }
 
     if (debug_mode) {
         if (access("debug", F_OK) == 0)
@@ -278,6 +293,10 @@ retry:
         }
 
         printf("Sent request %d (%d bytes)\n", request_id, res);
+
+        if (debug_mode == 2) {
+            write_debug_files(request_id, request, request_len, NULL, NULL);
+        }
 
         res = net_recv(sockfd, timeout, &response_buf, &response_len, HTTP);
         if (res == 0 || res == 1) {

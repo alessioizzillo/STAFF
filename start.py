@@ -524,11 +524,12 @@ def replay():
     os.environ["FD_DEPENDENCIES_TRACK"] = "1"
     os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')    
     os.environ["INCLUDE_LIBRARIES"] = str(config["EMULATION_TRACING"]["include_libraries"])
-    # os.environ["DEBUG"] = "1"
+    os.environ["DEBUG"] = "2"
 
     if config["GENERAL"]["firmware"] != "all":
         iid = str(check("run"))
         work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+        os.environ["DEBUG_DIR"] = os.path.join(work_dir, "debug", "interaction")
 
         if "true" in open(os.path.join(work_dir, "web_check")).read():
             replay_firmware(config["GENERAL"]["firmware"], work_dir)
@@ -556,6 +557,7 @@ def replay():
                 print(f"Replaying {os.path.basename(brand)}/{os.path.basename(device)}")
                 iid = str(check_firmware(os.path.join(os.path.basename(brand), os.path.basename(device)), "run"))
                 work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+                os.environ["DEBUG_DIR"] = os.path.join(work_dir, "debug", "interaction")
 
                 if "true" in open(os.path.join(work_dir, "web_check")).read():
                     replay_firmware(os.path.join(os.path.basename(brand), os.path.basename(device)), work_dir)
