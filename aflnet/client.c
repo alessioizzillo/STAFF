@@ -294,7 +294,7 @@ retry:
 
         printf("Sent request %d (%d bytes)\n", request_id, res);
 
-        if (debug_mode == 2) {
+        if (debug_mode) {
             write_debug_files(request_id, request, request_len, NULL, NULL);
         }
 
@@ -309,7 +309,7 @@ retry:
 
             printf("Response time for request %d (%zu bytes) (res = %d, errno = %d): %lf ms 0x%lx\n", request_id, response_len, res, errno, response_time_ms, response_buf);
 
-            if (debug_mode == 2) {
+            if (debug_mode) {
                 write_debug_files(request_id, request, request_len, response_buf, response_len);
             }
             ck_free(response_buf);
@@ -345,7 +345,7 @@ retry:
         request_id++;
     }
 
-    if (debug_mode == 1 && total_requests > 0) {
+    if (debug_mode && total_requests > 0) {
         double avg_response_time_ms = total_response_time / total_requests;
         printf("Average response time: %lf ms\n", avg_response_time_ms);
         write_avg_response_time(avg_response_time_ms, total_requests);
