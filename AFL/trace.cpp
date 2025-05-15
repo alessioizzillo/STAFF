@@ -224,7 +224,7 @@ int check_and_filter_traces(trace_t *src, trace_t *blacklist, int debug) {
     return memcmp(src, empty_buf, sizeof(trace_t) * NUM_TRACES) != 0;
 }
 
-int save_traces_binary(const trace_t *traces, const char *path) {
+int save_traces_binary(trace_t *traces, const char *path) {
     FILE *f = fopen(path, "wb");
     if (!f) return -1;
     size_t written = fwrite(traces, sizeof(trace_t), NUM_TRACES, f);

@@ -36,6 +36,7 @@ def process_mode(current_mode):
 
         afl_fuzz_path = "aflnet/afl-fuzz" if "aflnet" in current_mode or "staff" in current_mode else "AFL/afl-fuzz"
         cmd.append(f"sudo cp -f {afl_fuzz_path} {target_dir}/")
+        cmd.append(f"sudo cp -f aflnet/client {target_dir}/")
 
         if "triforce" in current_mode:
             cmd.append(f"sudo cp -f aflnet/afl-fuzz {target_dir}/afl-fuzz-net")

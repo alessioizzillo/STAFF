@@ -1170,7 +1170,7 @@ tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
     }
     else
     {
-        if ((!fuzz && taint_tracking_enabled) || (fuzz && afl_user_fork && (coverage_tracing == BLOCK || coverage_tracing == EDGE))) {
+        if ((!fuzz && taint_tracking_enabled) || (fuzz && afl_user_fork)) {
             char procname[MAX_PROCESS_NAME_LENGTH] = {0};
 
             uint32_t pid = 0;
@@ -1191,15 +1191,16 @@ tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                 if (adjusted_pc) {
                     // uint32_t cov_xxhash = update_cov_xxhash_buffer(pid, adjusted_pc ^ inode_num);
                     if (fuzz && afl_user_fork) {
+                        uint32_t cov_xxhash = update_cov_xxhash(pid, adjusted_pc ^ inode_num);
                         if (!taint_tracking_enabled) {
                             if (coverage_tracing == EDGE) {
-                                uint32_t cov_xxhash = update_cov_xxhash(pid, adjusted_pc ^ inode_num);
                                 afl_area_ptr[cov_xxhash]++;
                             }
                             else if (coverage_tracing == BLOCK) {
                                 afl_area_ptr[(adjusted_pc ^ inode_num) & (MAP_SIZE - 1)]++;
                             }
                         }
+                        afl_area_ptr_eval[cov_xxhash]++;
                     }
 
                     if (taint_tracking_enabled && !fuzz) {

@@ -13,6 +13,7 @@ void update_and_persist_blacklist(trace_t *src, trace_t *dst, const char *out_di
 int update_and_log_traces(trace_t *src, trace_t *dst, const char *log_file);
 void clear_traces(trace_t *traces);
 int load_traces_binary(trace_t *traces, const char *path);
+int save_traces_binary(trace_t *traces, const char *path);
 
 #ifdef __cplusplus
 }

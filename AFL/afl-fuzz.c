@@ -73,6 +73,8 @@
 #include <curl/curl.h>
 #include "../aflnet/config2.h"
 
+#define RETRY_DELAY 2
+
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined (__OpenBSD__)
 #  include <sys/sysctl.h>
 #endif /* __APPLE__ || __FreeBSD__ || __OpenBSD__ */
@@ -171,15 +173,16 @@ static s32 forksrv_pid,               /* PID of the fork server           */
            child_pid = -1,            /* PID of the fuzzed program        */
            out_dir_fd = -1;           /* FD of the lock file              */
 
-EXP_ST u8* trace_bits;                /* SHM with instrumentation bitmap  */
+EXP_ST u8 *trace_bits, *trace_bits_eval;                /* SHM with instrumentation bitmap  */
 
 EXP_ST u8  virgin_bits[MAP_SIZE],     /* Regions yet untouched by fuzzing */
+           virgin_bits_eval[MAP_SIZE],
            virgin_tmout[MAP_SIZE],    /* Bits we haven't seen in tmouts   */
            virgin_crash[MAP_SIZE];    /* Bits we haven't seen in crashes  */
 
 static u8  var_bytes[MAP_SIZE];       /* Bytes that appear to be variable */
 
-static s32 shm_id;                    /* ID of the SHM region             */
+static s32 shm_id, shm_id_eval;                    /* ID of the SHM region             */
 
 static volatile u8 stop_soon,         /* Ctrl-C pressed?                  */
                    clear_screen = 1,  /* Window resized?                  */
@@ -370,10 +373,10 @@ enum {
 
 u64 last_stats_ms, last_plot_ms, last_ms, last_execs;
 double avg_exec;
-double t_byte_ratio, t_byte_ratio_without_var, stab_ratio;
+double t_byte_ratio, stab_ratio;
 
 u64 cur_ms;
-u32 t_bytes, t_bytes_without_var, t_bits;
+u32 t_bytes, t_bits;
 
 u32 banner_len, banner_pad;
 u8  show_stats_tmp[256];
@@ -964,23 +967,15 @@ EXP_ST void write_bitmap(void) {
   close(fd);
   ck_free(fname);
 
-  u8* filtered_bits = (u8*)ck_alloc(MAP_SIZE);
-  for (u32 i = 0; i < MAP_SIZE; ++i) {
-    if (!var_bytes[i]) {
-      filtered_bits[i] = virgin_bits[i];
-    }
-  }
-
-  fname = alloc_printf("%s/fuzz_bitmap_without_vars", out_dir);
+  fname = alloc_printf("%s/fuzz_bitmap_eval", out_dir);
   fd = open(fname, O_WRONLY | O_CREAT | O_TRUNC, 0777);
 
   if (fd < 0) PFATAL("Unable to open '%s'", fname);
 
-  ck_write(fd, filtered_bits, MAP_SIZE, fname);
+  ck_write(fd, virgin_bits_eval, MAP_SIZE, fname);
 
   close(fd);
   ck_free(fname);
-  ck_free(filtered_bits);
 }
 
 
@@ -996,6 +991,15 @@ EXP_ST void read_bitmap(u8* fname) {
 
   close(fd);
 
+  u8* fname2 = alloc_printf("%s_eval", fname);
+  fd = open(fname2, O_RDONLY);
+
+  if (fd < 0) PFATAL("Unable to open '%s'", fname2);
+
+  ck_read(fd, virgin_bits_eval, MAP_SIZE, fname2);
+
+  close(fd);
+
 }
 
 
@@ -1007,18 +1011,18 @@ EXP_ST void read_bitmap(u8* fname) {
    This function is called after every exec() on a fairly large buffer, so
    it needs to be fast. We do this in 32-bit and 64-bit flavors. */
 
-static inline u8 has_new_bits(u8* virgin_map) {
+static inline u8 has_new_bits(u8* virgin_map, u8* trace_map) {
 
 #ifdef WORD_SIZE_64
 
-  u64* current = (u64*)trace_bits;
+  u64* current = (u64*)trace_map;
   u64* virgin  = (u64*)virgin_map;
 
   u32  i = (MAP_SIZE >> 3);
 
 #else
 
-  u32* current = (u32*)trace_bits;
+  u32* current = (u32*)trace_map;
   u32* virgin  = (u32*)virgin_map;
 
   u32  i = (MAP_SIZE >> 2);
@@ -1270,8 +1274,22 @@ static const u8 count_class_lookup8[256] = {
 
 };
 
-static u16 count_class_lookup16[65536];
+static const u8 count_class_lookup8_eval[256] = {
 
+  [0]           = 0,
+  [1]           = 1,
+  [2]           = 2,
+  [3]           = 4,
+  [4 ... 7]     = 8,
+  [8 ... 15]    = 16,
+  [16 ... 31]   = 32,
+  [32 ... 127]  = 64,
+  [128 ... 255] = 128
+
+};
+
+static u16 count_class_lookup16[65536];
+static u16 count_class_lookup16_eval[65536];
 
 EXP_ST void init_count_class16(void) {
 
@@ -1285,6 +1303,17 @@ EXP_ST void init_count_class16(void) {
 
 }
 
+EXP_ST void init_count_class16_eval(void) {
+
+  u32 b1, b2;
+
+  for (b1 = 0; b1 < 256; b1++) 
+    for (b2 = 0; b2 < 256; b2++)
+      count_class_lookup16_eval[(b1 << 8) + b2] = 
+        (count_class_lookup8_eval[b1] << 8) |
+        count_class_lookup8_eval[b2];
+
+}
 
 #ifdef WORD_SIZE_64
 
@@ -1304,6 +1333,31 @@ static inline void classify_counts(u64* mem) {
       mem16[1] = count_class_lookup16[mem16[1]];
       mem16[2] = count_class_lookup16[mem16[2]];
       mem16[3] = count_class_lookup16[mem16[3]];
+
+    }
+
+    mem++;
+
+  }
+
+}
+
+static inline void classify_counts_eval(u64* mem) {
+
+  u32 i = MAP_SIZE >> 3;
+
+  while (i--) {
+
+    /* Optimize for sparse bitmaps. */
+
+    if (unlikely(*mem)) {
+
+      u16* mem16 = (u16*)mem;
+
+      mem16[0] = count_class_lookup16_eval[mem16[0]];
+      mem16[1] = count_class_lookup16_eval[mem16[1]];
+      mem16[2] = count_class_lookup16_eval[mem16[2]];
+      mem16[3] = count_class_lookup16_eval[mem16[3]];
 
     }
 
@@ -1338,6 +1392,29 @@ static inline void classify_counts(u32* mem) {
 
 }
 
+static inline void classify_counts_eval(u32* mem) {
+
+  u32 i = MAP_SIZE >> 2;
+
+  while (i--) {
+
+    /* Optimize for sparse bitmaps. */
+
+    if (unlikely(*mem)) {
+
+      u16* mem16 = (u16*)mem;
+
+      mem16[0] = count_class_lookup16_eval[mem16[0]];
+      mem16[1] = count_class_lookup16_eval[mem16[1]];
+
+    }
+
+    mem++;
+
+  }
+
+}
+
 #endif /* ^WORD_SIZE_64 */
 
 
@@ -1346,6 +1423,7 @@ static inline void classify_counts(u32* mem) {
 static void remove_shm(void) {
 
   shmctl(shm_id, IPC_RMID, NULL);
+  shmctl(shm_id_eval, IPC_RMID, NULL);
 
 }
 
@@ -1488,7 +1566,10 @@ EXP_ST void setup_shm(void) {
 
   u8* shm_str;
 
-  if (!in_bitmap && !in_place_resume) memset(virgin_bits, 255, MAP_SIZE);
+  if (!in_bitmap && !in_place_resume) {
+    memset(virgin_bits, 255, MAP_SIZE);
+    memset(virgin_bits_eval, 255, MAP_SIZE);
+  }
 
   memset(virgin_tmout, 255, MAP_SIZE);
   memset(virgin_crash, 255, MAP_SIZE);
@@ -1513,6 +1594,28 @@ EXP_ST void setup_shm(void) {
   trace_bits = shmat(shm_id, NULL, 0);
   
   if (trace_bits == (void *)-1) PFATAL("shmat() failed");
+
+
+  shm_id_eval = shmget(IPC_PRIVATE, MAP_SIZE, IPC_CREAT | IPC_EXCL | 0777);
+
+  if (shm_id_eval < 0) PFATAL("shmget() failed");
+
+  atexit(remove_shm);
+
+  shm_str = alloc_printf("%d", shm_id_eval);
+
+  /* If somebody is asking us to fuzz instrumented binaries in dumb mode,
+     we don't want them to detect instrumentation, since we won't be sending
+     fork server commands. This should be replaced with better auto-detection
+     later on, perhaps? */
+
+  if (!dumb_mode) setenv(SHM_ENV_VAR_EVAL, shm_str, 1);
+
+  ck_free(shm_str);
+
+  trace_bits_eval = shmat(shm_id_eval, NULL, 0);
+  
+  if (trace_bits_eval == (void *)-1) PFATAL("shmat() failed");
 
 }
 
@@ -2158,47 +2261,120 @@ int file_exists(const char *filename) {
 }
 
 void *send_requests(void *arg) {
-  char ip[256];
-  FILE *file;
+  char net_ip[256];
   int iteration = 0;
 
   while (!file_exists("fuzzing_started")) {
-    // OKF("iteration: %d\n", iteration);
-    file = fopen("ip.0", "r");
+    FILE *file = fopen("ip.0", "r");
     if (!file) {
       perror("Failed to open ip.0");
-      sleep(1);
+      sleep(RETRY_DELAY);
       continue;
     }
 
-    if (fgets(ip, sizeof(ip), file) == NULL) {
+    if (!fgets(net_ip, sizeof(net_ip), file)) {
       perror("Failed to read IP");
       fclose(file);
-      sleep(1);
+      sleep(RETRY_DELAY);
       continue;
     }
     fclose(file);
 
-    ip[strcspn(ip, "\n")] = '\0';
-
-    CURL *curl = curl_easy_init();
-    if (curl) {
-      curl_easy_setopt(curl, CURLOPT_URL, ip);
-      if (debug) {
-        FILE *log = fopen("debug/curl.log", "a");
-        if (log) {
-          curl_easy_setopt(curl, CURLOPT_WRITEDATA, log);
-          curl_easy_perform(curl);
-          fclose(log);
-        }
-      } else {
-        curl_easy_perform(curl);
-      }
-      curl_easy_cleanup(curl);
+    FILE *seed = fopen("seed", "rb");
+    if (!seed) {
+      perror("Failed to open seed");
+      sleep(RETRY_DELAY);
+      continue;
     }
+
+    fseek(seed, 0, SEEK_END);
+    long seed_size = ftell(seed);
+    rewind(seed);
+
+    if (seed_size <= 0) {
+      fclose(seed);
+      fprintf(stderr, "Seed file is empty or unreadable\n");
+      sleep(RETRY_DELAY);
+      continue;
+    }
+
+    char *request = malloc(seed_size);
+    if (!request) {
+      fclose(seed);
+      perror("Failed to allocate buffer");
+      sleep(RETRY_DELAY);
+      continue;
+    }
+
+    if (fread(request, 1, seed_size, seed) != seed_size) {
+      perror("Failed to read full seed");
+      fclose(seed);
+      free(request);
+      sleep(RETRY_DELAY);
+      continue;
+    }
+    fclose(seed);
+
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+      perror("Error creating socket");
+      free(request);
+      sleep(RETRY_DELAY);
+      continue;
+    }
+
+    struct sockaddr_in server_addr = {
+      .sin_family = AF_INET,
+      .sin_port = htons(80),
+    };
+
+    if (inet_pton(AF_INET, net_ip, &server_addr.sin_addr) <= 0) {
+      perror("Invalid server IP address");
+      close(sockfd);
+      free(request);
+      sleep(RETRY_DELAY);
+      continue;
+    }
+
+    printf("Connecting to %s:%d...\n", net_ip, 80);
+    int connected = 0;
+    while (!connected) {
+      if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("Error connecting to server");
+        sleep(RETRY_DELAY);
+      } else {
+        connected = 1;
+      }
+    }
+    printf("Connection established.\n");
+
+    struct timeval timeout = { .tv_sec = child_tmout_secs, .tv_usec = 0 };
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+    ssize_t total_sent = 0;
+    while (total_sent < seed_size) {
+      ssize_t sent = net_send(sockfd, timeout, request, seed_size);
+      if (sent <= 0) {
+        perror("send failed");
+        break;
+      }
+      total_sent += sent;
+    }
+
+    if (debug) {
+      FILE *log = fopen("debug/send.log", "a");
+      if (log) {
+        fprintf(log, "Iteration %d: Sent %ld bytes to %s\n", iteration, total_sent, net_ip);
+        fclose(log);
+      }
+    }
+
+    close(sockfd);
+    free(request);
     sleep(1);
     iteration++;
   }
+
   return NULL;
 }
 
@@ -2328,6 +2504,7 @@ EXP_ST void init_forkserver(char** argv) {
        falling through. */
 
     *(u32*)trace_bits = EXEC_FAIL_SIG;
+    *(u32*)trace_bits_eval = EXEC_FAIL_SIG;
     exit(0);
 
   }
@@ -2450,7 +2627,7 @@ EXP_ST void init_forkserver(char** argv) {
 
   }
 
-  if (*(u32*)trace_bits == EXEC_FAIL_SIG)
+  if (*(u32*)trace_bits == EXEC_FAIL_SIG && *(u32*)trace_bits_eval == EXEC_FAIL_SIG)
     FATAL("Unable to execute target application ('%s')", argv[0]);
 
   if (mem_limit && mem_limit < 500 && uses_asan) {
@@ -2513,7 +2690,7 @@ static u8 run_target(char** argv, u32 timeout) {
   static u64 exec_ms = 0;
 
   int status = 0;
-  u32 tb4;
+  u32 tb4, tb4_eval;
 
   child_timed_out = 0;
 
@@ -2522,6 +2699,7 @@ static u8 run_target(char** argv, u32 timeout) {
      territory. */
 
   memset(trace_bits, 0, MAP_SIZE);
+  memset(trace_bits_eval, 0, MAP_SIZE);
   MEM_BARRIER();
 
   /* If we're running in "dumb" mode, we can't rely on the fork server
@@ -2602,6 +2780,7 @@ static u8 run_target(char** argv, u32 timeout) {
          falling through. */
 
       *(u32*)trace_bits = EXEC_FAIL_SIG;
+      *(u32*)trace_bits_eval = EXEC_FAIL_SIG;
       exit(0);
 
     }
@@ -2715,11 +2894,14 @@ static u8 run_target(char** argv, u32 timeout) {
   MEM_BARRIER();
 
   tb4 = *(u32*)trace_bits;
+  tb4_eval = *(u32*)trace_bits_eval;
 
 #ifdef WORD_SIZE_64
   classify_counts((u64*)trace_bits);
+  classify_counts_eval((u64*)trace_bits_eval);
 #else
   classify_counts((u32*)trace_bits);
+  classify_counts_eval((u64*)trace_bits_eval);
 #endif /* ^WORD_SIZE_64 */
 
   prev_timed_out = child_timed_out;
@@ -2752,7 +2934,7 @@ static u8 run_target(char** argv, u32 timeout) {
     return FAULT_CRASH;
   }
 
-  if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG)
+  if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG && tb4_eval == EXEC_FAIL_SIG)
     return FAULT_ERROR;
 
   /* It makes sense to account for the slowest units only if the testcase was run
@@ -2834,7 +3016,7 @@ static void write_with_gap(void* mem, u32 len, u32 skip_at, u32 skip_len) {
 u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
                          u32 handicap, u8 dry_run, u8 *new_bits) {
 
-  static u8 first_trace[MAP_SIZE];
+  static u8 first_trace[MAP_SIZE], first_trace_eval[MAP_SIZE];
 
   u8  fault = 0, var_detected = 0, auto_calibration = 0,
       first_run = (q->exec_cksum == 0);
@@ -2860,7 +3042,8 @@ u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
   if (calibration == -1)
     auto_calibration = 1;
   else {
-    *new_bits = has_new_bits(virgin_bits);
+    *new_bits = has_new_bits(virgin_bits, trace_bits);
+    has_new_bits(virgin_bits_eval, trace_bits_eval);
 
     if (calibration == 0) {
       if (dry_run)
@@ -2891,7 +3074,10 @@ u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
   if (dumb_mode != 1 && !no_forkserver && !forksrv_pid)
     init_forkserver(argv);
 
-  if (q->exec_cksum) memcpy(first_trace, trace_bits, MAP_SIZE);
+  if (q->exec_cksum) {
+    memcpy(first_trace, trace_bits, MAP_SIZE);
+    memcpy(first_trace_eval, trace_bits_eval, MAP_SIZE);
+  }
 
   start_us = get_cur_time_us();
 
@@ -2918,7 +3104,7 @@ u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
       goto abort_calibration;
     }
 
-    if (!dry_run && !dumb_mode && !stage_cur && !count_bytes(trace_bits)) {
+    if (!dry_run && !dumb_mode && !stage_cur && (!count_bytes(trace_bits) || !count_bytes(trace_bits_eval))) {
       WARNF("No instrumentation detected during calibration");
       fault = FAULT_NOINST;
       goto abort_calibration;
@@ -2928,23 +3114,22 @@ u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
     if (q->exec_cksum != cksum) {
 
-      u8 hnb = has_new_bits(virgin_bits);
-      if (hnb > *new_bits) {
-        WARNF("New bits discovered: %d", hnb);
-        *new_bits = hnb;
-      }
-
       if (q->exec_cksum) {
         u32 i;
 
         for (i = 0; i < MAP_SIZE; i++) {
 
-          if (!var_bytes[i] && first_trace[i] != trace_bits[i]) {
-
+          if (first_trace[i] != trace_bits[i]) {
+            
+            first_trace[i] = first_trace[i] < trace_bits[i] ? first_trace[i] : trace_bits[i];
             var_bytes[i] = 1;
             new_var_bytes++;
             // stage_max    = CAL_CYCLES_LONG;
 
+          }
+
+          if (first_trace_eval[i] != trace_bits_eval[i]) {
+            first_trace_eval[i] = first_trace_eval[i] < trace_bits_eval[i] ? first_trace_eval[i] : trace_bits_eval[i];
           }
 
         }
@@ -2960,6 +3145,7 @@ u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
         q->exec_cksum = cksum;
         memcpy(first_trace, trace_bits, MAP_SIZE);
+        memcpy(first_trace_eval, trace_bits_eval, MAP_SIZE);
 
       }
 
@@ -2967,12 +3153,10 @@ u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
   }
 
-  if (auto_calibration) {
-    u8 hnb = has_new_bits(virgin_bits);
-    if (hnb > *new_bits) {
-      WARNF("New bits discovered: %d", hnb);
-      *new_bits = hnb;
-    }
+  u8 hnb = has_new_bits(virgin_bits, first_trace);
+  if (hnb > *new_bits) {
+    WARNF("New bits discovered: %d", hnb);
+    *new_bits = hnb;
   }
 
 after_calibration:
@@ -3044,7 +3228,7 @@ abort_calibration:
 
 static void write_crash_readme(void);
 
-static void maybe_update_plot_file(double bitmap_cvg, double bitmap_cvg_without_var, double eps);
+static void maybe_update_plot_file(double bitmap_cvg, double eps);
 
 /* Examine map coverage. Called once, for first test case. */
 
@@ -3193,17 +3377,15 @@ static void perform_dry_run(char** argv) {
       q->fname = new_name;
     }
 
-    t_bytes = count_non_255_bytes(virgin_bits);
+    t_bytes = count_non_255_bytes(virgin_bits_eval);
     t_byte_ratio = ((double)t_bytes * 100) / MAP_SIZE;
-    t_bytes_without_var = count_non_255_bytes_excluding_var(virgin_bits);
-    t_byte_ratio_without_var = ((double)t_bytes_without_var * 100) / MAP_SIZE;
 
     if (t_bytes)
       stab_ratio = 100 - ((double)var_byte_count) * 100 / t_bytes;
     else
       stab_ratio = 100;
 
-    maybe_update_plot_file(t_byte_ratio, t_byte_ratio_without_var, avg_exec);
+    maybe_update_plot_file(t_byte_ratio, avg_exec);
 
     q = q->next;
 
@@ -3551,7 +3733,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
         simplify_trace((u32*)trace_bits);
 #endif /* ^WORD_SIZE_64 */
 
-        if (!has_new_bits(virgin_tmout)) return keeping;
+        if (!has_new_bits(virgin_tmout, trace_bits)) return keeping;
 
       }
 
@@ -3631,7 +3813,7 @@ keep_as_crash:
         simplify_trace((u32*)trace_bits);
 #endif /* ^WORD_SIZE_64 */
 
-        // if (!has_new_bits(virgin_crash)) return keeping;
+        // if (!has_new_bits(virgin_crash, trace_bits)) return keeping;
         if (!update_and_log_traces(cur_crash_traces, unique_crash_traces, fn2)) {
           ck_free(fn);
           ck_free(fn2);
@@ -3846,9 +4028,9 @@ static void restore_stats_file(void) {
 
 /* Update stats file for unattended monitoring. */
 
-static void write_stats_file(double bitmap_cvg, double bitmap_cvg_without_var, double stability, double eps) {
+static void write_stats_file(double bitmap_cvg, double stability, double eps) {
 
-  static double last_bcvg, last_bcvg_without_var, last_stab, last_eps;
+  static double last_bcvg, last_stab, last_eps;
   static struct rusage usage;
 
   u8* fn = alloc_printf("%s/fuzzer_stats", out_dir);
@@ -3870,12 +4052,10 @@ static void write_stats_file(double bitmap_cvg, double bitmap_cvg_without_var, d
 
   if (!bitmap_cvg && !stability && !eps) {
     bitmap_cvg = last_bcvg;
-    bitmap_cvg_without_var = last_bcvg_without_var;
     stability  = last_stab;
     eps        = last_eps;
   } else {
     last_bcvg = bitmap_cvg;
-    last_bcvg_without_var = bitmap_cvg_without_var;
     last_stab = stability;
     last_eps  = eps;
   }
@@ -3897,7 +4077,6 @@ static void write_stats_file(double bitmap_cvg, double bitmap_cvg_without_var, d
              "variable_paths         : %u\n"
              "stability              : %0.02f%%\n"
              "bitmap_cvg             : %0.02f%%\n"
-             "bitmap_cvg_without_var : %0.02f%%\n"
              "unique_crashes         : %llu\n"
              "unique_hangs           : %llu\n"
              "last_path              : %llu\n"
@@ -3915,7 +4094,7 @@ static void write_stats_file(double bitmap_cvg, double bitmap_cvg_without_var, d
              queue_cycle ? (queue_cycle - 1) : 0, total_execs, eps,
              queued_paths, queued_favored, queued_discovered, queued_imported,
              max_depth, current_entry, pending_favored, pending_not_fuzzed,
-             queued_variable, stability, bitmap_cvg, bitmap_cvg_without_var, unique_crashes,
+             queued_variable, stability, bitmap_cvg, unique_crashes,
              unique_hangs, last_path_time / 1000, last_crash_time / 1000,
              last_hang_time / 1000, total_execs - last_crash_execs,
              exec_tmout, use_banner,
@@ -3949,7 +4128,7 @@ static void write_stats_file(double bitmap_cvg, double bitmap_cvg_without_var, d
 
 /* Update the plot file if there is a reason to. */
 
-static void maybe_update_plot_file(double bitmap_cvg, double bitmap_cvg_without_var, double eps) {
+static void maybe_update_plot_file(double bitmap_cvg, double eps) {
 
   static u32 prev_qp, prev_pf, prev_pnf, prev_ce, prev_md;
   static u64 prev_qc, prev_uc, prev_uh;
@@ -3971,13 +4150,13 @@ static void maybe_update_plot_file(double bitmap_cvg, double bitmap_cvg_without_
   /* Fields in the file:
 
      unix_time, cycles_done, execs_done, cur_path, paths_total, pending_total,
-     pending_favs, map_size, map_size_without_var, unique_crashes, unique_hangs, max_depth,
+     pending_favs, map_size, unique_crashes, unique_hangs, max_depth,
      execs_per_sec, stability, n_calibration */
 
     fprintf(plot_file,
             "%llu, %llu, %llu, %u, %u, %u, %u, %0.02f%%, %0.02f%%, %llu, %llu, %u, %0.02f, %0.02f%%, %llu\n",
             get_cur_time() / 1000, queue_cycle ? (queue_cycle - 1) : 0, total_execs, current_entry, queued_paths,
-            pending_not_fuzzed, pending_favored, bitmap_cvg, bitmap_cvg_without_var, unique_crashes,
+            pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
             unique_hangs, max_depth, eps, stab_ratio, total_cal_cycles); /* ignore errors */
 
   fflush(plot_file);
@@ -4386,10 +4565,8 @@ void show_stats(void) {
 
   /* Do some bitmap stats. */
 
-  t_bytes = count_non_255_bytes(virgin_bits);
+  t_bytes = count_non_255_bytes(virgin_bits_eval);
   t_byte_ratio = ((double)t_bytes * 100) / MAP_SIZE;
-  t_bytes_without_var = count_non_255_bytes_excluding_var(virgin_bits);
-  t_byte_ratio_without_var = ((double)t_bytes_without_var * 100) / MAP_SIZE;
 
   if (t_bytes)
     stab_ratio = 100 - ((double)var_byte_count) * 100 / t_bytes;
@@ -4401,7 +4578,7 @@ void show_stats(void) {
   if (cur_ms - last_stats_ms > STATS_UPDATE_SEC * 1000) {
 
     last_stats_ms = cur_ms;
-    write_stats_file(t_byte_ratio, t_byte_ratio_without_var, stab_ratio, avg_exec);
+    write_stats_file(t_byte_ratio, stab_ratio, avg_exec);
     save_auto();
     write_bitmap();
 
@@ -4411,7 +4588,7 @@ void show_stats(void) {
 
   // if (cur_ms - last_plot_ms > PLOT_UPDATE_SEC * 1000) {
     last_plot_ms = cur_ms;
-    maybe_update_plot_file(t_byte_ratio, t_byte_ratio_without_var, avg_exec);
+    maybe_update_plot_file(t_byte_ratio, avg_exec);
 
   // }
 
@@ -4443,7 +4620,7 @@ void show_stats(void) {
 
   /* Compute some mildly useful bitmap stats. */
 
-  t_bits = (MAP_SIZE << 3) - count_bits(virgin_bits);
+  t_bits = (MAP_SIZE << 3) - count_bits(virgin_bits_eval);
 
   /* Now, for the visuals... */
 
@@ -7689,7 +7866,7 @@ EXP_ST void setup_dirs_fds(void) {
     if (!plot_file) PFATAL("fdopen() failed");
 
     fprintf(plot_file, "# unix_time, cycles_done, execs_done, cur_path, paths_total, "
-                      "pending_total, pending_favs, map_size, map_size_without_var, unique_crashes, "
+                      "pending_total, pending_favs, map_size, unique_crashes, "
                       "unique_hangs, max_depth, execs_per_sec, stability, n_calibration\n");
                       /* ignore errors */
   }
@@ -8621,6 +8798,7 @@ int main(int argc, char** argv) {
 
   setup_shm();
   init_count_class16();
+  init_count_class16_eval();
 
   setup_dirs_fds();
 
@@ -8666,6 +8844,10 @@ int main(int argc, char** argv) {
   if (!in_place_resume) {
     perform_dry_run(use_argv);
     write_max_tmout_secs();
+
+    u8 *tmp = alloc_printf("%s/blacklist_crash_traces", out_dir);
+    save_traces_binary(blacklist_crash_traces, tmp);
+    ck_free(tmp);
   }
   else {
     read_max_tmout_secs();
@@ -8688,7 +8870,7 @@ int main(int argc, char** argv) {
 
   seek_to = find_start_position();
 
-  write_stats_file(0, 0, 0, 0);
+  write_stats_file(0, 0, 0);
   save_auto();
 
   if (stop_soon) goto stop_fuzzing;
@@ -8775,7 +8957,7 @@ int main(int argc, char** argv) {
   }
 
   write_bitmap();
-  write_stats_file(0, 0, 0, 0);
+  write_stats_file(0, 0, 0);
   save_auto();
 
 stop_fuzzing:

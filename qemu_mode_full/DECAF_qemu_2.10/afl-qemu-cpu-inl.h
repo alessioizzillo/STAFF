@@ -130,7 +130,7 @@ static inline TranslationBlock *tb_find(CPUState*, TranslationBlock*, int);
 //static void afl_setup(void) {
 void afl_setup(void) {
 
-  char *id_str = getenv(SHM_ENV_VAR),
+  char *id_str = getenv(SHM_ENV_VAR), *id_str_eval = getenv(SHM_ENV_VAR_EVAL),
        *inst_r = getenv("AFL_INST_RATIO");
 
   int shm_id;
@@ -159,6 +159,21 @@ void afl_setup(void) {
        so that the parent doesn't give up on us. */
 
     if (inst_r) afl_area_ptr[0] = 1;
+
+
+  }
+
+  if (id_str_eval) {
+
+    shm_id = atoi(id_str_eval);
+    afl_area_ptr_eval = shmat(shm_id, NULL, 0);
+
+    if (afl_area_ptr_eval == (void*)-1) exit(1);
+
+    /* With AFL_INST_RATIO set to a low value, we want to touch the bitmap
+       so that the parent doesn't give up on us. */
+
+    if (inst_r) afl_area_ptr_eval[0] = 1;
 
 
   }
@@ -348,7 +363,7 @@ void afl_forkserver(CPUArchState *env, uint8_t checkpoint){
 
   static unsigned char tmp[4];
 
-  if (!afl_area_ptr) return;
+  if (!afl_area_ptr || !afl_area_ptr_eval) return;
 
   /* Tell the parent that we're alive. If the parent doesn't want
      to talk, assume that we're not running in forkserver mode. */

@@ -85,7 +85,7 @@ extern int target_len;
 
 /* This is equivalent to afl-as.h: */
 
-extern unsigned char *afl_area_ptr;
+extern unsigned char *afl_area_ptr, *afl_area_ptr_eval;
 extern int afl_user_fork;
 extern enum COVERAGE_TRACING coverage_tracing;
 

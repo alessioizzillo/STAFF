@@ -94,11 +94,13 @@ cmd.append("cp %s %s" %(keywords_src, dst))
 if "aflnet" in firm_tool or "staff" in firm_tool:
 	afl_src= "aflnet/afl-fuzz"
 	cmd.append("cp %s %s" %(afl_src, dst))
+	cmd.append("cp aflnet/client %s" %(dst))
 else:
 	afl_src= "AFL/afl-fuzz"
 	afl_src_net= "aflnet/afl-fuzz"
 	cmd.append("cp %s %s" %(afl_src, dst))
 	cmd.append("cp %s %s/afl-fuzz-net" %(afl_src_net, dst))
+	cmd.append("cp aflnet/client %s" %(dst))
 
 # Configuration File to make DECAF_VMI works with our kernel
 procinfo_src =  "FirmAFL_config/procinfo.ini"  

@@ -1,151 +1,198 @@
+import dpkt
 import socket
-from scapy.all import *
-import sys
-import re
 import os
+from collections import defaultdict
+import argparse
 
-def combine_payloads(packet, combined_payload):
-    return combined_payload + bytes(packet[IP].payload.load)
+HTTP_METHODS = [b"GET", b"POST", b"PUT", b"DELETE", b"HEAD", b"OPTIONS", b"PATCH", b"TRACE", b"CONNECT"]
 
-def convert_pcap_into_single_seed_file(input_pcap, dst_ip, output_raw, region_delimiter):
-    try:
-        packets = rdpcap(input_pcap)
-    except FileNotFoundError:
-        print(f"Error: The file {input_pcap} was not found.")
-        sys.exit(1)
+def convert_pcap_into_single_seed_file(pcap_path, dst_ip, output_raw, region_delimiter):
+    requests_with_ts = []
 
-    combined_payload = b""
-    expected_content_length = 0
-    os.makedirs(os.path.dirname(output_raw), exist_ok=True)
+    with open(pcap_path, "rb") as f:
+        pcap = dpkt.pcap.Reader(f)
 
-    hex_bytes = []
+        sessions = defaultdict(list)
 
-    with open(output_raw, "wb") as f:
-        for pkt in packets:
-            if not (pkt.haslayer(IP) and pkt[IP].payload):
-                continue
-
-            network_pkt = pkt[IP]
-            
-            if pkt.haslayer(TCP) and pkt[TCP].payload:
-                transport_pkt = pkt[TCP]
-            elif pkt.haslayer(UDP) and pkt[UDP].payload:
-                transport_pkt = pkt[UDP]
-            elif pkt.haslayer(SCTP) and pkt[SCTP].payload:
-                transport_pkt = pkt[SCTP]
-            else:
-                continue
-
-            if network_pkt.dst != dst_ip:
-                continue
-
-            if combined_payload:
-                expected_content_length -= len(bytes(pkt[IP].payload.load))
-                payload = combine_payloads(pkt, combined_payload)
-                combined_payload = b""
-            else:
-                payload = bytes(transport_pkt.payload.load)
-
+        for ts, buf in pcap:
             try:
-                payload_str = payload.decode('utf-8')
-            except UnicodeDecodeError:
-                continue
-
-            content_length_match = re.search(r'Content-Length: (\d+)', payload_str)
-            if content_length_match:
-                content_length = int(content_length_match.group(1))
-                end_of_headers = payload.find(b'\r\n\r\n')
-                if end_of_headers == -1:
+                eth = dpkt.ethernet.Ethernet(buf)
+                if not isinstance(eth.data, dpkt.ip.IP):
                     continue
-                expected_content_length = content_length - (len(payload) - end_of_headers - 4)
+                ip = eth.data
+                if not isinstance(ip.data, dpkt.tcp.TCP):
+                    continue
+                tcp = ip.data
+                if len(tcp.data) == 0:
+                    continue
 
-            if expected_content_length > 0:
-                combined_payload += payload
+                if socket.inet_ntoa(ip.dst) != dst_ip:
+                    continue
+
+                session_key = (ip.src, tcp.sport, ip.dst, tcp.dport)
+                sessions[session_key].append((ts, tcp.seq, bytes(tcp.data)))
+
+            except Exception as e:
+                print(f"[DEBUG] Skipping packet due to exception: {e}")
                 continue
 
-            payload += region_delimiter
-            request_hex = [byte for byte in payload]
-            hex_bytes.append(request_hex)
+    for session_key, stream_chunks in sessions.items():
+        if not stream_chunks:
+            continue
+        stream_chunks.sort(key=lambda x: x[1])
 
-            f.write(payload)
+        stream_data = b''.join(chunk for _, _, chunk in stream_chunks)
 
-    return hex_bytes
+        offsets = []
+        current_offset = 0
+        for ts, seq, chunk in stream_chunks:
+            offsets.append((current_offset, current_offset + len(chunk), ts))
+            current_offset += len(chunk)
 
-def convert_pcap_into_multiple_seed_files(input_pcap, dst_ip, output_dir, input_filename, region_delimiter):
-    try:
-        packets = rdpcap(input_pcap)
-    except FileNotFoundError:
-        print(f"Error: The file {input_pcap} was not found.")
-        sys.exit(1)
+        i = 0
+        while i < len(stream_data):
+            for method in HTTP_METHODS:
+                if stream_data[i:].startswith(method + b" "):
+                    end_of_headers = stream_data.find(b"\r\n\r\n", i)
+                    if end_of_headers == -1:
+                        break
+                    headers = stream_data[i:end_of_headers + 4]
+                    content_length = 0
+                    for header_line in headers.split(b"\r\n"):
+                        if header_line.lower().startswith(b"content-length:"):
+                            try:
+                                content_length = int(header_line.split(b":")[1].strip())
+                            except ValueError:
+                                content_length = 0
+                    total_len = end_of_headers + 4 + content_length
+                    request_data = stream_data[i:total_len]
 
-    combined_payload = b""
-    expected_content_length = 0
-    request_counter = 0
+                    request_start = i
+                    request_end = total_len
+                    relevant_ts = [ts for start, end, ts in offsets if not (end <= request_start or start >= request_end)]
+                    request_ts = min(relevant_ts) if relevant_ts else 0
+
+                    requests_with_ts.append((request_ts, request_data))
+                    i = total_len
+                    break
+            else:
+                i += 1
+
+    requests_with_ts.sort(key=lambda x: x[0])
+
+    os.makedirs(os.path.dirname(output_raw), exist_ok=True)
+    with open(output_raw, "wb") as f:
+        for _, req_data in requests_with_ts:
+            f.write(req_data)
+            f.write(region_delimiter)
+
+    return [req for _, req in requests_with_ts]
+
+
+def convert_pcap_into_multiple_seed_files(pcap_path, dst_ip, output_dir, input_filename, region_delimiter):
+    requests_with_ts = []
+
+    with open(pcap_path, "rb") as f:
+        pcap = dpkt.pcap.Reader(f)
+
+        sessions = defaultdict(list)
+
+        for ts, buf in pcap:
+            try:
+                eth = dpkt.ethernet.Ethernet(buf)
+                if not isinstance(eth.data, dpkt.ip.IP):
+                    continue
+                ip = eth.data
+                if not isinstance(ip.data, dpkt.tcp.TCP):
+                    continue
+                tcp = ip.data
+                if len(tcp.data) == 0:
+                    continue
+
+                if socket.inet_ntoa(ip.dst) != dst_ip:
+                    continue
+
+                session_key = (ip.src, tcp.sport, ip.dst, tcp.dport)
+                sessions[session_key].append((ts, tcp.seq, bytes(tcp.data)))
+
+            except Exception as e:
+                print(f"[DEBUG] Skipping packet due to exception: {e}")
+                continue
 
     os.makedirs(output_dir, exist_ok=True)
 
-    for _, pkt in enumerate(packets):
-        if pkt.haslayer(IP) and pkt[IP].payload:
-            network_pkt = pkt[IP]
+    for session_key, stream_chunks in sessions.items():
+        if not stream_chunks:
+            continue
+        stream_chunks.sort(key=lambda x: x[1])
 
-            if pkt.haslayer(TCP) and pkt[TCP].payload:
-                transport_pkt = pkt[TCP]
-            elif pkt.haslayer(UDP) and pkt[UDP].payload:
-                transport_pkt = pkt[UDP]
-            elif pkt.haslayer(SCTP) and pkt[SCTP].payload:
-                transport_pkt = pkt[SCTP]
+        stream_data = b''.join(chunk for _, _, chunk in stream_chunks)
+
+        offsets = []
+        current_offset = 0
+        for ts, seq, chunk in stream_chunks:
+            offsets.append((current_offset, current_offset + len(chunk), ts))
+            current_offset += len(chunk)
+
+        i = 0
+        while i < len(stream_data):
+            for method in HTTP_METHODS:
+                if stream_data[i:].startswith(method + b" "):
+                    end_of_headers = stream_data.find(b"\r\n\r\n", i)
+                    if end_of_headers == -1:
+                        break
+                    headers = stream_data[i:end_of_headers + 4]
+                    content_length = 0
+                    for header_line in headers.split(b"\r\n"):
+                        if header_line.lower().startswith(b"content-length:"):
+                            try:
+                                content_length = int(header_line.split(b":")[1].strip())
+                            except ValueError:
+                                content_length = 0
+                    total_len = end_of_headers + 4 + content_length
+                    request_data = stream_data[i:total_len]
+
+                    request_start = i
+                    request_end = total_len
+                    relevant_ts = [ts for start, end, ts in offsets if not (end <= request_start or start >= request_end)]
+                    request_ts = min(relevant_ts) if relevant_ts else 0
+
+                    requests_with_ts.append((request_ts, request_data))
+                    i = total_len
+                    break
             else:
-                continue
+                i += 1
 
-            if network_pkt.dst == dst_ip:
-                if combined_payload:
-                    expected_content_length -= len(bytes(pkt[IP].payload.load))
-                    payload = combine_payloads(pkt, combined_payload)
-                    combined_payload = b""
-                else:
-                    payload = bytes(transport_pkt.payload.load)
+    requests_with_ts.sort(key=lambda x: x[0])
 
-                try:
-                    payload_str = payload.decode('utf-8')
-                except UnicodeDecodeError:
-                    continue
+    for idx, (_, req_data) in enumerate(requests_with_ts):
+        output_raw = os.path.join(output_dir, f"{input_filename}_{idx}.seed")
+        os.makedirs(os.path.dirname(output_raw), exist_ok=True)
+        with open(output_raw, "wb") as f:
+            f.write(req_data)
+            f.write(region_delimiter)
 
-                content_length_match = re.search(r'Content-Length: (\d+)', payload_str)
-                if content_length_match:
-                    content_length = int(content_length_match.group(1))
-                    end_of_headers = payload.find(b'\r\n\r\n')
-                    assert end_of_headers != -1
-                    expected_content_length = content_length - (len(payload) - end_of_headers - 4)
+    return [req for _, req in requests_with_ts]
 
-                if expected_content_length > 0:
-                    combined_payload += payload
-                    continue
-
-                payload += region_delimiter
-                output_raw = os.path.join(output_dir, f"{input_filename}_{request_counter}.seed")
-                os.makedirs(os.path.dirname(output_raw), exist_ok=True)
-                with open(output_raw, "wb") as f:
-                    f.write(payload)
-                request_counter += 1
 
 if __name__ == "__main__":
-    if len(sys.argv) < 5:
-        print("Usage: python script.py <input_pcap> <output_path> <dst_ip> <mode>")
-        print("Modes: 'single' for single output file, 'multiple' for multiple output files")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Extract HTTP requests from PCAP into seed files.")
+    parser.add_argument("pcap_path", help="Path to the PCAP file.")
+    parser.add_argument("dst_ip", help="Destination IP to filter for HTTP requests.")
+    parser.add_argument("output_path", help="Output file (single mode) or directory (multiple mode).")
+    parser.add_argument("--mode", choices=["single", "multiple"], default="single",
+                        help="Output mode: 'single' for one file, 'multiple' for one file per request.")
+    parser.add_argument("--region-delimiter", default="0a0a0a0a",
+                        help="Hex string used to separate requests in output files (default '0a0a0a0a').")
 
-    input_pcap = sys.argv[1]
-    output_path = sys.argv[2]
-    dst_ip = sys.argv[3]
-    mode = sys.argv[4]
+    args = parser.parse_args()
 
-    input_filename = os.path.splitext(os.path.basename(input_pcap))[0]
+    region_delimiter = bytes.fromhex(args.region_delimiter)
 
-    if mode == 'single':
-        output_raw = os.path.join(output_path, f"{input_filename}_output.bin")
-        convert_pcap_into_single_seed_file(input_pcap, dst_ip, output_raw, b'\r\r\n\r\r\n')
-    elif mode == 'multiple':
-        convert_pcap_into_multiple_seed_files(input_pcap, dst_ip, output_path, input_filename, b'\r\r\n\r\r\n')
+    if args.mode == "single":
+        requests = convert_pcap_into_single_seed_file(args.pcap_path, args.dst_ip, args.output_path, region_delimiter)
+        print(f"Extracted {len(requests)} HTTP requests into single file '{args.output_path}'.")
     else:
-        print("Invalid mode specified. Use 'single' for single output file or 'multiple' for multiple output files.")
-        sys.exit(1)
+        base_filename = os.path.splitext(os.path.basename(args.pcap_path))[0]
+        requests = convert_pcap_into_multiple_seed_files(args.pcap_path, args.dst_ip, args.output_path, base_filename, region_delimiter)
+        print(f"Extracted {len(requests)} HTTP requests into directory '{args.output_path}'.")

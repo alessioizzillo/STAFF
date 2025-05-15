@@ -17,6 +17,7 @@
 /* Environment variable used to pass SHM ID to the called program. */
 
 #define SHM_ENV_VAR         "__AFL_SHM_ID"
+#define SHM_ENV_VAR_EVAL         "__AFL_SHM_ID_EVAL"
 
 #define MAX_MODULE_NAME_LENGTH 20
 #define MAX_PROCESS_NAME_LENGTH 30

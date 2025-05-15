@@ -59,7 +59,7 @@ void remove_directory(const char *path) {
   rmdir(path);
 }
 
-unsigned char *afl_area_ptr = NULL;
+unsigned char *afl_area_ptr = NULL, *afl_area_ptr_eval = NULL;
 int debug = 0, debug_fuzz = 0, debug_taint = 0, debug_fs_trace = 0, shm_fd;
 int callstack_trace = 0;
 int fuzz = 0;

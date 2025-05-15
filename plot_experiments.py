@@ -32,7 +32,7 @@ def parse_plot_data(exp_path):
             full_path = os.path.join(exp_path, filename)
             df = pd.read_csv(full_path, comment='#', names=[
                 "unix_time", "cycles_done", "execs_done", "cur_path", "paths_total", 
-                "pending_total", "pending_favs", "map_size", "map_size_without_var",
+                "pending_total", "pending_favs", "map_size",
                 "unique_crashes", "unique_hangs", "max_depth", "execs_per_sec", "stability",
                 "n_fetched_random_hints", "n_fetched_state_hints", "n_fetched_taint_hints", "n_calibration"
             ])
@@ -49,7 +49,6 @@ def parse_plot_data(exp_path):
         return None, []
 
     df['map_size'] = df['map_size'].str.rstrip('%').astype(float)
-    df['map_size_without_var'] = df['map_size_without_var'].str.rstrip('%').astype(float)
     df['stability'] = df['stability'].str.rstrip('%').astype(float)
     df['unix_time'] = df['unix_time'] - df['unix_time'].iloc[0]
 
@@ -142,7 +141,7 @@ def merge_experiment_data(experiments, base_dir):
         interpolated_dfs = []
 
         for df in all_dfs:
-            for column in ['map_size', 'map_size_without_var', 'unique_crashes', 'unique_hangs', 'paths_total', 'execs_per_sec', 'cycles_done', 'execs_done', 'stability', 'n_fetched_random_hints', 'n_fetched_state_hints', 'n_fetched_taint_hints', 'n_calibration']:
+            for column in ['map_size', 'unique_crashes', 'unique_hangs', 'paths_total', 'execs_per_sec', 'cycles_done', 'execs_done', 'stability', 'n_fetched_random_hints', 'n_fetched_state_hints', 'n_fetched_taint_hints', 'n_calibration']:
                 df[column] = pd.to_numeric(df[column], errors='coerce')
 
             if df['unix_time'].isnull().all():
@@ -150,7 +149,7 @@ def merge_experiment_data(experiments, base_dir):
                 continue
             
             interp_df = pd.DataFrame({'unix_time': common_times})
-            for column in ['map_size', 'map_size_without_var', 'unique_crashes', 'unique_hangs', 'paths_total', 'execs_per_sec', 'cycles_done', 'execs_done', 'stability', 'n_fetched_random_hints', 'n_fetched_state_hints', 'n_fetched_taint_hints', 'n_calibration']:
+            for column in ['map_size', 'unique_crashes', 'unique_hangs', 'paths_total', 'execs_per_sec', 'cycles_done', 'execs_done', 'stability', 'n_fetched_random_hints', 'n_fetched_state_hints', 'n_fetched_taint_hints', 'n_calibration']:
                 interp_df[column] = np.interp(common_times, df['unix_time'], df[column], left=np.nan, right=np.nan)
             interpolated_dfs.append(interp_df)
 
@@ -198,9 +197,6 @@ def plot_experiments(merged_data, resume_markers, output_dir):
 
     plot_metric(merged_data, 'map_size', "Coverage (%)", "Coverage over Time with Confidence Bands",
                 os.path.join(output_dir, "coverage_plot.png"), resume_markers)
-
-    plot_metric(merged_data, 'map_size_without_var', "Coverage (%)", "Coverage over Time (w.o. var bytes) with Confidence Bands",
-                os.path.join(output_dir, "coverage_without_var_plot.png"), resume_markers)
 
     plot_metric(merged_data, 'unique_crashes', "Unique Crashes", "Crashes over Time with Confidence Bands",
                 os.path.join(output_dir, "crashes_plot.png"), resume_markers)
@@ -261,9 +257,6 @@ def plot_venn(experiments, base_dir, output_dir):
 
     fuzz_sets = collect_sets('fuzz_bitmap')
     plot_fuzz_sets(fuzz_sets, "Venn Diagram of Fuzz Bitmap Coverage", "venn_fuzz_bitmap.png")
-
-    fuzz_sets_no_vars = collect_sets('fuzz_bitmap_without_vars')
-    plot_fuzz_sets(fuzz_sets_no_vars, "Venn Diagram of Fuzz Bitmap Without Vars", "venn_fuzz_bitmap_without_vars.png")
 
 
 if __name__ == "__main__":
