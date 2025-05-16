@@ -13,7 +13,6 @@ METRICS = ["bitmap_cvg", "unique_crashes", "unique_hangs", "paths_total"]
 WEIGHT  = "execs_done"
 
 def parse_fuzzer_stats(path):
-    """Read fuzzer_stats and return a dict of floats for METRICS + WEIGHT."""
     data = {}
     with open(path) as f:
         for line in f:
@@ -30,30 +29,56 @@ def parse_fuzzer_stats(path):
     return data
 
 agg = defaultdict(lambda: {w: 0.0 for w in METRICS + [WEIGHT]})
+valid_experiments = 0
 
 for exp_dir in sorted(glob.glob(os.path.join(BASE_DIR, "exp_*"))):
-    cfg_path   = os.path.join(exp_dir, "config.ini")
-    stats_path = os.path.join(exp_dir, "fuzzer_stats")
-    if not (os.path.isfile(cfg_path) and os.path.isfile(stats_path)):
+    print(f"\nChecking {exp_dir}")
+    cfg_path   = os.path.join(exp_dir, "outputs", "config.ini")
+    stats_path = os.path.join(exp_dir, "outputs", "fuzzer_stats")
+
+    if not os.path.isfile(cfg_path):
+        print("  -> MISSING config.ini")
+        continue
+    if not os.path.isfile(stats_path):
+        print("  -> MISSING fuzzer_stats")
         continue
 
     cfg = configparser.ConfigParser()
     cfg.read(cfg_path)
+    if "GENERAL" not in cfg:
+        print("  -> MISSING [GENERAL] section in config.ini")
+        continue
+    if "firmware" not in cfg["GENERAL"]:
+        print("  -> MISSING 'firmware' in config.ini")
+        continue
+    if "mode" not in cfg["GENERAL"]:
+        print("  -> MISSING 'mode' in config.ini")
+        continue
+
     try:
         firmware = cfg["GENERAL"]["firmware"]
         mode     = cfg["GENERAL"]["mode"]
     except KeyError:
+        print("  -> MISSING keys in [GENERAL] section")
         continue
 
     stats = parse_fuzzer_stats(stats_path)
     w     = stats.get(WEIGHT, 0.0)
     if w <= 0:
+        print("  -> ZERO execs_done")
         continue
+
+    print("  -> OK ✅")
+    valid_experiments += 1
 
     key = (firmware, mode)
     agg[key][WEIGHT] += w
     for m in METRICS:
         agg[key][m] += stats.get(m, 0.0) * w
+
+if not valid_experiments:
+    print("\nNo valid experiments found.")
+    exit(1)
 
 rows = []
 for (firmware, mode), vals in agg.items():
@@ -61,6 +86,7 @@ for (firmware, mode), vals in agg.items():
     row = {
         "Firmware": firmware,
         "Mode":     mode,
+        WEIGHT:     int(total_w),
     }
     for m in METRICS:
         row[m] = round(vals[m] / total_w, 4) if total_w > 0 else 0.0
@@ -69,11 +95,11 @@ for (firmware, mode), vals in agg.items():
 df_fw_mode = pd.DataFrame(rows).sort_values(["Firmware", "Mode"])
 out1 = os.path.join(OUTPUT_DIR, "per_firmware_mode.csv")
 df_fw_mode.to_csv(out1, index=False)
-print(f"-> saved per-firmware/mode averages to {out1}")
+print(f"\n-> saved per-firmware/mode averages to {out1}")
 
 df_mode = (
     df_fw_mode
-    .groupby("Mode")[METRICS]
+    .groupby("Mode")[METRICS + [WEIGHT]]
     .sum()
     .reset_index()
 )
@@ -82,6 +108,13 @@ df_mode.to_csv(out2, index=False)
 print(f"-> saved per-mode aggregates to    {out2}")
 
 print("\nPer-Firmware/Mode weighted averages:")
-print(df_fw_mode.to_markdown(index=False))
+try:
+    print(df_fw_mode.to_markdown(index=False))
+except ImportError:
+    print(df_fw_mode)
+
 print("\nPer-Mode aggregated sums:")
-print(df_mode.to_markdown(index=False))
+try:
+    print(df_mode.to_markdown(index=False))
+except ImportError:
+    print(df_mode)
