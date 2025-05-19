@@ -1012,6 +1012,8 @@ def start(keep_config, out_dir, container_name):
     elif config["GENERAL"]["mode"] == "check":
         check("run")
     elif config["GENERAL"]["mode"] == "pre_analysis":
+        if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
+            os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
         pre_analysis()
     elif "aflnet_base" in config["GENERAL"]["mode"] or \
         "aflnet_state_aware" in config["GENERAL"]["mode"] or \
