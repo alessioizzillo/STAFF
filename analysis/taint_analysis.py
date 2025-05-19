@@ -554,26 +554,21 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                     if (last_store_event["gpa"] == gpa-1):
                         current_region_store[1].append((gpa, value_hex, (inode, app_tb_pc), cov_xxhash))
                     else:
-                        current_value_hex = [value_hex for _, value_hex, _, _ in current_region_store[1]]
+                        current_value_hex = bytes([value_hex for _, value_hex, _, _ in current_region_store[1]])
                         # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
 
-                        while current_value_hex:
-                            matched_any = False
-                            # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
+                        matched_any = False
+                        # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
 
-                            for sub_len in range(len(current_value_hex), 0, -1):
-                                if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
-                                    break
+                        for sub_len in range(len(current_value_hex), 0, -1):
+                            if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
+                                break
 
-                                for start_curr in range(len(current_value_hex) - sub_len + 1):
-                                    found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
-                                    # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                    if found_positions and len(found_positions) == 1:
-                                        # if len(found_positions) > 1:
-                                        #     multiples.add(sub_curr_str)
-
-                                        #     if (covers_all_upto_x(found_positions, 2)):
-                                        #         multiples2.add(sub_curr_str)
+                            for start_curr in range(len(current_value_hex) - sub_len + 1):
+                                found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
+                                # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
+                                if found_positions:
+                                    if len(found_positions) == 1:
                                         for i, start_exist in found_positions:
                                             if current_region_store[0] >= i and sources_hex[i][start_exist:start_exist + sub_len ] == current_value_hex[start_curr:start_curr + sub_len]:
                                                 for j in range(sub_len):
@@ -593,23 +588,12 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                                                     if current_region_store[1][j][3] not in sources[i][1][j + start_exist][3]:
                                                         sources[i][1][j + start_exist][3].append(current_region_store[1][j][3])
 
-                                                matched_any = True
+                                    matched_any = True
+                                    
+                                    if matched_any:
+                                        break
 
-                                        if matched_any:
-                                            break
-                                        else:
-                                            pass
-                                            # assert(False)
-
-                                if matched_any:
-                                    current_value_hex = current_value_hex[:start_curr] + current_value_hex[start_curr + sub_len + 1:]
-                                    current_region_store[1] = current_region_store[1][:start_curr] + current_region_store[1][start_curr + sub_len + 1:]
-                                    # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-                                    break
-                                
-                            if not matched_any:
-                                # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-                                # discarded_regions.add(current_region_str)
+                            if matched_any:
                                 break
 
                         current_region_store[1] = [(gpa, value_hex, (inode, app_tb_pc), cov_xxhash)]                    
@@ -622,26 +606,21 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                     if (last_load_event["gpa"] == gpa-1):
                         current_region_load[1].append((gpa, value_hex, (inode, app_tb_pc), cov_xxhash))
                     else:
-                        current_value_hex = [value_hex for _, value_hex, _, _ in current_region_load[1]]
+                        current_value_hex = bytes([value_hex for _, value_hex, _, _ in current_region_load[1]])
                         # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
 
-                        while current_value_hex:
-                            matched_any = False
-                            # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
+                        matched_any = False
+                        # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
 
-                            for sub_len in range(len(current_value_hex), 0, -1):
-                                if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
-                                    break
+                        for sub_len in range(len(current_value_hex), 0, -1):
+                            if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
+                                break
 
-                                for start_curr in range(len(current_value_hex) - sub_len + 1):
-                                    found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
-                                    # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                    if found_positions and len(found_positions) == 1:
-                                        # if len(found_positions) > 1:
-                                        #     multiples.add(sub_curr_str)
-
-                                        #     if (covers_all_upto_x(found_positions, 2)):
-                                        #         multiples2.add(sub_curr_str)                
+                            for start_curr in range(len(current_value_hex) - sub_len + 1):
+                                found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
+                                # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
+                                if found_positions:
+                                    if len(found_positions) == 1:           
                                         for i, start_exist in found_positions:
                                             if current_region_load[0] >= i and sources_hex[i][start_exist:start_exist + sub_len ] == current_value_hex[start_curr:start_curr + sub_len]:
                                                 for j in range(sub_len):
@@ -661,23 +640,12 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                                                     if current_region_load[1][j][3] not in sources[i][1][j + start_exist][3]:
                                                         sources[i][1][j + start_exist][3].append(current_region_load[1][j][3])
 
-                                                matched_any = True
+                                    matched_any = True
 
-                                        if matched_any:
-                                            break
-                                        else:
-                                            pass
-                                            # assert(False)
+                                    if matched_any:
+                                        break
 
-                                if matched_any:
-                                    current_value_hex = current_value_hex[:start_curr] + current_value_hex[start_curr + sub_len + 1:]
-                                    current_region_load[1] = current_region_load[1][:start_curr] + current_region_load[1][start_curr + sub_len + 1:]
-                                    # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-                                    break
-
-                            if not matched_any:
-                                # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-                                # discarded_regions.add(current_region_str)
+                            if matched_any:
                                 break
 
                         current_region_load[1] = [(gpa, value_hex, (inode, app_tb_pc), cov_xxhash)]
@@ -690,26 +658,21 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
         print("Error: len(sources) [%d] != len(sources_hex) [%d]"%(len(sources), len(sources_hex)))
         return None
 
-    current_value_hex = [value_hex for _, value_hex, _, _ in current_region_store[1]]
+    current_value_hex = bytes([value_hex for _, value_hex, _, _ in current_region_store[1]])
     # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
 
-    while current_value_hex:
-        matched_any = False
-        # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
+    matched_any = False
+    # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
 
-        for sub_len in range(len(current_value_hex), 0, -1):
-            if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
-                break
+    for sub_len in range(len(current_value_hex), 0, -1):
+        if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
+            break
 
-            for start_curr in range(len(current_value_hex) - sub_len + 1):
-                found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
-                # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                if found_positions and len(found_positions) == 1:
-                    # if len(found_positions) > 1:
-                    #     multiples.add(sub_curr_str)
-
-                    #     if (covers_all_upto_x(found_positions, 2)):
-                    #         multiples2.add(sub_curr_str)
+        for start_curr in range(len(current_value_hex) - sub_len + 1):
+            found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
+            # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
+            if found_positions:
+                if len(found_positions) == 1:
                     for i, start_exist in found_positions:
                         if current_region_store[0] >= i and sources_hex[i][start_exist:start_exist + sub_len ] == current_value_hex[start_curr:start_curr + sub_len]:
                             for j in range(sub_len):
@@ -729,45 +692,29 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                                 if current_region_store[1][j][3] not in sources[i][1][j + start_exist][3]:
                                     sources[i][1][j + start_exist][3].append(current_region_store[1][j][3])
 
-                            matched_any = True
+                matched_any = True
 
-                    if matched_any:
-                        break
-                    else:
-                        pass
-                        # assert(False)
+                if matched_any:
+                    break
 
-            if matched_any:
-                current_value_hex = current_value_hex[:start_curr] + current_value_hex[start_curr + sub_len + 1:]
-                current_region_store[1] = current_region_store[1][:start_curr] + current_region_store[1][start_curr + sub_len + 1:]
-                # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-                break
-            
-        if not matched_any:
-            # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-            # discarded_regions.add(current_region_str)
+        if matched_any:
             break
 
-    current_value_hex = [value_hex for _, value_hex, _, _ in current_region_load[1]]
+    current_value_hex = bytes([value_hex for _, value_hex, _, _ in current_region_load[1]])
     # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
 
-    while current_value_hex:
-        matched_any = False
-        # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
+    matched_any = False
+    # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
 
-        for sub_len in range(len(current_value_hex), 0, -1):
-            if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
-                break
+    for sub_len in range(len(current_value_hex), 0, -1):
+        if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
+            break
 
-            for start_curr in range(len(current_value_hex) - sub_len + 1):
-                found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
-                # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                if found_positions and len(found_positions) == 1:
-                    # if len(found_positions) > 1:
-                    #     multiples.add(sub_curr_str)
-
-                    #     if (covers_all_upto_x(found_positions, 2)):
-                    #         multiples2.add(sub_curr_str)
+        for start_curr in range(len(current_value_hex) - sub_len + 1):
+            found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
+            # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
+            if found_positions:
+                if len(found_positions) == 1:
                     for i, start_exist in found_positions:
                         if current_region_load[0] >= i and sources_hex[i][start_exist:start_exist + sub_len ] == current_value_hex[start_curr:start_curr + sub_len]:
                             for j in range(sub_len):
@@ -787,24 +734,13 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                                 if current_region_load[1][j][3] not in sources[i][1][j + start_exist][3]:
                                     sources[i][1][j + start_exist][3].append(current_region_load[1][j][3])
 
-                            matched_any = True
+                    matched_any = True
 
                     if matched_any:
                         break
-                    else:
-                        pass
-                        # assert(False)
 
             if matched_any:
-                current_value_hex = current_value_hex[:start_curr] + current_value_hex[start_curr + sub_len + 1:]
-                current_region_load[1] = current_region_load[1][:start_curr] + current_region_load[1][start_curr + sub_len + 1:]
-                # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-                break
-            
-        if not matched_any:
-            # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-            # discarded_regions.add(current_region_str)
-            break       
+                break    
 
     # collision_analysis(taint_data, "cov_orig", "ORIG")
     # collision_analysis(taint_data, "cov_xxhash", "xxHash")
@@ -1352,8 +1288,8 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                 elif res == 2:
                     print("config.ini file does not match 'include_libraries' or 'region_delimiter'!")
                     force_run = True
-                else:
-                    continue
+                # else:
+                #     continue
 
             print("\n[\033[34m*\033[0m] PCAP #{}".format(pcap_file))
             skip_run = False
