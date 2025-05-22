@@ -1368,7 +1368,8 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                         fs_relations_data = clean_json_structure(fs_json_path)
                         taint_data = process_log_file(json_path)
                         
-                        while(1):
+                        delta_check = False
+                        while(True):
                             sources = process_json(sources_hex, taint_data, invert_fs_relations_data(fs_relations_data), subregion_divisor, min_subregion_len, global_max_len)
                             if sources:
                                 delta = update_global(sources)
@@ -1376,6 +1377,7 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
 
                                 if check_if_delta_is_little_enough_to_stop(delta, delta_threshold):
                                     skip_run = True
+                                    delta_check = True
                                     break
                             else:
                                 if error == 2:
@@ -1388,6 +1390,9 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                                     print("Error process_json() (2)")
                                     exit(1)
                                 error = 0
+                            break
+
+                        if delta_check:
                             break
             else:
                 taint_json_dir = os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "taint_json")
@@ -1486,6 +1491,7 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                     fs_relations_data = clean_json_structure(fs_target_file)
                     taint_data = process_log_file(taint_target_file)
 
+                    delta_check = False
                     while(True):
                         sources = process_json(sources_hex, taint_data, invert_fs_relations_data(fs_relations_data), subregion_divisor, min_subregion_len, global_max_len)
                         if sources:
@@ -1493,6 +1499,7 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                             analysis_results = calculate_analysis_results()
 
                             if check_if_delta_is_little_enough_to_stop(delta, delta_threshold):
+                                delta_check = True
                                 break
                         else:
                             if error == 2:
@@ -1505,6 +1512,9 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                                 print("Error process_json() (2)")
                                 exit(1)
                             error = 0
+                        break
+
+                    if delta_check:
                         break
 
             plot_dir_path = os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "taint_plot")
