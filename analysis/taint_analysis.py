@@ -1487,7 +1487,7 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                     taint_data = process_log_file(taint_target_file)
 
                     while(True):
-                        sources = process_json(sources_hex, taint_data, invert_fs_relations_data(fs_relations_data), subregion_divisor, min_subregion_len)
+                        sources = process_json(sources_hex, taint_data, invert_fs_relations_data(fs_relations_data), subregion_divisor, min_subregion_len, global_max_len)
                         if sources:
                             delta = update_global(sources)
                             analysis_results = calculate_analysis_results()
