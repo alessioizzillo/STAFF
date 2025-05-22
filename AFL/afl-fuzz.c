@@ -2265,14 +2265,14 @@ void *send_requests(void *arg) {
     FILE *file = fopen("ip.0", "r");
     if (!file) {
       perror("Failed to open ip.0");
-      sleep(MAX_SLEEP);
+      usleep(MAX_SLEEP);
       continue;
     }
 
     if (!fgets(net_ip, sizeof(net_ip), file)) {
       perror("Failed to read IP");
       fclose(file);
-      sleep(MAX_SLEEP);
+      usleep(MAX_SLEEP);
       continue;
     }
     fclose(file);
@@ -2280,7 +2280,7 @@ void *send_requests(void *arg) {
     FILE *seed = fopen("seed", "rb");
     if (!seed) {
       perror("Failed to open seed");
-      sleep(MAX_SLEEP);
+      usleep(MAX_SLEEP);
       continue;
     }
 
@@ -2291,7 +2291,7 @@ void *send_requests(void *arg) {
     if (seed_size <= 0) {
       fclose(seed);
       fprintf(stderr, "Seed file is empty or unreadable\n");
-      sleep(MAX_SLEEP);
+      usleep(MAX_SLEEP);
       continue;
     }
 
@@ -2299,7 +2299,7 @@ void *send_requests(void *arg) {
     if (!request) {
       fclose(seed);
       perror("Failed to allocate buffer");
-      sleep(MAX_SLEEP);
+      usleep(MAX_SLEEP);
       continue;
     }
 
@@ -2307,7 +2307,7 @@ void *send_requests(void *arg) {
       perror("Failed to read full seed");
       fclose(seed);
       free(request);
-      sleep(MAX_SLEEP);
+      usleep(MAX_SLEEP);
       continue;
     }
     fclose(seed);
@@ -2316,7 +2316,7 @@ void *send_requests(void *arg) {
     if (sockfd < 0) {
       perror("Error creating socket");
       free(request);
-      sleep(MAX_SLEEP);
+      usleep(MAX_SLEEP);
       continue;
     }
 
@@ -2329,7 +2329,7 @@ void *send_requests(void *arg) {
       perror("Invalid server IP address");
       close(sockfd);
       free(request);
-      sleep(MAX_SLEEP);
+      usleep(MAX_SLEEP);
       continue;
     }
 
@@ -2338,7 +2338,7 @@ void *send_requests(void *arg) {
     while (!connected) {
       if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Error connecting to server");
-        sleep(MAX_SLEEP);
+        usleep(MAX_SLEEP);
       } else {
         connected = 1;
       }
