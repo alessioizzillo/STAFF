@@ -13,21 +13,23 @@
 
 using namespace std;
 
-int is_trace_zero(trace_t *t) {
-    trace_element_t zero_trace[TRACE_LEN] = {0};
-    uint8_t zero_procname[MAX_PROCESS_NAME_LENGTH] = {0};
+int is_trace_zero(const trace_t *t) {
+    static const trace_element_t zero_trace[TRACE_LEN] = {0};
+    static const uint8_t zero_procname[MAX_PROCESS_NAME_LENGTH] = {0};
 
     return memcmp(t->procname, zero_procname, MAX_PROCESS_NAME_LENGTH) == 0 &&
-           memcmp(t->trace, zero_trace, sizeof(trace_element_t) * TRACE_LEN) == 0;
+           memcmp(t->trace, zero_trace, sizeof(zero_trace)) == 0;
 }
 
-int trace_equals(trace_t *a, trace_t *b) {
+int trace_equals(const trace_t *a, const trace_t *b) {
     if (strncmp(a->procname, b->procname, MAX_PROCESS_NAME_LENGTH) != 0)
         return 0;
 
     for (int i = 0; i < TRACE_COMPARE_LEN; ++i) {
-        if (a->trace[i].inode != b->trace[i].inode || a->trace[i].pc != b->trace[i].pc)
+        if (a->trace[i].inode != b->trace[i].inode ||
+            a->trace[i].pc != b->trace[i].pc) {
             return 0;
+        }
     }
     return 1;
 }
@@ -159,7 +161,7 @@ int update_and_log_traces(trace_t *src, trace_t *dst, const char *log_file) {
     create_dir_if_missing(dir);
     free(log_path);
 
-    dump_traces_to_file(dst, log_file);
+    dump_traces_to_file(src, log_file);
     return 1;
 }
 
