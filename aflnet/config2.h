@@ -25,6 +25,7 @@
 #define TRACE_LEN           20
 #define TRACE_COMPARE_LEN 5
 #define MAX_SLEEP 2000000
+#define INITIAL_SLEEP 1000
 
 struct AppTBPC {
    char procname[MAX_PROCESS_NAME_LENGTH];

@@ -1420,11 +1420,23 @@ int send_over_network(int checkpoint)
   }
   
   if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-    useconds_t sleep = 1000;
+    useconds_t sleep = INITIAL_SLEEP;
+    time_t start_time = time(NULL);
 
     while (1) {
       usleep(sleep);
       if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0) break;
+
+      if (time(NULL) - start_time >= child_tmout_secs) {
+        alarm = 1;
+        if (debug) {
+          fp = fopen("debug/fuzzing.log", "a+");
+          fprintf(fp, "\tsend_over_network (checkpoint: %d): timeout (connection failed) in 'net_recv()' for region %d!\n", checkpoint, messages_sent);
+          fclose(fp);
+        }
+
+        goto send_signals;
+      }
 
       if (sleep < MAX_SLEEP) {
         sleep *= 2;
@@ -1557,12 +1569,24 @@ retry:
         }
 
         if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-          useconds_t sleep = 1000;
-          int exit = 0;
+          useconds_t sleep = INITIAL_SLEEP;
+          time_t start_time = time(NULL);
 
           while (1) {
             usleep(sleep);
             if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0) break;
+
+            if (time(NULL) - start_time >= child_tmout_secs) {
+              alarm = 1;
+              if (debug) {
+                fp = fopen("debug/fuzzing.log", "a+");
+                fprintf(fp, "\tsend_over_network (checkpoint: %d): timeout (reconnection failed) in 'net_recv()' for region %d!\n", checkpoint, messages_sent);
+                fclose(fp);
+              }
+
+              messages_sent++;
+              break;
+            }
 
             if (sleep < MAX_SLEEP) {
               sleep *= 2;
@@ -1570,10 +1594,7 @@ retry:
             }
           }
 
-          if (exit) {
-            messages_sent++;
-            break;
-          }
+          if (alarm) break;
         }
 
         if (res == 3 && !retry) {
@@ -1608,6 +1629,7 @@ retry:
     response_bytes[messages_sent] = response_buf_size;
   }
 
+send_signals:
   // net_recv(sockfd, timeout, &response_buf, &response_buf_size);
 
   // if (messages_sent > 0 && response_bytes != NULL) {
