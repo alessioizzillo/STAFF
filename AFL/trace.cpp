@@ -165,6 +165,7 @@ int update_and_log_traces(trace_t *src, trace_t *dst, const char *log_file) {
 
 int check_and_filter_traces(trace_t *src, trace_t *blacklist, int debug) {
     trace_t empty_buf[NUM_TRACES] = {0};
+
     if (memcmp(src, empty_buf, sizeof(trace_t) * NUM_TRACES) == 0) {
         if (debug) {
             FILE *f = fopen("debug/fuzzing.log", "a+");
@@ -176,26 +177,40 @@ int check_and_filter_traces(trace_t *src, trace_t *blacklist, int debug) {
         return 0;
     }
 
-    char log_buf[4096];
-    int offset = 0;
+    char log_buf[32768];
+    int log_offset = 0;
 
-    if (debug)
-        offset += snprintf(log_buf + offset, sizeof(log_buf) - offset, "\tcheck_and_filter_traces():\n");
+    if (debug) {
+        log_offset += snprintf(log_buf + log_offset, sizeof(log_buf) - log_offset,
+                               "\tcheck_and_filter_traces():\n");
+    }
 
     for (int i = 0; i < NUM_TRACES; i++) {
         if (is_trace_zero(&src[i])) {
-            if (debug)
-                offset += snprintf(log_buf + offset, sizeof(log_buf) - offset, "\t\tTrace[%d]: Empty\n", i);
+            if (debug && log_offset < sizeof(log_buf)) {
+                log_offset += snprintf(log_buf + log_offset, sizeof(log_buf) - log_offset,
+                                       "\t\tTrace[%d]: Empty\n", i);
+            }
             continue;
         }
 
         int dropped = 0;
-        char trace_info[512];
-        snprintf(trace_info, sizeof(trace_info), "\t\tTrace[%d]: procname='%s'", i, src[i].procname);
+        char trace_info[2048];
+        int trace_offset = 0;
+
+        trace_offset += snprintf(trace_info + trace_offset, sizeof(trace_info) - trace_offset,
+                                 "\t\tTrace[%d]: procname='%s'", i, src[i].procname);
 
         for (int j = 0; j < TRACE_LEN && src[i].trace[j].inode != 0; ++j) {
-            snprintf(trace_info + strlen(trace_info), sizeof(trace_info) - strlen(trace_info),
-                     " (mod_name='%s', pc=0x%lx)", src[i].trace[j].modname, src[i].trace[j].pc);
+            trace_offset += snprintf(trace_info + trace_offset,
+                                     sizeof(trace_info) - trace_offset,
+                                     " (mod_name='%s', pc=0x%lx)",
+                                     src[i].trace[j].modname,
+                                     src[i].trace[j].pc);
+
+            if (trace_offset >= sizeof(trace_info) - 128) {
+                break;
+            }
         }
 
         for (int j = 0; j < NUM_TRACES; j++) {
@@ -207,14 +222,18 @@ int check_and_filter_traces(trace_t *src, trace_t *blacklist, int debug) {
             }
         }
 
-        if (debug)
-            offset += snprintf(log_buf + offset, sizeof(log_buf) - offset, "%s - %s\n", trace_info, dropped ? "Dropped" : "Kept");
+        if (debug && log_offset < sizeof(log_buf)) {
+            log_offset += snprintf(log_buf + log_offset,
+                                   sizeof(log_buf) - log_offset,
+                                   "%s - %s\n", trace_info,
+                                   dropped ? "Dropped" : "Kept");
+        }
     }
 
     if (debug) {
         FILE *f = fopen("debug/fuzzing.log", "a");
         if (f) {
-            fprintf(f, "%s", log_buf);
+            fwrite(log_buf, 1, log_offset, f);
             fclose(f);
         } else {
             perror("fopen (debug/fuzzing.log)");
