@@ -179,7 +179,7 @@ int check_and_filter_traces(trace_t *src, trace_t *blacklist, int debug) {
         return 0;
     }
 
-    char log_buf[32768];
+    char log_buf[32768] = {0};
     int log_offset = 0;
 
     if (debug) {
@@ -197,22 +197,23 @@ int check_and_filter_traces(trace_t *src, trace_t *blacklist, int debug) {
         }
 
         int dropped = 0;
-        char trace_info[2048];
+        char trace_info[2048] = {0};
         int trace_offset = 0;
 
+        const char *procname = src[i].procname ? src[i].procname : "<null>";
         trace_offset += snprintf(trace_info + trace_offset, sizeof(trace_info) - trace_offset,
-                                 "\t\tTrace[%d]: procname='%s'", i, src[i].procname);
+                                 "\t\tTrace[%d]: procname='%s'", i, procname);
 
         for (int j = 0; j < TRACE_LEN && src[i].trace[j].inode != 0; ++j) {
+            const char *modname = src[i].trace[j].modname ? src[i].trace[j].modname : "<null>";
             trace_offset += snprintf(trace_info + trace_offset,
                                      sizeof(trace_info) - trace_offset,
                                      " (mod_name='%s', pc=0x%lx)",
-                                     src[i].trace[j].modname,
+                                     modname,
                                      src[i].trace[j].pc);
 
-            if (trace_offset >= sizeof(trace_info) - 128) {
+            if (trace_offset >= (int)sizeof(trace_info) - 128)
                 break;
-            }
         }
 
         for (int j = 0; j < NUM_TRACES; j++) {
@@ -227,7 +228,8 @@ int check_and_filter_traces(trace_t *src, trace_t *blacklist, int debug) {
         if (debug && log_offset < sizeof(log_buf)) {
             log_offset += snprintf(log_buf + log_offset,
                                    sizeof(log_buf) - log_offset,
-                                   "%s - %s\n", trace_info,
+                                   "%s - %s\n",
+                                   trace_info[0] ? trace_info : "<trace_info missing>",
                                    dropped ? "Dropped" : "Kept");
         }
     }
@@ -235,7 +237,8 @@ int check_and_filter_traces(trace_t *src, trace_t *blacklist, int debug) {
     if (debug) {
         FILE *f = fopen("debug/fuzzing.log", "a");
         if (f) {
-            fwrite(log_buf, 1, log_offset, f);
+            size_t to_write = log_offset < sizeof(log_buf) ? log_offset : sizeof(log_buf);
+            fwrite(log_buf, 1, to_write, f);
             fclose(f);
         } else {
             perror("fopen (debug/fuzzing.log)");

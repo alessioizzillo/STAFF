@@ -5967,14 +5967,14 @@ void show_stats(void) {
 
   /* Roughly every minute, update fuzzer stats and save auto tokens. */
 
-  if (cur_ms - last_stats_ms > STATS_UPDATE_SEC * 1000) {
+  // if (cur_ms - last_stats_ms > STATS_UPDATE_SEC * 1000) {
 
     last_stats_ms = cur_ms;
     write_stats_file(t_byte_ratio, stab_ratio, avg_exec);
     save_auto();
     write_bitmap();
 
-  }
+  // }
 
   /* Every now and then, write plot data. */
 
