@@ -168,7 +168,7 @@ def convert_pcap_into_multiple_seed_files(pcap_path, dst_ip, output_dir, input_f
     requests_with_ts.sort(key=lambda x: x[0])
 
     for idx, (_, req_data) in enumerate(requests_with_ts):
-        output_raw = os.path.join(output_dir, f"{input_filename}_{idx}.seed")
+        output_raw = os.path.join(output_dir, f"{input_filename}_{idx:06d}.seed")
         os.makedirs(os.path.dirname(output_raw), exist_ok=True)
         with open(output_raw, "wb") as f:
             f.write(req_data)
