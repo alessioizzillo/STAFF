@@ -4489,7 +4489,8 @@ static void check_map_coverage(void) {
 
 static void write_crash_readme(void);
 
-static void maybe_update_plot_file(double bitmap_cvg, double eps, u64 ts) ;
+static void maybe_update_plot_file(double bitmap_cvg, double eps, u64 ts);
+static void write_stats_file(double bitmap_cvg, double stability, double eps);
 
 int is_direct_child(const char* base_dir, const char* file_path) {
   char* path_copy = strdup(file_path);
@@ -4729,6 +4730,8 @@ static void perform_dry_run(char** argv) {
     else
       stab_ratio = 100;
 
+    write_stats_file(t_byte_ratio, stab_ratio, avg_exec);
+    write_bitmap();
     maybe_update_plot_file(t_byte_ratio, avg_exec, replay_mode ? extract_u64_after_dollar(q->fname): 0);
 
     q = q->next;

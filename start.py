@@ -632,7 +632,7 @@ def run(capture):
     os.waitpid(qemu_pid, 0)
 
 
-def fuzz(out_dir, container_name):
+def fuzz(out_dir, container_name, replay_exp):
     global config
 
     mode = container_name if container_name else config["GENERAL"]["mode"]
@@ -675,7 +675,7 @@ def fuzz(out_dir, container_name):
     os.environ["DEBUG_FUZZ"] = "1"
     # os.environ["DEBUG"] = "1"
 
-    if "aflnet" in mode or "staff" in mode:
+    if "aflnet" in mode or "staff" in mode or replay_exp:
         os.environ["EXEC_MODE"] = "AFLNET"
         os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')   
     elif "triforce" in mode:
@@ -857,22 +857,23 @@ def fuzz(out_dir, container_name):
     command.append("--aflFile")
     command.append("@@")
 
-    ret = 1
-    try:
-        print(" ".join(command))
-        subprocess.run(
-            command,
-            env=env,
-            input="run\nbt\n",
-            text=True,
-            check=True
-        )
-        ret = 0
-    except subprocess.CalledProcessError as e:
-        print(f"Command failed with error: {e}")
+    if not replay_exp:
         ret = 1
+        try:
+            print(" ".join(command))
+            subprocess.run(
+                command,
+                env=env,
+                input="run\nbt\n",
+                text=True,
+                check=True
+            )
+            ret = 0
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed with error: {e}")
+            ret = 1
 
-    if "triforce" in mode:
+    if "triforce" in mode or replay_exp:
         os.chdir(prev_dir)
         cleanup(work_dir)
         subprocess.run(["sudo", "-E", "./run.sh", "-f", os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.join(FIRMWARE_DIR, config["GENERAL"]["firmware"]), mode, PSQL_IP])
@@ -978,7 +979,7 @@ def pre_analysis():
 
                     taint(work_dir, "run", os.path.join(os.path.basename(brand), os.path.basename(device)), sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
 
-def start(keep_config, out_dir, container_name):
+def start(keep_config, replay_exp, out_dir, container_name):
     global PSQL_IP
     global config
 
@@ -1019,8 +1020,9 @@ def start(keep_config, out_dir, container_name):
         "aflnet_state_aware" in config["GENERAL"]["mode"] or \
         "triforce" in config["GENERAL"]["mode"] or \
         "staff_base" in config["GENERAL"]["mode"] or \
-        "staff_state_aware" in config["GENERAL"]["mode"]:
-        fuzz(out_dir, container_name)
+        "staff_state_aware" in config["GENERAL"]["mode"] or \
+        replay_exp:
+        fuzz(out_dir, container_name, replay_exp)
     else:
         assert(False)
 
@@ -1030,9 +1032,10 @@ if __name__ == "__main__":
     os.umask(0o000)
     parser = argparse.ArgumentParser(description="Process some arguments.")
     parser.add_argument("--keep_config", type=int, help="Keep config file")
+    parser.add_argument("--replay_exp", type=int, help="Replay an experiment (triforce)")
     parser.add_argument("--output", type=str, help="Output dir")
     parser.add_argument("--container_name", type=str, help="Container name")
 
     args = parser.parse_args()
 
-    start(args.keep_config, os.path.abspath(args.output) if args.output else None, args.container_name if args.container_name else None)
+    start(args.keep_config, args.replay_exp, os.path.abspath(args.output) if args.output else None, args.container_name if args.container_name else None)

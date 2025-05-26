@@ -67,7 +67,7 @@ def wait_for_container_init(file_path="wait_for_container_init"):
         sleep(1)
     print(f"{file_path} removed, continuing execution.")
 
-def start_routine(exp_name, container_name, cpus):
+def start_routine(exp_name, container_name, cpus, replay):
     remove_container_if_exists(container_name)
 
     os.makedirs("docker", exist_ok=True)
@@ -76,7 +76,7 @@ def start_routine(exp_name, container_name, cpus):
     if os.path.exists(log_filename):
         os.remove(log_filename)
 
-    command = f"python3 start.py --keep_config 0 --output {os.path.join(EXPERIMENTS_DIR, exp_name)} --container_name {container_name}; "
+    command = f"python3 start.py --replay_exp {replay} --keep_config 0 --output {os.path.join(EXPERIMENTS_DIR, exp_name)} --container_name {container_name}; "
 
     print(command)
     with open("command", 'w') as file:
@@ -92,7 +92,7 @@ def start_routine(exp_name, container_name, cpus):
 
     wait_for_container_init()
 
-def run_experiment(exp_name, container_name, n_cores):
+def run_experiment(exp_name, container_name, n_cores, replay):
     if n_cores < 1 or n_cores > N_CPU_MAX:
         print(f"Invalid n_cores: {n_cores}")
         usage()
@@ -161,7 +161,7 @@ def run_experiment(exp_name, container_name, n_cores):
             break
 
     cpuset = ",".join(assigned)
-    start_routine(exp_name, container_name, cpuset)
+    start_routine(exp_name, container_name, cpuset, replay)
 
     with open(affinity_file, 'w') as fp:
         for i in range(N_CPU_MAX):
@@ -563,9 +563,20 @@ if __name__ == "__main__":
     if experiments:
         for idx, (status, exp_name, container_name, num_cores, config_data) in enumerate(experiments):
             if status == "":
-                exp_name, container_name = assign_names(SCHEDULE_CSV, idx, int(num_cores), config_data)
+                    exp_name, container_name = assign_names(SCHEDULE_CSV, idx, int(num_cores), config_data)
 
+                    if exp_name and container_name:
+                        config_file_path = create_config_file(config_data, idx)
+                        print(f"Config file created: {config_file_path} (num_cores: {num_cores})")
+                        run_experiment(exp_name, container_name, int(num_cores), 0)
+            elif status == "replay":
                 if exp_name and container_name:
-                    config_file_path = create_config_file(config_data, idx)
-                    print(f"Config file created: {config_file_path} (num_cores: {num_cores})")
-                    run_experiment(exp_name, container_name, int(num_cores))
+                    config_data["GENERAL"]["status"] = ""
+                    config_data["GENERAL"]["mode"] = container_name
+
+                    if exp_name and container_name:
+                        config_file_path = create_config_file(config_data, idx)
+                        print(f"Config file created: {config_file_path} (num_cores: {num_cores})")
+                        run_experiment(exp_name, container_name, int(num_cores), 1)
+                else:
+                    assert(exp_name and container_name)
