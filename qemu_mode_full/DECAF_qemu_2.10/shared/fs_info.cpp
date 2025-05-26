@@ -733,6 +733,9 @@ void load_node(FsNode &node) {
 FsNode* open_node(const char* path, int fd, int pid) {
     if (sink_id == -1)
         return NULL;
+    
+    if (strstr(path, "firmadyne"))
+        return NULL;
 
     if (fs_tracker.root.name != "/") {
         fs_tracker.root.name = "/";
