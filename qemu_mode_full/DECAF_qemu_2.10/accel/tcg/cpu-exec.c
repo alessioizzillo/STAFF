@@ -2040,7 +2040,7 @@ int specify_fork_pc(CPUState *cpu)
     target_ulong stack = env->active_tc.gpr[29];  
 #endif
 
-    if(start_fork_pc == 0)
+    if(start_fork_pc == 0 || (checkpoint_forksrv && *checkpoint_forksrv))
     {
         cpu->exception_index = -1;
         stack_mask = stack & 0xfff00000;
@@ -2361,15 +2361,15 @@ void sigint_handler(int signum) {
     exit(0);
 }
 
-void sigtstp_handler(int signum) {
-    if (debug_fuzz) {
-        FILE *fd = fopen("debug/fuzzing.log","a+"); 
-        fprintf(fd, "SIGTSTP! sigtstp_handler (pid %d)\n", getpid());
-        fclose(fd);
-    }
+// void sigtstp_handler(int signum) {
+//     if (debug_fuzz) {
+//         FILE *fd = fopen("debug/fuzzing.log","a+"); 
+//         fprintf(fd, "SIGTSTP! sigtstp_handler (pid %d)\n", getpid());
+//         fclose(fd);
+//     }
 
-    checkpoint_forksrv = 1;
-}
+//     checkpoint_forksrv = 1;
+// }
 
 void sigterm_handler(int signum) {
     if (debug_fuzz) {
@@ -3063,7 +3063,7 @@ int forkserver_mode(CPUState *cpu){
         }
 
 
-        if (exec_mode != TRIFORCE && ((!start_fork_pc && *start_fork_flag) || checkpoint_forksrv)){
+        if (exec_mode != TRIFORCE && ((!start_fork_pc && *start_fork_flag) || (checkpoint_forksrv && *checkpoint_forksrv))){
             specify_fork_pc(cpu);
 
             int start_fork_res = start_fork(cpu, pc);
@@ -3152,10 +3152,10 @@ int cpu_exec(CPUState *cpu)
                     exit(1);
                 }
 
-                if (signal(SIGTSTP, sigtstp_handler) == SIG_ERR) {
-                    perror("Error setting up SIGTSTP handler");
-                    exit(1);
-                }
+                // if (signal(SIGTSTP, sigtstp_handler) == SIG_ERR) {
+                //     perror("Error setting up SIGTSTP handler");
+                //     exit(1);
+                // }
 
                 if (signal(SIGALRM, sigalrm_handler_child) == SIG_ERR) {
                     perror("Error setting up SIGALRM handler");

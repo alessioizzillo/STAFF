@@ -46,7 +46,7 @@ extern char *start_fork_flag;
 extern char *child_retval;
 extern char *send_next_region;
 extern trace_t *cur_crashes;
-extern int checkpoint_forksrv;
+extern char *checkpoint_forksrv;
 extern int exit_write;
 extern int checkpoint_afl_user_fork;
 extern int fd_dependencies_track;

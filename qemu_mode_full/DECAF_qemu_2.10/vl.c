@@ -72,7 +72,7 @@ char *start_fork_flag = 0;
 char *child_retval = 0;
 char *send_next_region = 0;
 trace_t *cur_crashes = 0;
-int checkpoint_forksrv = 0;
+char *checkpoint_forksrv = 0;
 int exit_write = 0;
 int checkpoint_afl_user_fork = 0;
 uint8_t global_taint_flag = 0;
@@ -3311,6 +3311,30 @@ int main(int argc, char **argv, char **envp)
                 printf("Shared memory initialized to: %d\n", *start_fork_flag);
             } else {
                 printf("Reader read: %c\n", *start_fork_flag);
+            }
+
+            close(shm_fd);
+
+            shm_fd = shm_open(CHECKPOINT_FORKSRV, O_RDWR, 0666);
+            if (shm_fd == -1) {
+                perror("shm_open");
+                exit(EXIT_FAILURE);
+            }
+
+            if (ftruncate(shm_fd, sizeof(char)) == -1) {
+                perror("ftruncate");
+                exit(EXIT_FAILURE);
+            }
+
+            checkpoint_forksrv = mmap(NULL, sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+            if (checkpoint_forksrv == MAP_FAILED) {
+                perror("mmap");
+                exit(EXIT_FAILURE);
+            }
+
+            if (checkpoint_forksrv) {
+                *checkpoint_forksrv = 0;
+                printf("Shared memory initialized to: %d\n", *checkpoint_forksrv);
             }
 
             close(shm_fd);

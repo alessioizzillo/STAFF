@@ -1773,7 +1773,7 @@ static void *qemu_tcg_cpu_thread_fn(void *arg)
         //     afl_user_fork = 1;
 
         afl_wants_cpu_to_stop = 0;
-        if(stop_times == 0 || checkpoint_forksrv)
+        if(stop_times == 0 || (checkpoint_forksrv && *checkpoint_forksrv))
         {
             stop_times = 1;
             CPUArchState *env = cpu->env_ptr;
@@ -2182,9 +2182,9 @@ gotPipeNotification(void *ctx)
         if (exec_mode == PREANALYSIS)
             pre_analysis_forkserver(env);
         else {
-            if (checkpoint_forksrv == 1) {
+            if (checkpoint_forksrv && *checkpoint_forksrv) {
                 afl_forkserver(env, 1);
-                checkpoint_forksrv = 0;
+                *checkpoint_forksrv = 0;
             }
             else {
                 afl_forkserver(env, 0);

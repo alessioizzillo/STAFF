@@ -8,6 +8,7 @@
 #define BLACKLIST_CRASHES "/BLACKLIST_CRASHES"
 #define CUR_CRASHES "/CUR_CRASHES"
 #define SEND_NEXT_REGION "/SEND_NEXT_REGION"
+#define CHECKPOINT_FORKSRV "/CHECKPOINT_FORKSRV"
 
 /* Designated file descriptors for forkserver commands (the application will
    use FORKSRV_FD and FORKSRV_FD + 1): */

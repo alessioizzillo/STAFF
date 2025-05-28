@@ -133,7 +133,7 @@ int stage_max_par = 0;
 char *region_delimiter = NULL;
 int target_region = -1, target_offset = -1, target_len = -1, *regions_to_keep = NULL;
 int debug = 0, dry_run_phase = 1;
-char *start_fork_flag, *child_retval;
+char *start_fork_flag, *child_retval, *checkpoint_forksrv;
 trace_t blacklist_crash_traces[NUM_TRACES] = {0};
 trace_t unique_crash_traces[NUM_TRACES] = {0};
 trace_t *cur_crash_traces;
@@ -1655,11 +1655,11 @@ send_signals:
   if (checkpoint) {
     if (debug) {
       FILE *fp = fopen("debug/fuzzing.log", "a+");
-      fprintf(fp, "\tsend_over_network (checkpoint: %d): sending SIGTSTP to %d...\n", checkpoint, child_pid);
+      fprintf(fp, "\tsend_over_network (checkpoint: %d): *checkpoint_forksrv = 1...\n", checkpoint);
       fclose(fp);
     }
-    if (child_pid > 0) kill(child_pid, SIGTSTP);
     checkpoint_forksrv_pid = child_pid;
+    *checkpoint_forksrv = 1;
   }
   else {
     if (alarm) {
@@ -10394,6 +10394,33 @@ int main(int argc, char** argv) {
       printf("Shared memory initialized to: %d\n", *child_retval);
   } else {
       printf("Reader read: %c\n", *child_retval);
+  }
+
+  close(shm_fd);
+
+  shm_unlink(CHECKPOINT_FORKSRV);
+  shm_fd = shm_open(CHECKPOINT_FORKSRV, O_CREAT | O_RDWR, 0666);
+  if (shm_fd == -1) {
+      perror("shm_open");
+      exit(EXIT_FAILURE);
+  }
+
+  if (ftruncate(shm_fd, sizeof(char)) == -1) {
+      perror("ftruncate");
+      exit(EXIT_FAILURE);
+  }
+
+  checkpoint_forksrv = mmap(NULL, sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+  if (checkpoint_forksrv == MAP_FAILED) {
+      perror("mmap");
+      exit(EXIT_FAILURE);
+  }
+
+  if (*checkpoint_forksrv == 0) {
+      *checkpoint_forksrv = 0;
+      printf("Shared memory initialized to: %d\n", *checkpoint_forksrv);
+  } else {
+      printf("Reader read: %c\n", *checkpoint_forksrv);
   }
 
   close(shm_fd);
