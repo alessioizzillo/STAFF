@@ -713,7 +713,10 @@ def fuzz(out_dir, container_name, replay_exp):
     os.makedirs(os.path.join(work_dir, "outputs"))
 
     if "staff" in mode:
-        os.makedirs(os.path.join(work_dir, "outputs", "taint_metadata"))
+        if out_dir:
+            os.makedirs(os.path.join(out_dir, "taint_metadata"))
+        else:
+            os.makedirs(os.path.join(work_dir, "outputs", "taint_metadata"))
 
     if os.path.exists(os.path.join(work_dir, "inputs")):
         shutil.rmtree(os.path.join(work_dir, "inputs"), ignore_errors=True)
@@ -749,6 +752,9 @@ def fuzz(out_dir, container_name, replay_exp):
             pcap_file = os.path.join(pcap_path, "%s.seed"%(pcap_file))
             taint_metadata_file = os.path.join(pcap_path, "%s_metadata.json"%(pcap_file))
             shutil.copy(pcap_file, inputs)
+        if out_dir:
+            shutil.copy(taint_metadata_file, os.path.join(out_dir, "taint_metadata"))
+        else:
             shutil.copy(taint_metadata_file, os.path.join(work_dir, "outputs", "taint_metadata"))
 
     elif "aflnet" in mode:
