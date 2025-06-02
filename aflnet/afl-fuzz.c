@@ -127,7 +127,7 @@ int move_file(const char *source_path, const char *dest_dir) {
 
 FILE* warnf_output_file = NULL;
 int sequence_minimization = 0;
-int no_more_taint_hints = 0;
+int no_more_taint_hints = 0, no_more_taint_hints_at_all = 0, num_taint_analyzed_queue_entries = 0;
 int enable_taint_aware_mode = 0;
 int stage_max_par = 0;
 char *region_delimiter = NULL;
@@ -464,7 +464,7 @@ u64 last_stats_ms, last_plot_ms, last_ms, last_execs;
 double avg_exec;
 double t_byte_ratio, stab_ratio;
 
-u64 cur_ms;
+u64 cur_ms, taint_elapsed_ms = 0;
 u32 t_bytes, t_bits;
 
 u32 banner_len, banner_pad;
@@ -1421,13 +1421,13 @@ int send_over_network(int checkpoint)
   
   if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
     useconds_t sleep = INITIAL_SLEEP;
-    time_t start_time = time(NULL);
+    time_t start_time_conn = time(NULL);
 
     while (1) {
       usleep(sleep);
       if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0) break;
 
-      if (time(NULL) - start_time >= child_tmout_secs) {
+      if (time(NULL) - start_time_conn >= child_tmout_secs) {
         alarm = 1;
         if (debug) {
           fp = fopen("debug/fuzzing.log", "a+");
@@ -1570,13 +1570,13 @@ retry:
 
         if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
           useconds_t sleep = INITIAL_SLEEP;
-          time_t start_time = time(NULL);
+          time_t start_time_conn = time(NULL);
 
           while (1) {
             usleep(sleep);
             if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0) break;
 
-            if (time(NULL) - start_time >= child_tmout_secs) {
+            if (time(NULL) - start_time_conn >= child_tmout_secs) {
               alarm = 1;
               if (debug) {
                 fp = fopen("debug/fuzzing.log", "a+");
@@ -2171,6 +2171,7 @@ static void add_to_queue(u8* fname, u8* fname_trace, u32 len, u8 passed_det, u8 
   q->from_hangs   = from_hangs;
   q->len          = len;
   q->taint_analyzed = taint_analyzed;
+  num_taint_analyzed_queue_entries++;
   q->depth        = cur_depth + 1;
   q->passed_det   = passed_det;
   q->regions      = NULL;
@@ -7096,18 +7097,36 @@ AFLNET_REGIONS_SELECTION:;
 
     n_fetched_state_hints++;
   } else {
-    if (enable_taint_aware_mode && taint_aware_mode && queue_cur->is_initial_seed && !no_more_taint_hints) {
+    if (enable_taint_aware_mode && taint_aware_mode && queue_cur->is_initial_seed) {
       QueueElement qe;
       if (fetch_element_from_alias_app_tb_pc(queue_cur->fname, &qe)) {
         if (debug) {
           FILE *fp = fopen("debug/fuzzing.log", "a+");
-          fprintf(fp, "\tfuzz_one (fname: %s):Fetching of taint info of the testcase '%s' failed!", queue_cur->fname, queue_cur->fname);
+          fprintf(fp, "\tfuzz_one (fname: %s): Fetching of taint info of the testcase failed!\n", queue_cur->fname);
           fclose(fp);
         }
 
         WARNF("Fetching of taint info of the testcase '%s' failed! (fuzz_time: %lu)", queue_cur->fname, get_cur_time()-start_time);
 
-        no_more_taint_hints = 1;
+        no_more_taint_hints++;
+
+        if (debug) {
+          FILE *fp = fopen("debug/fuzzing.log", "a+");
+          fprintf(fp, "\tfuzz_one (fname: %s): no_more_taint_hints = %d!\n", queue_cur->fname, no_more_taint_hints);
+          fclose(fp);
+        }  
+
+        if (no_more_taint_hints == num_taint_analyzed_queue_entries) {
+          no_more_taint_hints_at_all = 1;
+
+          if (debug) {
+            FILE *fp = fopen("debug/fuzzing.log", "a+");
+            fprintf(fp, "\tfuzz_one (fname: %s): no_more_taint_hints_at_all = 1 !!!!\n", queue_cur->fname);
+            fclose(fp);
+          }  
+        }
+
+        enable_taint_aware_mode = 0;
         
         return 1;
       }
@@ -10460,7 +10479,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:b:t:T:dnCB:S:M:x:QN:D:w:e:P:Eq:s:RFc:l:y:HXY")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:b:t:T:dnCB:S:M:x:QN:D:w:e:P:Eq:s:RFc:l:y:HXYA:")) > 0)
 
     switch (opt) {
 
@@ -10659,6 +10678,12 @@ int main(int argc, char** argv) {
 
         if (sscanf(optarg, "%u", &server_wait_secs) < 1 || optarg[0] == '-') FATAL("Bad syntax used for -D");
         server_wait = 1;
+        break;
+
+      case 'A': /* waiting time for the server initialization */
+        if (taint_elapsed_ms) FATAL("Multiple -A options not supported");
+
+        if (sscanf(optarg, "%llu", &taint_elapsed_ms) < 1 || optarg[0] == '-') FATAL("Bad syntax used for -A");
         break;
       
       case 'w': /* child timeout determining time waited for each response */
@@ -10919,7 +10944,10 @@ int main(int argc, char** argv) {
     write_resume_time();
   }
 
-  if (!in_place_resume) start_time = get_cur_time();
+  if (!in_place_resume) {
+    start_time = get_cur_time()-taint_elapsed_ms;
+    OKF("Subtracted %llu ms to start_time", taint_elapsed_ms);
+  }
 
   read_testcases();
 
@@ -11082,7 +11110,7 @@ int main(int argc, char** argv) {
 
       if (stop_soon) break;
 
-      if (taint_aware_mode && !no_more_taint_hints && !enable_taint_aware_mode) {
+      if (taint_aware_mode && !no_more_taint_hints_at_all && !enable_taint_aware_mode) {
         old_queue_cur = queue_cur;
 
         if (!old_taint_analyzed_queue_cur || !old_taint_analyzed_queue_cur->next || !old_taint_analyzed_queue_cur->next->taint_analyzed)

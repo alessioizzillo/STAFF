@@ -6,7 +6,7 @@ import argparse
 
 HTTP_METHODS = [b"GET", b"POST", b"PUT", b"DELETE", b"HEAD", b"OPTIONS", b"PATCH", b"TRACE", b"CONNECT"]
 
-def convert_pcap_into_single_seed_file(pcap_path, dst_ip, output_raw, region_delimiter):
+def convert_pcap_into_single_seed_file(pcap_path, output_raw, region_delimiter):
     requests_with_ts = []
 
     with open(pcap_path, "rb") as f:
@@ -24,9 +24,6 @@ def convert_pcap_into_single_seed_file(pcap_path, dst_ip, output_raw, region_del
                     continue
                 tcp = ip.data
                 if len(tcp.data) == 0:
-                    continue
-
-                if socket.inet_ntoa(ip.dst) != dst_ip:
                     continue
 
                 session_key = (ip.src, tcp.sport, ip.dst, tcp.dport)
@@ -91,7 +88,7 @@ def convert_pcap_into_single_seed_file(pcap_path, dst_ip, output_raw, region_del
     return [req for _, req in requests_with_ts]
 
 
-def convert_pcap_into_multiple_seed_files(pcap_path, dst_ip, output_dir, input_filename, region_delimiter):
+def convert_pcap_into_multiple_seed_files(pcap_path, output_dir, input_filename, region_delimiter):
     requests_with_ts = []
 
     with open(pcap_path, "rb") as f:
@@ -109,9 +106,6 @@ def convert_pcap_into_multiple_seed_files(pcap_path, dst_ip, output_dir, input_f
                     continue
                 tcp = ip.data
                 if len(tcp.data) == 0:
-                    continue
-
-                if socket.inet_ntoa(ip.dst) != dst_ip:
                     continue
 
                 session_key = (ip.src, tcp.sport, ip.dst, tcp.dport)
@@ -180,7 +174,6 @@ def convert_pcap_into_multiple_seed_files(pcap_path, dst_ip, output_dir, input_f
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract HTTP requests from PCAP into seed files.")
     parser.add_argument("pcap_path", help="Path to the PCAP file.")
-    parser.add_argument("dst_ip", help="Destination IP to filter for HTTP requests.")
     parser.add_argument("output_path", help="Output file (single mode) or directory (multiple mode).")
     parser.add_argument("--mode", choices=["single", "multiple"], default="single",
                         help="Output mode: 'single' for one file, 'multiple' for one file per request.")
@@ -192,9 +185,9 @@ if __name__ == "__main__":
     region_delimiter = bytes.fromhex(args.region_delimiter)
 
     if args.mode == "single":
-        requests = convert_pcap_into_single_seed_file(args.pcap_path, args.dst_ip, args.output_path, region_delimiter)
+        requests = convert_pcap_into_single_seed_file(args.pcap_path, args.output_path, region_delimiter)
         print(f"Extracted {len(requests)} HTTP requests into single file '{args.output_path}'.")
     else:
         base_filename = os.path.splitext(os.path.basename(args.pcap_path))[0]
-        requests = convert_pcap_into_multiple_seed_files(args.pcap_path, args.dst_ip, args.output_path, base_filename, region_delimiter)
+        requests = convert_pcap_into_multiple_seed_files(args.pcap_path, args.output_path, base_filename, region_delimiter)
         print(f"Extracted {len(requests)} HTTP requests into directory '{args.output_path}'.")

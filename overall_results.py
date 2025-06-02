@@ -84,10 +84,8 @@ for exp_dir in sorted(glob.glob(os.path.join(BASE_DIR, "exp_*"))):
 if not valid_experiments:
     exit(1)
 
-# Build firmware-mode table with winner logic and tool rows
 rows = []
 
-# Add one initial empty row after header
 empty_template = {"winner": "", "Firmware": "", "Mode": ""}
 empty_template.update({f"{m}_avg": "" for m in METRICS})
 empty_template["run_time_avg"] = ""
@@ -113,7 +111,6 @@ for firmware in sorted(firmwares):
 
         tool_rows[tool] = row
 
-    # Determine winner with tie-breaking logic
     def score(tool):
         r = tool_rows[tool]
         return (
@@ -129,10 +126,22 @@ for firmware in sorted(firmwares):
     max_bitmap = max(scores[t][1] for t in tied_on_crashes)
     tied_finalists = [t for t in tied_on_crashes if scores[t][1] == max_bitmap]
 
-    positive = any(TOOL_RANK[t] > 0 for t in tied_finalists)
-    negative = any(TOOL_RANK[t] < 0 for t in tied_finalists)
+    legacy = ["triforce", "aflnet_base", "aflnet_state_aware"]
+    staff = ["staff_base", "staff_state_aware"]
 
-    if len(tied_finalists) > 1 and positive and negative:
+    best_legacy = max((tool_rows[t] for t in legacy), key=lambda r: r["bitmap_cvg_avg"])
+    best_staff = max((tool_rows[t] for t in staff), key=lambda r: r["bitmap_cvg_avg"])
+
+    abs_diff = abs(best_legacy["bitmap_cvg_avg"] - best_staff["bitmap_cvg_avg"])
+    rel_diff = abs_diff / max(best_legacy["bitmap_cvg_avg"], 1e-6)
+
+    legacy_crashes = max(tool_rows[t]["unique_crashes_avg"] for t in legacy)
+    staff_crashes = max(tool_rows[t]["unique_crashes_avg"] for t in staff)
+
+    # if legacy_crashes == staff_crashes and (abs_diff < 1.0 or rel_diff < 0.05):
+    if legacy_crashes == staff_crashes and (rel_diff < 0.05):
+        winner_rank = 0
+    elif len(tied_finalists) > 1 and any(TOOL_RANK[t] > 0 for t in tied_finalists) and any(TOOL_RANK[t] < 0 for t in tied_finalists):
         winner_rank = 0
     else:
         winner_tool = max(tied_finalists, key=lambda t: TOOL_RANK[t])
@@ -145,7 +154,6 @@ for firmware in sorted(firmwares):
         reordered.update({k: v for k, v in row.items() if k not in reordered})
         rows.append(reordered)
 
-    # Add empty row to separate firmware blocks
     rows.append({k: "" for k in rows[-1].keys()})
 
 df_fw_mode = pd.DataFrame(rows)
@@ -153,7 +161,6 @@ df_fw_mode = pd.DataFrame(rows)
 out1 = os.path.join(OUTPUT_DIR, "per_firmware_mode.csv")
 df_fw_mode.to_csv(out1, index=False)
 
-# Per-mode aggregate table
 rows = []
 for mode, group in df_fw_mode[df_fw_mode["Firmware"] != ""].groupby("Mode"):
     row = {"Mode": mode}

@@ -2277,6 +2277,11 @@ void *send_requests(void *arg) {
     }
     fclose(file);
 
+    size_t len = strlen(net_ip);
+    if (len > 0 && net_ip[len - 1] == '\n') {
+      net_ip[len - 1] = '\0';
+    }
+
     FILE *seed = fopen("seed", "rb");
     if (!seed) {
       perror("Failed to open seed");

@@ -900,9 +900,6 @@ void serialize_queue_to_json(const std::priority_queue<T, std::vector<T>, Compar
 }
 
 void filter_and_apply_heuristics() {
-    FILE *fp = fopen("debug/debug_json.log", "a+");
-    fprintf(fp, "%d", debug_json);
-    fclose(fp);
     if (debug_json) {
         for (const auto& entry : global_subregions_app_tb_pcs) {
             serialize_queue_to_json(entry.second, "app_tb_pcs", "pre", entry.first);

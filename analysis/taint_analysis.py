@@ -35,6 +35,7 @@ ORANGE = "\033[38;5;214m"
 
 qemu_pid = None
 subregion_to_find = ""
+global_all_app_tb_pcs = None
 global_subregions = {
     "app_tb_pc": [],
     "coverage": []
@@ -47,7 +48,7 @@ global_regions_dependance = {}
 global_regions_affections = {}
 
 error = 0
-global_max_len = -1
+global_max_len = 50
 
 # Hyperparams
 min_value = 0
@@ -432,7 +433,7 @@ class MultiSequenceTrie:
         mem_limit = self.get_container_memory_limit()
         process = psutil.Process(os.getpid())
 
-        iteration_check_interval = 5_000
+        iteration_check_interval = 2000
         time_check_interval = 1
         last_check_time = time.time()
 
@@ -521,6 +522,7 @@ def process_log_file(log_path):
     return events
 
 def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_divisor, min_subregion_len, max_len):
+    global global_all_app_tb_pcs
     global error
     global global_regions_dependance
     global global_regions_affections
@@ -588,6 +590,9 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
             value_hex = event["value"]
             inode = event["inode"]
 
+            if ((inode, app_tb_pc) in global_all_app_tb_pcs):
+                continue
+
             if (op_name == 1):
                 if (last_store_event != None):
                     if (last_store_event["gpa"] == gpa-1):
@@ -624,6 +629,7 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                                                         sources[i][1][j + start_exist][1].append(current_region_store[0])
                                                     if current_region_store[1][j][2] not in sources[i][1][j + start_exist][2]:
                                                         sources[i][1][j + start_exist][2].append(current_region_store[1][j][2])
+                                                        global_all_app_tb_pcs.add((inode, app_tb_pc))
                                                     if current_region_store[1][j][3] not in sources[i][1][j + start_exist][3]:
                                                         sources[i][1][j + start_exist][3].append(current_region_store[1][j][3])
 
@@ -676,6 +682,7 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                                                         sources[i][1][j + start_exist][1].append(current_region_load[0])
                                                     if current_region_load[1][j][2] not in sources[i][1][j + start_exist][2]:
                                                         sources[i][1][j + start_exist][2].append(current_region_load[1][j][2])
+                                                        global_all_app_tb_pcs.add((inode, app_tb_pc))
                                                     if current_region_load[1][j][3] not in sources[i][1][j + start_exist][3]:
                                                         sources[i][1][j + start_exist][3].append(current_region_load[1][j][3])
 
@@ -729,6 +736,7 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                                     sources[i][1][j + start_exist][1].append(current_region_store[0])
                                 if current_region_store[1][j][2] not in sources[i][1][j + start_exist][2]:
                                     sources[i][1][j + start_exist][2].append(current_region_store[1][j][2])
+                                    global_all_app_tb_pcs.add((inode, app_tb_pc))
                                 if current_region_store[1][j][3] not in sources[i][1][j + start_exist][3]:
                                     sources[i][1][j + start_exist][3].append(current_region_store[1][j][3])
 
@@ -771,6 +779,7 @@ def process_json(sources_hex, taint_data, inverted_fs_relations_data, subregion_
                                     sources[i][1][j + start_exist][1].append(current_region_load[0])
                                 if current_region_load[1][j][2] not in sources[i][1][j + start_exist][2]:
                                     sources[i][1][j + start_exist][2].append(current_region_load[1][j][2])
+                                    global_all_app_tb_pcs.add((inode, app_tb_pc))
                                 if current_region_load[1][j][3] not in sources[i][1][j + start_exist][3]:
                                     sources[i][1][j + start_exist][3].append(current_region_load[1][j][3])
 
@@ -1257,6 +1266,7 @@ def create_config(config_path, subregion_divisor, min_subregion_len, delta_thres
     print(f"[+] Config file '{config_path}' created successfully.")
 
 def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subregion_len, delta_threshold, include_libraries, region_delimiter):
+    global global_all_app_tb_pcs
     global global_subregions_app_tb_pcs
     global global_subregions_covs
     global global_sources
@@ -1266,6 +1276,19 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
     global error
 
     print("\n[\033[32m+\033[0m] TAINT ANALYSIS of the firmware '%s' (timeout: %d)\n"%(os.path.basename(firmware), timeout))
+
+    all_app_tb_pcs_path = os.path.join("/STAFF/taint_analysis", firmware, "all_app_tb_pcs.json")
+    if os.path.exists(all_app_tb_pcs_path):
+        try:
+            with open(all_app_tb_pcs_path, "r") as f:
+                loaded = json.load(f)
+            global_all_app_tb_pcs = set(tuple(pair) for pair in loaded)
+            print(f"[+] Restored global_all_app_tb_pcs ({len(global_all_app_tb_pcs)} entries) from {all_app_tb_pcs_path}")
+        except Exception as e:
+            print(f"[-] Failed to load {all_app_tb_pcs_path}: {e}; starting with empty set.")
+            global_all_app_tb_pcs = set()
+    else:
+        global_all_app_tb_pcs = set()
 
     os.environ["EXEC_MODE"] = "RUN"
     os.environ["TAINT"] = "1"
@@ -1296,10 +1319,12 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
 
     start_fork_executed = False
     a = True
+    global_elapsed_seconds = 0
     for proto in sub_dirs:
         print("\n[\033[33m*\033[0m] Protocol: {}".format(proto))
         for pcap_file in os.listdir(os.path.join(pcap_dir, proto)):
-            required_files = ["config.ini", "taint_plot", "analysis_log", "app_tb_pc_subsequences.json", "cov_subsequences.json", "global_analysis_results.json", "region_dependancies.json", "region_affections.json", "fs_relations.json", pcap_file+".seed", pcap_file+".seed_metadata.json"]
+            start = time.perf_counter()
+            required_files = ["config.ini", "taint_plot", "elapsed_time", "analysis_log", "app_tb_pc_subsequences.json", "cov_subsequences.json", "global_analysis_results.json", "region_dependancies.json", "region_affections.json", "fs_relations.json", pcap_file+".seed", pcap_file+".seed_metadata.json"]
 
             global_subregions_app_tb_pcs = []
             global_subregions_covs = []
@@ -1333,6 +1358,10 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                     print("config.ini file does not match 'include_libraries' or 'region_delimiter'!")
                     force_run = True
                 else:
+                    with open(os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "elapsed_time"), "r") as f:
+                        read_value = f.read().strip()
+                        read_elapsed = int(read_value)
+                        global_elapsed_seconds += read_elapsed
                     continue
 
             print("\n[\033[34m*\033[0m] PCAP #{}".format(pcap_file))
@@ -1348,7 +1377,7 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                 set_permissions_recursive(fs_json_dir)
 
                 seed_path = os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "%s.seed"%(pcap_file))
-                sources_hex = convert_pcap_into_single_seed_file(pcap_path, open(os.path.join(work_dir, "ip")).read().strip(), seed_path, region_delimiter)
+                sources_hex = convert_pcap_into_single_seed_file(pcap_path, seed_path, region_delimiter)
 
                 ensure_file_coherence(fs_json_dir, taint_json_dir)
 
@@ -1375,7 +1404,8 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                                 delta = update_global(sources)
                                 analysis_results = calculate_analysis_results()
 
-                                if check_if_delta_is_little_enough_to_stop(delta, delta_threshold):
+                                # if check_if_delta_is_little_enough_to_stop(delta, delta_threshold):
+                                if True:
                                     skip_run = True
                                     delta_check = True
                                     break
@@ -1408,7 +1438,7 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                 set_permissions_recursive(fs_json_dir)
 
                 seed_path = os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "%s.seed"%(pcap_file))
-                sources_hex = convert_pcap_into_single_seed_file(pcap_path, open(os.path.join(work_dir, "ip")).read().strip(), seed_path, region_delimiter)               
+                sources_hex = convert_pcap_into_single_seed_file(pcap_path, seed_path, region_delimiter)               
 
             if not skip_run:
                 while(1):
@@ -1498,7 +1528,8 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
                             delta = update_global(sources)
                             analysis_results = calculate_analysis_results()
 
-                            if check_if_delta_is_little_enough_to_stop(delta, delta_threshold):
+                            # if check_if_delta_is_little_enough_to_stop(delta, delta_threshold):
+                            if True:
                                 delta_check = True
                                 break
                         else:
@@ -1516,7 +1547,7 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
 
                     if delta_check:
                         break
-
+            
             plot_dir_path = os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "taint_plot")
             os.makedirs(plot_dir_path, exist_ok=True)
             plot_analysis_results(analysis_results, sources_hex, output_dir=plot_dir_path)
@@ -1543,6 +1574,17 @@ def taint(work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subre
             json_file_path = os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "fs_relations.json")
             with open(json_file_path, "w") as f:
                 json.dump(global_fs_relations, f, indent=4)
+            all_app_tb_pcs_path = os.path.join("/STAFF/taint_analysis", firmware, "all_app_tb_pcs.json")
+            serializable = [[tb, pc] for (tb, pc) in global_all_app_tb_pcs]
+            with open(all_app_tb_pcs_path, "w") as f:
+                json.dump(serializable, f, indent=4)
+            end = time.perf_counter()
+            elapsed_seconds = int((end - start) * 1000)
+            with open(os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "elapsed_time"), "w") as f:
+                f.write(f"{elapsed_seconds}")
+            global_elapsed_seconds += elapsed_seconds
+            with open(os.path.join("/STAFF/taint_analysis", firmware, "global_elapsed_time"), "w") as f:
+                f.write(f"{global_elapsed_seconds}")
             set_permissions_recursive(taint_json_dir)
             create_config(os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "config.ini"), subregion_divisor, min_subregion_len, delta_threshold, include_libraries, region_delimiter)
             set_permissions_recursive(os.path.join("/STAFF/taint_analysis", firmware, proto, pcap_file, "config.ini"))

@@ -498,7 +498,7 @@ def replay_firmware(firmware, work_dir):
             print("\n[\033[34m*\033[0m] PCAP #{}".format(pcap_file))
 
             seed_path = os.path.join(work_dir, "inputs", "%s.seed"%(pcap_file))
-            sources_hex = convert_pcap_into_single_seed_file(pcap_path, open(os.path.join(work_dir, "ip")).read().strip(), seed_path, config["AFLNET_FUZZING"]["region_delimiter"])
+            sources_hex = convert_pcap_into_single_seed_file(pcap_path, seed_path, config["AFLNET_FUZZING"]["region_delimiter"])
 
             process = subprocess.Popen(
                 ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", PSQL_IP],
@@ -765,7 +765,7 @@ def fuzz(out_dir, container_name, replay_exp):
         for pcap_file in os.listdir(os.path.join(pcap_dir, proto)):
             seed_path = os.path.join(inputs, "%s.seed"%(pcap_file))
             pcap_path = os.path.join(pcap_dir, proto, pcap_file)
-            convert_pcap_into_single_seed_file(pcap_path, ip, seed_path, config["AFLNET_FUZZING"]["region_delimiter"])        
+            convert_pcap_into_single_seed_file(pcap_path, seed_path, config["AFLNET_FUZZING"]["region_delimiter"])        
     elif "triforce" in mode:
         inputs = os.path.join(work_dir, "inputs")
         os.makedirs(inputs, exist_ok=True)
@@ -779,7 +779,6 @@ def fuzz(out_dir, container_name, replay_exp):
             pcap_path = os.path.join(pcap_dir, proto, pcap_file)
             generated = convert_pcap_into_multiple_seed_files(
                 pcap_path,
-                ip,
                 inputs,
                 pcap_file,
                 config["AFLNET_FUZZING"]["region_delimiter"]
@@ -852,6 +851,9 @@ def fuzz(out_dir, container_name, replay_exp):
         command += ["-H"]
         with open(os.path.join(work_dir, "taint_metrics"), 'w') as file:
             file.write(config["STAFF_FUZZING"]["taint_metrics"])
+        with open(os.path.join(TAINT_DIR, os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.basename(config["GENERAL"]["firmware"]), "global_elapsed_time"), "r") as f:
+            global_elapsed_time_ms = f.read().strip()
+        command += ["-A", global_elapsed_time_ms]
     if "state_aware" in mode:
         command += ["-E"]
 
