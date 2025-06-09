@@ -7,7 +7,7 @@ from collections import defaultdict
 import venn
 
 TRIM_LINES = False
-INCLUDE_EXPERIMENTS = "0-53"
+INCLUDE_EXPERIMENTS = "0-82"
 
 def parse_range_list(skip_str):
     include_set = set()
@@ -180,7 +180,7 @@ def plot_metric(merged_data, metric, ylabel, title, output_path, resume_markers)
     plt.figure(figsize=(10, 6))
 
     for key, df in merged_data.items():
-        label = f"{key[0]}"
+        label = ", ".join(f"{p}={v}" for (s, p), v in zip(var_params, key))
         mean_values = df.groupby('unix_time').mean()
         std_dev = df.groupby('unix_time').std()
 
