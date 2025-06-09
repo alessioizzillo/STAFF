@@ -7,7 +7,8 @@ from collections import defaultdict
 import venn
 
 TRIM_LINES = False
-INCLUDE_EXPERIMENTS = "0-82"
+# INCLUDE_EXPERIMENTS = "0-82"
+INCLUDE_EXPERIMENTS = None
 
 def parse_range_list(skip_str):
     include_set = set()
@@ -96,7 +97,10 @@ def read_params(param_file):
 
 def find_matching_experiments(base_dir, var_params, fixed_params):
     experiments = defaultdict(list)
-    include_set = parse_range_list(INCLUDE_EXPERIMENTS)
+    include_set = None
+    
+    if INCLUDE_EXPERIMENTS:
+        include_set = parse_range_list(INCLUDE_EXPERIMENTS)
 
     for exp_id in os.listdir(base_dir):
         try:
@@ -104,7 +108,7 @@ def find_matching_experiments(base_dir, var_params, fixed_params):
         except (ValueError, IndexError):
             continue
 
-        if exp_n not in include_set:
+        if include_set and exp_n not in include_set:
             continue
         
         exp_path = os.path.join(base_dir, exp_id, 'outputs')
