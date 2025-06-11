@@ -39,6 +39,9 @@ def parse_config(config_path):
 
 def parse_plot_data(exp_path):
     dfs = []
+    start_time = None
+    is_triforce = False
+
     for fn in sorted(os.listdir(exp_path)):
         if not fn.startswith("plot_data"):
             continue
@@ -65,6 +68,7 @@ def parse_plot_data(exp_path):
                 "stability",
                 "n_calibration",
             ]
+            is_triforce = True
         else:
             names = [
                 "unix_time", "cycles_done", "execs_done", "cur_path",
@@ -74,17 +78,34 @@ def parse_plot_data(exp_path):
                 "n_fetched_random_hints", "n_fetched_state_hints",
                 "n_fetched_taint_hints", "n_calibration",
             ]
+            is_triforce = False
 
         df_part = pd.read_csv(full, comment="#", names=names, header=None)
         dfs.append(df_part)
+
+    fuzzer_stats_path = os.path.join(exp_path, 'old_fuzzer_stats' if is_triforce else 'fuzzer_stats')
+    if os.path.exists(fuzzer_stats_path):
+        with open(fuzzer_stats_path, 'r') as f:
+            for line in f:
+                if line.startswith('start_time'):
+                    try:
+                        start_time = int(line.strip().split(':')[1])
+                    except (IndexError, ValueError):
+                        pass
+                    break
 
     if not dfs:
         return None, []
 
     df = pd.concat(dfs, ignore_index=True)
+
     df['map_size']  = df['map_size'].astype(str).str.rstrip('%').astype(float)
     df['stability'] = df['stability'].astype(str).str.rstrip('%').astype(float)
-    df['unix_time'] = df['unix_time'] - df['unix_time'].iloc[0]
+
+    if start_time is not None:
+        df['unix_time'] = df['unix_time'] - start_time
+    else:
+        df['unix_time'] = df['unix_time'] - df['unix_time'].iloc[0]
 
     resume_path = os.path.join(exp_path, "resume_ts")
     resume_ts = []
@@ -92,8 +113,8 @@ def parse_plot_data(exp_path):
         with open(resume_path, 'r') as f:
             for line in f:
                 try:
-                    ts = float(line.strip()) - df['unix_time'].iloc[0]
-                    resume_ts.append(ts)
+                    ts = float(line.strip())
+                    resume_ts.append(ts - start_time if start_time else ts - df['unix_time'].iloc[0])
                 except ValueError:
                     continue
 
