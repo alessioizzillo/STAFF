@@ -260,7 +260,7 @@ def merge_experiment_data(experiments, base_dir=None):
 
 def plot_metric(merged_data, metric, ylabel, title, output_path,
                 resume_markers, experiment_counts, pvals, var_params):
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 14))
 
     for key, df in merged_data.items():
         label = ", ".join(f"{p}={v}" for (section, p), v in zip(var_params, key))
@@ -285,13 +285,13 @@ def plot_metric(merged_data, metric, ylabel, title, output_path,
             if mean_vals.index.min() <= ts <= mean_vals.index.max():
                 plt.axvline(ts, linestyle='--', color='gray', alpha=0.3)
 
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.25), ncol=2)
     plt.xlabel("Time (s)")
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.legend()
     plt.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
-    plt.tight_layout()
-    plt.savefig(output_path)
+    plt.tight_layout(rect=[0, 0, 2, 0.9])  # leave space for the legend on top
+    plt.savefig(output_path, bbox_inches='tight')
     plt.close()
 
 
