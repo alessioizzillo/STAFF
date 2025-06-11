@@ -140,39 +140,42 @@ def read_params(param_file):
     
     return var_params, fixed_params
 
-def find_matching_experiments(base_dir, var_params, fixed_params):
+def find_matching_experiments(base_dirs, var_params, fixed_params):
     experiments = defaultdict(list)
     include_set = None
-    
+
     if INCLUDE_EXPERIMENTS:
         include_set = parse_range_list(INCLUDE_EXPERIMENTS)
 
-    for exp_id in os.listdir(base_dir):
-        try:
-            exp_n = int(exp_id.split('_')[1])
-        except (ValueError, IndexError):
-            continue
+    for base_dir in base_dirs:
+        for exp_id in sorted(os.listdir(base_dir)):
+            try:
+                exp_n = int(exp_id.split('_')[1])
+            except (ValueError, IndexError):
+                continue
 
-        if include_set and exp_n not in include_set:
-            continue
-        
-        exp_path = os.path.join(base_dir, exp_id, 'outputs')
-        config_path = os.path.join(exp_path, 'config.ini')
-        if not os.path.exists(config_path):
-            continue
-        
-        config = parse_config(config_path)
-        
-        match = all(config[section].get(param) == val 
-                    for (section, param), val in fixed_params.items() if section in config and param in config[section])
-        
-        if match:
-            key = tuple(config[s].get(p, 'NA') for s, p in var_params)
-            experiments[key].append(exp_id)
-    
+            if include_set and exp_n not in include_set:
+                continue
+
+            exp_path = os.path.join(base_dir, exp_id, 'outputs')
+            config_path = os.path.join(exp_path, 'config.ini')
+            if not os.path.exists(config_path):
+                continue
+
+            config = parse_config(config_path)
+
+            match = all(
+                config.get(section, {}).get(param) == val
+                for (section, param), val in fixed_params.items()
+                if section in config and param in config[section]
+            )
+            if match:
+                key = tuple(config.get(s, {}).get(p, 'NA') for s, p in var_params)
+                experiments[key].append((base_dir, exp_id))
+
     return experiments
 
-def merge_experiment_data(experiments, base_dir):
+def merge_experiment_data(experiments, base_dir=None):
     merged_data = {}
     resume_markers = defaultdict(list)
     experiment_counts = {}
@@ -190,8 +193,8 @@ def merge_experiment_data(experiments, base_dir):
         map_size_series = []
         min_time, max_time = float('inf'), 0.0
 
-        for exp_id in exp_list:
-            exp_path = os.path.join(base_dir, exp_id, 'outputs')
+        for (bdir, exp_id) in exp_list:
+            exp_path = os.path.join(bdir, exp_id, 'outputs')
             df, resume_ts = parse_plot_data(exp_path)
             if df is None or 'map_size' not in df.columns:
                 continue
@@ -322,13 +325,13 @@ def plot_experiments(merged_data, resume_markers, experiment_counts, pvals, outp
             var_params=var_params
         )
 
-def plot_venn(experiments, base_dir, output_dir):
+def plot_venn(experiments, output_dir):
     def collect_sets(suffix):
         fuzz_sets = {}
         for key, exp_list in experiments.items():
             combined_set = set()
-            for exp_id in exp_list:
-                exp_path = os.path.join(base_dir, exp_id, 'outputs')
+            for (bdir, exp_id) in exp_list:
+                exp_path = os.path.join(bdir, exp_id, 'outputs')
                 bitmap_path = os.path.join(exp_path, suffix)
                 if os.path.exists(bitmap_path):
                     combined_set |= get_bitmap_data(bitmap_path)
@@ -360,14 +363,14 @@ def plot_venn(experiments, base_dir, output_dir):
 
 
 if __name__ == "__main__":
-    base_dir    = "experiments_done"
-    output_dir  = "exp_out"
-    param_file  = "plot_params.ini"
+    base_dirs = ["experiments_done", "experiments"]
+    output_dir = "exp_out"
+    param_file = "plot_params.ini"
 
     var_params, fixed_params = read_params(param_file)
 
-    experiments = find_matching_experiments(base_dir, var_params, fixed_params)
-    merged_data, resume_markers, experiment_counts, pvals = merge_experiment_data(experiments, base_dir)
+    experiments = find_matching_experiments(base_dirs, var_params, fixed_params)
+    merged_data, resume_markers, experiment_counts, pvals = merge_experiment_data(experiments)
 
     plot_experiments(
         merged_data,
@@ -378,4 +381,4 @@ if __name__ == "__main__":
         var_params
     )
 
-    plot_venn(experiments, base_dir, output_dir)
+    plot_venn(experiments, output_dir)
