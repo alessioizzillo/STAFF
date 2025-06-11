@@ -81,6 +81,7 @@ FIRMWARE_DIR = os.path.join(STAFF_DIR, "firmwares")
 ANALYSIS_DIR = os.path.join(STAFF_DIR, "analysis")
 CONFIG_INI_PATH=os.path.join(STAFF_DIR, "config.ini")
 SCHEDULE_CSV_PATH=os.path.join(STAFF_DIR, "schedule.csv")
+EXP_DONE_PATH=os.path.join(STAFF_DIR, "experiments_done")
 
 captured_pcap_path = None
 PSQL_IP = None
@@ -950,6 +951,27 @@ def fuzz(out_dir, container_name, replay_exp):
             update_schedule_status(SCHEDULE_CSV_PATH, "failed", os.path.basename(out_dir))
         else:
             update_schedule_status(SCHEDULE_CSV_PATH, "succeeded", os.path.basename(out_dir))
+
+            if os.path.isdir(out_dir):
+                os.makedirs(EXP_DONE_PATH, exist_ok=True)
+
+                def get_next_available_exp_name(out_dir):
+                    used = set()
+                    pattern = re.compile(r'^exp_(\d+)$')
+                    for entry in os.listdir(out_dir):
+                        match = pattern.match(entry)
+                        if match:
+                            used.add(int(match.group(1)))
+                    n = 1
+                    while True:
+                        if n not in used:
+                            return f"exp_{n}"
+                        n += 1
+
+                new_exp_name = get_next_available_exp_name(EXP_DONE_PATH)
+                dst_path = os.path.join(EXP_DONE_PATH, new_exp_name)
+                print(f"Moving succeeded experiment {exp_name} -> {new_exp_name}")
+                shutil.move(out_dir, dst_path)
 
     return ret
 

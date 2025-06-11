@@ -8,7 +8,7 @@ from itertools import combinations
 from math import log
 from scipy.stats import mannwhitneyu, chi2
 
-BASE_DIR   = "experiments"
+BASE_DIR   = "experiments_done"
 OUTPUT_DIR = "results"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 

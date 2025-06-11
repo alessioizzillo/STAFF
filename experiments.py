@@ -252,19 +252,37 @@ def get_first_available_name(existing, base_name):
         num += 1
     return f"{base_name}_{num}"
 
-def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat"):
+def get_next_available_exp_name(out_dir):
+    used = set()
+    pattern = re.compile(r'^exp_(\d+)$')
+    for entry in os.listdir(out_dir):
+        match = pattern.match(entry)
+        if match:
+            used.add(int(match.group(1)))
+
+    n = 1
+    while True:
+        if n not in used:
+            return f"exp_{n}"
+        n += 1
+
+def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat", done_dir="experiments_done"):
     lock = open(SCRIPT_DIR + '/schedule.lock', 'w')
     fcntl.lockf(lock, fcntl.LOCK_EX)
 
+    os.makedirs(done_dir, exist_ok=True)
+
     existing_experiments = set(os.listdir(exp_dir)) if os.path.exists(exp_dir) else set()
-    
+    done_experiments = set(os.listdir(done_dir)) if os.path.exists(done_dir) else set()
+
     mode_map, used_numbers = parse_affinity(affinity_file, None)
 
     rows_to_keep = []
     rows_to_remove = []
+
     with open(csv_file, "r") as infile:
         reader = csv.reader(infile)
-        
+
         try:
             header1 = next(reader)
             header2 = next(reader)
@@ -289,7 +307,7 @@ def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat
                 if os.path.exists(exp_dir) and exp_name not in existing_experiments and exp_name != "":
                     continue
                 elif (status == "" or exp_name == "" or container_name == "") and \
-                    not (status == "" and exp_name == "" and container_name == ""):
+                        not (status == "" and exp_name == "" and container_name == ""):
                     continue
                 elif not os.path.exists(exp_dir) and exp_name != "":
                     continue
@@ -304,6 +322,15 @@ def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat
                 if status and not container_in_affinity and status == "running":
                     row[status_idx] = "stopped"
 
+                if status == "succeeded" and exp_name in existing_experiments:
+                    src_path = os.path.join(exp_dir, exp_name)
+                    os.makedirs(done_dir, exist_ok=True)
+                    new_exp_name = get_next_available_exp_name(done_dir)
+                    dst_path = os.path.join(done_dir, new_exp_name)
+                    print(f"Moving succeeded experiment {exp_name} -> {new_exp_name}")
+                    shutil.move(src_path, dst_path)
+                    continue
+
                 rows_to_keep.append(row)
 
     with open(csv_file, "w", newline="") as outfile:
@@ -314,14 +341,13 @@ def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat
     if os.path.exists(exp_dir):
         for exp_dir_name in existing_experiments:
             exp_dir_path = os.path.join(exp_dir, exp_dir_name)
-            if os.path.isdir(exp_dir_path):
-                if not os.listdir(exp_dir_path):
-                    print(f"Removing orphan empty experiment directory: {exp_dir_path}")
-                    os.rmdir(exp_dir_path)
-                    
-                    for row in rows_to_keep:
-                        if row[exp_name_idx] == exp_dir_name:
-                            rows_to_remove.append(row)
+            if os.path.isdir(exp_dir_path) and not os.listdir(exp_dir_path):
+                print(f"Removing orphan empty experiment directory: {exp_dir_path}")
+                os.rmdir(exp_dir_path)
+
+                for row in rows_to_keep:
+                    if row[exp_name_idx] == exp_dir_name:
+                        rows_to_remove.append(row)
 
         with open(csv_file, "r") as infile:
             rows = list(csv.reader(infile))
@@ -333,7 +359,6 @@ def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat
                     writer.writerow(row)
 
     fcntl.lockf(lock, fcntl.LOCK_UN)
-
     print("Orphan experiment directories have been cleaned.")
 
 def assign_names(csv_file, idx, num_cores, config_data):

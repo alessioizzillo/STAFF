@@ -339,7 +339,7 @@ def plot_venn(experiments, base_dir, output_dir):
 
 
 if __name__ == "__main__":
-    base_dir    = "experiments"
+    base_dir    = "experiments_done"
     output_dir  = "exp_out"
     param_file  = "plot_params.ini"
 
