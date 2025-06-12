@@ -11,6 +11,7 @@ from configparser import ConfigParser
 from collections import defaultdict
 from time import sleep
 import re
+import shutil
 
 EXPERIMENTS_DIR = "experiments"
 SCHEDULE_CSV = "schedule.csv"

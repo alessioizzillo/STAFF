@@ -64,6 +64,7 @@ extern uint8_t global_taint_flag;
 extern int op_index;
 // extern int taint_pkt;
 extern int flag1;
+extern int taint_edge_flag;
 
 #define EXCP12_TNT	39
 #define EXCP13_TNT	40

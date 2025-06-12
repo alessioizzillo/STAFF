@@ -1200,6 +1200,12 @@ tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                                 afl_area_ptr[(adjusted_pc ^ inode_num) & (MAP_SIZE - 1)]++;
                             }
                         }
+                        else {
+                            if (coverage_tracing == TAINT_EDGE && taint_edge_flag) {
+                                afl_area_ptr[cov_xxhash]++;
+                                taint_edge_flag = 0;
+                            }
+                        }
                         afl_area_ptr_eval[cov_xxhash]++;
                     }
 

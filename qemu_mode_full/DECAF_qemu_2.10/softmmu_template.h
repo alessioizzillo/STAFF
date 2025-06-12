@@ -319,6 +319,7 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
                         else if (coverage_tracing == TAINT_EDGE) {
                             uint32_t val = update_cov_xxhash(pid, (adjusted_pc ^ inode_num));
                             afl_area_ptr[val]++;
+                            taint_edge_flag = 1;
                         }
                     }
                 }
@@ -559,6 +560,7 @@ WORD_TYPE helper_be_ld_name(CPUArchState *env, target_ulong addr,
                         else if (coverage_tracing == TAINT_EDGE) {
                             uint32_t val = update_cov_xxhash(pid, (adjusted_pc ^ inode_num));
                             afl_area_ptr[val]++;
+                            taint_edge_flag = 1;
                         }
                     }
                 }
@@ -803,6 +805,7 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
                         else if (coverage_tracing == TAINT_EDGE) {
                             uint32_t val = update_cov_xxhash(pid, (adjusted_pc ^ inode_num));
                             afl_area_ptr[val]++;
+                            taint_edge_flag = 1;
                         }
                     }
                 }
@@ -1018,6 +1021,7 @@ void helper_be_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
                         else if (coverage_tracing == TAINT_EDGE) {
                             uint32_t val = update_cov_xxhash(pid, (adjusted_pc ^ inode_num));
                             afl_area_ptr[val]++;
+                            taint_edge_flag = 1;
                         }
                     }
                 }

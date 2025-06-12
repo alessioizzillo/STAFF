@@ -85,6 +85,7 @@ char taint_json_path[MAX_PATH_LENGTH] = {0};
 // uint32_t global_cov_xxhash[MAX_PID] = {0}, global_cov_orig[MAX_PID] = {0}, global_cov_sha1[MAX_PID] = {0}, global_app_tb_pc[MAX_PID] = {0};
 int fd_dependencies_track = 0;
 int include_libraries = 0;
+int taint_edge_flag = 0;
 
 /* Track whether the taint tracking system is enabled or not */
 
