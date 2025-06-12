@@ -176,7 +176,6 @@ EXP_ST u8  skip_deterministic,        /* Skip deterministic stages?       */
            uses_asan,                 /* Target uses ASAN?                */
            no_forkserver,             /* Disable forkserver?              */
            crash_mode,                /* Crash mode! Yeah!                */
-           in_place_resume,           /* Attempt in-place resume?         */
            auto_changed,              /* Auto-generated tokens changed?   */
            no_cpu_meter_red,          /* Feng shui on the status screen   */
            no_arith,                  /* Skip arithmetic ops              */
@@ -234,6 +233,7 @@ EXP_ST u32 queued_paths,              /* Total number of queued testcases */
            useless_at_start,          /* Number of useless starting paths */
            var_byte_count,            /* Bitmap bytes with var behavior   */
            current_entry,             /* Current queue entry ID           */
+           current_entry_taint,       /* Current queue entry ID           */
            havoc_div = 1;             /* Cycle count divisor for havoc    */
 
 EXP_ST u64 total_crashes,             /* Total number of crashes          */
@@ -2898,7 +2898,7 @@ EXP_ST void setup_shm(void) {
 
   u8* shm_str;
 
-  if (!in_bitmap && !in_place_resume) {
+  if (!in_bitmap) {
     memset(virgin_bits, 255, MAP_SIZE);
     memset(virgin_bits_eval, 255, MAP_SIZE);
   }
@@ -3157,27 +3157,6 @@ static void read_testcases(void) {
       add_alias_cov(fn, fn);
       add_to_queue(fn, 0, st.st_size, passed_det, 1, 0, 0);
       update_taint_fetch_count(fn, out_dir, 0);
-
-      if (in_place_resume) {
-        u8* taint_fn = alloc_printf("%s/taint_queue_fetch/%s", out_dir, basename(fn));
-
-        FILE *fp = fopen(taint_fn, "r");
-        if (fp) {
-          int fetch_count = 0;
-          if (fscanf(fp, "%d", &fetch_count) == 1) {
-            for (int i = 0; i < fetch_count; i++) {
-              QueueElement qe;
-              if (fetch_element_from_alias_app_tb_pc(fn, &qe)) {
-                WARNF("Fetching of taint info of the testcase '%s' failed on resume!", fn);
-                break;
-              }
-            }
-          }
-          fclose(fp);
-        }
-
-        ck_free(taint_fn);          
-      }
     } else {
       add_to_queue(fn, 0, st.st_size, passed_det, 0, 0, 0);
     }
@@ -4695,7 +4674,7 @@ static void perform_dry_run(char** argv) {
 
         useless_at_start++;
 
-        if (!in_bitmap && !in_place_resume && !shuffle_queue)
+        if (!in_bitmap && !shuffle_queue)
           WARNF("No new instrumentation output, test case may be useless.");
 
         break;
@@ -4704,10 +4683,10 @@ static void perform_dry_run(char** argv) {
 
     if (q->var_behavior) WARNF("Instrumentation output varies across runs.");
 
-    if (!in_place_resume && !replay_mode)
+    if (!replay_mode)
       update_and_persist_blacklist(cur_crash_traces, blacklist_crash_traces, out_dir, debug);
 
-    if (!replay_mode && !in_place_resume) {
+    if (!replay_mode) {
       u64 cur_time = get_cur_time();
       u8* new_name;
       int len = snprintf(NULL, 0, "%s$%llu", q->fname, cur_time);
@@ -4765,7 +4744,7 @@ static void link_or_copy(u8* old_path, u8* new_path) {
 
   s32 i = -1;
 
-  if (!(in_place_resume && dry_run_phase))
+  if (!dry_run_phase)
     i = link(old_path, new_path);
   
   s32 sfd, dfd;
@@ -4856,23 +4835,9 @@ static void pivot_inputs(void) {
       u8* use_name = strstr(rsl, ",orig:");
 
       if (use_name) use_name += 6; else use_name = rsl;
-      if (!(in_place_resume))
-        nfn = alloc_printf("%s/queue/id:%06u,orig:%s", out_dir, id, use_name);
-      else {
-        char *base = strrchr(q->fname, '/');
-        if (base) base++;
-        else base = q->fname;
-        nfn = alloc_printf("%s/queue/%s", out_dir, base);
-      }
+      nfn = alloc_printf("%s/queue/id:%06u,orig:%s", out_dir, id, use_name);
 #else
-      if (!(in_place_resume))
-        nfn = alloc_printf("%s/queue/id_%06u", out_dir, id);
-      else {
-        char *base = strrchr(q->fname, '/');
-        if (base) base++;
-        else base = q->fname;
-        nfn = alloc_printf("%s/queue/%s", out_dir, base);
-      }
+      nfn = alloc_printf("%s/queue/id_%06u", out_dir, id);
 
 #endif /* ^!SIMPLE_FILES */
 
@@ -4899,8 +4864,6 @@ static void pivot_inputs(void) {
 
   }
 
-  if (in_place_resume) nuke_resume_dir();
-
 }
 
 
@@ -4919,7 +4882,7 @@ static u8* describe_op(u8 hnb) {
 
   } else {
 
-    sprintf(ret, "src:%06u", current_entry);
+    sprintf(ret, "src:%06u", enable_taint_aware_mode ? current_entry_taint : current_entry);
 
     if (splicing_with >= 0)
       sprintf(ret + strlen(ret), "+%06u", splicing_with);
@@ -5237,8 +5200,7 @@ static u32 find_start_position(void) {
 
   if (!resuming_fuzz) return 0;
 
-  if (in_place_resume) fn = alloc_printf("%s/fuzzer_stats", out_dir);
-  else fn = alloc_printf("%s/../fuzzer_stats", in_dir);
+  fn = alloc_printf("%s/../fuzzer_stats", in_dir);
 
   fd = open(fn, O_RDONLY);
   ck_free(fn);
@@ -5272,8 +5234,7 @@ static void find_timeout(void) {
 
   if (!resuming_fuzz) return;
 
-  if (in_place_resume) fn = alloc_printf("%s/fuzzer_stats", out_dir);
-  else fn = alloc_printf("%s/../fuzzer_stats", in_dir);
+  fn = alloc_printf("%s/../fuzzer_stats", in_dir);
 
   fd = open(fn, O_RDONLY);
   ck_free(fn);
@@ -5304,8 +5265,7 @@ static void find_start_time(void) {
 
   if (!resuming_fuzz) return;
 
-  if (in_place_resume) fn = alloc_printf("%s/fuzzer_stats", out_dir);
-  else fn = alloc_printf("%s/../fuzzer_stats", in_dir);
+  fn = alloc_printf("%s/../fuzzer_stats", in_dir);
 
   fd = open(fn, O_RDONLY);
   ck_free(fn);
@@ -5322,75 +5282,6 @@ static void find_start_time(void) {
   if (ret < 0) return;
 
   start_time = ret;
-
-}
-
-static void restore_stats_file(void) {
-
-  static u8 tmp[8192];
-  u8 *fn, *off;
-  s32 fd, i;
-
-  if (!resuming_fuzz) return;
-
-  if (in_place_resume) fn = alloc_printf("%s/fuzzer_stats", out_dir);
-  else fn = alloc_printf("%s/../fuzzer_stats", in_dir);
-
-  fd = open(fn, O_RDONLY);
-  ck_free(fn);
-
-  if (fd < 0) return;
-
-  i = read(fd, tmp, sizeof(tmp) - 1);
-  if (i <= 0) { close(fd); return; }
-  tmp[i] = 0;
-  close(fd);
-
-#define RESTORE_U64(_var, _str) do { \
-    off = strstr((char*)tmp, _str); \
-    if (off) _var = atoll(off + strlen(_str)); \
-  } while (0)
-
-#define RESTORE_U32(_var, _str) do { \
-    off = strstr((char*)tmp, _str); \
-    if (off) _var = atoi(off + strlen(_str)); \
-  } while (0)
-
-#define RESTORE_F(_var, _str) do { \
-    off = strstr((char*)tmp, _str); \
-    if (off) _var = atof(off + strlen(_str)); \
-  } while (0)
-
-  RESTORE_U64(start_time, "start_time             : ");
-  RESTORE_U64(last_path_time, "last_path              : ");
-  RESTORE_U64(last_crash_time, "last_crash             : ");
-  RESTORE_U64(last_hang_time, "last_hang              : ");
-  RESTORE_U64(total_execs, "execs_done             : ");
-  RESTORE_U64(last_crash_execs, "execs_since_crash      : ");
-  RESTORE_U64(unique_crashes, "unique_crashes         : ");
-  RESTORE_U64(unique_hangs, "unique_hangs           : ");
-  RESTORE_U64(slowest_exec_ms, "slowest_exec_ms        : ");
-  RESTORE_U64(n_fetched_random_hints, "n_fetched_random_hints : ");
-  RESTORE_U64(n_fetched_state_hints, "n_fetched_state_hints  : ");
-  RESTORE_U64(n_fetched_taint_hints, "n_fetched_taint_hints  : ");
-  RESTORE_U64(total_cal_cycles, "n_calibration          : ");
-
-  RESTORE_U32(exec_tmout, "exec_timeout           : ");
-  RESTORE_U32(queued_paths, "paths_total            : ");
-  RESTORE_U32(queued_favored, "paths_favored          : ");
-  RESTORE_U32(queued_discovered, "paths_found            : ");
-  RESTORE_U32(queued_imported, "paths_imported         : ");
-  RESTORE_U32(max_depth, "max_depth              : ");
-  RESTORE_U32(current_entry, "cur_path               : ");
-  RESTORE_U32(pending_favored, "pending_favs           : ");
-  RESTORE_U32(pending_not_fuzzed, "pending_total          : ");
-  RESTORE_U32(queued_variable, "variable_paths         : ");
-
-#undef RESTORE_U64
-#undef RESTORE_U32
-#undef RESTORE_F
-
-  OKF("Restored stats from fuzzer_stats.");
 
 }
 
@@ -5464,7 +5355,7 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
              start_time / 1000, get_cur_time() / 1000, getpid(),
              queue_cycle ? (queue_cycle - 1) : 0, total_execs, eps,
              queued_paths, queued_favored, queued_discovered, queued_imported,
-             max_depth, current_entry, pending_favored, pending_not_fuzzed,
+             max_depth, enable_taint_aware_mode ? current_entry_taint : current_entry, pending_favored, pending_not_fuzzed,
              queued_variable, stability, bitmap_cvg, unique_crashes,
              unique_hangs, last_path_time / 1000, last_crash_time / 1000,
              last_hang_time / 1000, total_execs - last_crash_execs,
@@ -5506,14 +5397,14 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps, u64 ts) {
   static u64 prev_qc, prev_uc, prev_uh;
 
   // if (prev_qp == queued_paths && prev_pf == pending_favored &&
-  //     prev_pnf == pending_not_fuzzed && prev_ce == current_entry &&
+  //     prev_pnf == pending_not_fuzzed && prev_ce == (enable_taint_aware_mode ? current_entry_taint : current_entry) &&
   //     prev_qc == queue_cycle && prev_uc == unique_crashes &&
   //     prev_uh == unique_hangs && prev_md == max_depth) return;
 
   prev_qp  = queued_paths;
   prev_pf  = pending_favored;
   prev_pnf = pending_not_fuzzed;
-  prev_ce  = current_entry;
+  prev_ce  = enable_taint_aware_mode ? current_entry_taint : current_entry;
   prev_qc  = queue_cycle;
   prev_uc  = unique_crashes;
   prev_uh  = unique_hangs;
@@ -5540,7 +5431,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps, u64 ts) {
 
     fprintf(plot_file,
             "%llu, %llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %0.02f%%, %llu, %llu, %llu, %llu\n",
-            get_cur_time() / 1000, queue_cycle ? (queue_cycle - 1) : 0, total_execs, current_entry, queued_paths,
+            get_cur_time() / 1000, queue_cycle ? (queue_cycle - 1) : 0, total_execs, enable_taint_aware_mode ? current_entry_taint : current_entry, queued_paths,
             pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
             unique_hangs, max_depth, eps, stab_ratio, n_fetched_random_hints, n_fetched_state_hints, n_fetched_taint_hints, total_cal_cycles); /* ignore errors */    
   }
@@ -5720,7 +5611,7 @@ static void maybe_delete_out_dir(void) {
 
     /* Let's see how much work is at stake. */
 
-    if (!in_place_resume && !replay_mode && last_update - start_time > OUTPUT_GRACE * 60) {
+    if (!replay_mode && last_update - start_time > OUTPUT_GRACE * 60) {
 
       SAYF("\n" cLRD "[-] " cRST
            "The job output directory already exists and contains the results of more\n"
@@ -5740,42 +5631,14 @@ static void maybe_delete_out_dir(void) {
 
   ck_free(fn);
 
-  /* The idea for in-place resume is pretty simple: we temporarily move the old
-     queue/ to a new location that gets deleted once import to the new queue/
-     is finished. If _resume/ already exists, the current queue/ may be
-     incomplete due to an earlier abort, so we want to use the old _resume/
-     dir instead, and we let rename() fail silently. */
-
-  if (in_place_resume) {
-
-    u8* orig_q = alloc_printf("%s/queue", out_dir);
-
-    in_dir = alloc_printf("%s/_resume", out_dir);
-
-    rename(orig_q, in_dir); /* Ignore errors */
-
-    OKF("Output directory exists, will attempt session resume.");
-
-    ck_free(orig_q);
-
-  } else {
-
-    OKF("Output directory exists but deemed OK to reuse.");
-
-  }
-
   ACTF("Deleting old session data...");
 
   /* Okay, let's get the ball rolling! First, we need to get rid of the entries
      in <out_dir>/.synced/.../id:*, if any are present. */
 
-  if (!in_place_resume) {
-
-    fn = alloc_printf("%s/.synced", out_dir);
-    if (delete_files(fn, NULL)) goto dir_cleanup_failed;
-    ck_free(fn);
-
-  }
+  fn = alloc_printf("%s/.synced", out_dir);
+  if (delete_files(fn, NULL)) goto dir_cleanup_failed;
+  ck_free(fn);
 
   /* Next, we need to clean up <out_dir>/queue/.state/ subdirectories: */
 
@@ -5808,50 +5671,22 @@ static void maybe_delete_out_dir(void) {
 
   /* All right, let's do <out_dir>/crashes/id:* and <out_dir>/hangs/id:*. */
 
-  if (!in_place_resume) {
-
-    fn = alloc_printf("%s/crashes/README.txt", out_dir);
-    unlink(fn); /* Ignore errors */
-    ck_free(fn);
-
-  }
+  fn = alloc_printf("%s/crashes/README.txt", out_dir);
+  unlink(fn); /* Ignore errors */
+  ck_free(fn);
 
   fn = alloc_printf("%s/crashes", out_dir);
 
   /* Make backup of the crashes directory if it's not empty and if we're
      doing in-place resume. */
 
-//   if (in_place_resume && rmdir(fn)) {
-
-//     time_t cur_t = time(0);
-//     struct tm* t = localtime(&cur_t);
-
-// #ifndef SIMPLE_FILES
-
-//     u8* nfn = alloc_printf("%s.%04u-%02u-%02u-%02u:%02u:%02u", fn,
-//                            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-//                            t->tm_hour, t->tm_min, t->tm_sec);
-
-// #else
-
-//     u8* nfn = alloc_printf("%s_%04u%02u%02u%02u%02u%02u", fn,
-//                            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-//                            t->tm_hour, t->tm_min, t->tm_sec);
-
-// #endif /* ^!SIMPLE_FILES */
-
-//     rename(fn, nfn); /* Ignore errors. */
-//     ck_free(nfn);
-
-//   }
-
-  if (!in_place_resume && !replay_mode) { 
+  if (!replay_mode) { 
     if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
   }
   
   ck_free(fn);
 
-  if (!in_place_resume && !replay_mode) {
+  if (!replay_mode) {
     fn = alloc_printf("%s/crash_traces", out_dir);
     if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
     ck_free(fn);
@@ -5871,19 +5706,17 @@ static void maybe_delete_out_dir(void) {
   if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
   ck_free(fn);
 
-  if (!in_place_resume) {
-    fn = alloc_printf("%s/fuzz_bitmap", out_dir);
-    if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
-    ck_free(fn);
-  }
+  fn = alloc_printf("%s/fuzz_bitmap", out_dir);
+  if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
+  ck_free(fn);
 
-  if (!in_place_resume && !replay_mode) {
+  if (!replay_mode) {
     fn  = alloc_printf("%s/fuzzer_stats", out_dir);
     if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
     ck_free(fn);
   }
 
-  if (!in_place_resume && !replay_mode) {
+  if (!replay_mode) {
     fn = alloc_printf("%s/plot_data", out_dir);
     if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
     ck_free(fn);
@@ -6004,12 +5837,6 @@ void show_stats(void) {
   if(fuzz_tmout && cur_ms > start_time+(fuzz_tmout*1000))
     stop_soon = 2;
 
-  // if(!in_place_resume && fuzz_tmout && cur_ms > start_time+(300*1000))
-  //   exit(1);
-
-  // if(!in_place_resume && fuzz_tmout && cur_ms > start_time+(120*1000))
-  //   exit(1);
-
   /* If we're not on TTY, bail out. */
 
   if (not_on_tty) return;
@@ -6105,7 +5932,7 @@ static void visualize_stats(void) {
      except when resuming fuzzing or running in non-instrumented mode. */
 
   if (!dumb_mode && (last_path_time || resuming_fuzz || queue_cycle == 1 ||
-      in_bitmap || in_place_resume || crash_mode)) {
+      in_bitmap || crash_mode)) {
 
     SAYF(bV bSTOP "   last new path : " cRST "%-34s ",
          DTD(cur_ms, last_path_time));
@@ -6152,9 +5979,9 @@ static void visualize_stats(void) {
      together, but then cram them into a fixed-width field - so we need to
      put them in a temporary buffer first. */
 
-  sprintf(show_stats_tmp, "%s%s (%0.02f%%)", DI(current_entry),
+  sprintf(show_stats_tmp, "%s%s (%0.02f%%)", DI(enable_taint_aware_mode ? current_entry_taint : current_entry),
           queue_cur->favored ? "" : "*",
-          ((double)current_entry * 100) / queued_paths);
+          ((double)(enable_taint_aware_mode ? current_entry_taint : current_entry) * 100) / queued_paths);
 
   SAYF(bV bSTOP "  now processing : " cRST "%-17s " bSTG bV bSTOP, show_stats_tmp);
 
@@ -6465,7 +6292,7 @@ static void show_init_stats(void) {
       WARNF("Some test cases are big (%s) - see %s/perf_tips.txt.",
             DMS(max_len), doc_path);
 
-    if (useless_at_start && !in_bitmap && !in_place_resume)
+    if (useless_at_start && !in_bitmap)
       WARNF(cLRD "Some test cases look useless. Consider using a smaller set.");
 
     if (queued_paths > 100)
@@ -7018,7 +6845,7 @@ static u8 fuzz_one(char** argv) {
 
   if (not_on_tty) {
     ACTF("Fuzzing test case #%u (%u total, %llu uniq crashes found)...",
-         current_entry, queued_paths, unique_crashes);
+         enable_taint_aware_mode ? current_entry_taint : current_entry, queued_paths, unique_crashes);
     fflush(stdout);
   }
 
@@ -8916,7 +8743,7 @@ retry_splicing:
 
   //   /* Pick a random queue entry and seek to it. Don't splice with yourself. */
 
-  //   do { tid = UR(queued_paths); } while (tid == current_entry);
+  //   do { tid = UR(queued_paths); } while (tid == (enable_taint_aware_mode ? current_entry_taint : current_entry));
 
   //   splicing_with = tid;
   //   target = queue;
@@ -9603,9 +9430,6 @@ EXP_ST void setup_dirs_fds(void) {
 
   } else {
 
-    if (in_place_resume)
-      FATAL("Resume attempted but old output directory not found");
-
     out_dir_fd = open(out_dir, O_RDONLY);
 
 #ifndef __sun
@@ -9661,7 +9485,7 @@ EXP_ST void setup_dirs_fds(void) {
 
     tmp = alloc_printf("%s/.synced/", out_dir);
 
-    if (mkdir(tmp, 0777) && (!in_place_resume || errno != EEXIST))
+    if (mkdir(tmp, 0777) && errno != EEXIST)
       PFATAL("Unable to create '%s'", tmp);
 
     ck_free(tmp);
@@ -9669,47 +9493,27 @@ EXP_ST void setup_dirs_fds(void) {
   }
 
   if (!replay_mode) {
-    if (!in_place_resume) {
-      /* All recorded crashes. */
+    /* All recorded crashes. */
 
-      tmp = alloc_printf("%s/crashes", out_dir);
-      if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-      ck_free(tmp);
+    tmp = alloc_printf("%s/crashes", out_dir);
+    if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
+    ck_free(tmp);
 
-      tmp = alloc_printf("%s/crash_traces", out_dir);
-      if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-      ck_free(tmp);
+    tmp = alloc_printf("%s/crash_traces", out_dir);
+    if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
+    ck_free(tmp);
 
-      if (state_aware_mode) {
-        tmp = alloc_printf("%s/states", out_dir);
-        if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-        ck_free(tmp);
-      }
-
-      /* All recorded hangs. */
-
-      tmp = alloc_printf("%s/hangs", out_dir);
+    if (state_aware_mode) {
+      tmp = alloc_printf("%s/states", out_dir);
       if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
       ck_free(tmp);
     }
 
-    /* All files keeping extracted regions -- for debugging purpose. */
+    /* All recorded hangs. */
 
-    // tmp = alloc_printf("%s/regions", out_dir);
-    // if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-    // ck_free(tmp);
-
-    /* All recorded new paths exercising the implemented state machine. */
-
-    // tmp = alloc_printf("%s/replayable-new-ipsm-paths", out_dir);
-    // if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-    // ck_free(tmp);
-
-    /* All recorded paths in structure files. */
-
-    // tmp = alloc_printf("%s/replayable-queue", out_dir);
-    // if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-    // ck_free(tmp);
+    tmp = alloc_printf("%s/hangs", out_dir);
+    if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
+    ck_free(tmp);
   }
 
   /* Generally useful file descriptors. */
@@ -9736,29 +9540,18 @@ EXP_ST void setup_dirs_fds(void) {
                       /* ignore errors */    
   }
   else {
-    if (!in_place_resume) {
-      tmp = alloc_printf("%s/plot_data", out_dir);
-      fd = open(tmp, O_WRONLY | O_CREAT | O_EXCL, 0777);
-      if (fd < 0) PFATAL("Unable to create '%s'", tmp);
-      ck_free(tmp);
+    tmp = alloc_printf("%s/plot_data", out_dir);
+    fd = open(tmp, O_WRONLY | O_CREAT | O_EXCL, 0777);
+    if (fd < 0) PFATAL("Unable to create '%s'", tmp);
+    ck_free(tmp);
 
-      plot_file = fdopen(fd, "w");
-      if (!plot_file) PFATAL("fdopen() failed");
+    plot_file = fdopen(fd, "w");
+    if (!plot_file) PFATAL("fdopen() failed");
 
-      fprintf(plot_file, "# unix_time, cycles_done, execs_done, cur_path, paths_total, "
-                        "pending_total, pending_favs, map_size, unique_crashes, "
-                        "unique_hangs, max_depth, execs_per_sec, stability, n_fetched_random_hints, n_fetched_state_hints, n_fetched_taint_hints, n_calibration\n");
-                        /* ignore errors */
-    }
-    else {
-      tmp = alloc_printf("%s/plot_data", out_dir);
-      fd = open(tmp, O_WRONLY | O_CREAT | O_APPEND, 0777);
-      if (fd < 0) PFATAL("Unable to open '%s'", tmp);
-      ck_free(tmp);
-
-      plot_file = fdopen(fd, "a");
-      if (!plot_file) PFATAL("fdopen() failed"); 
-    }
+    fprintf(plot_file, "# unix_time, cycles_done, execs_done, cur_path, paths_total, "
+                      "pending_total, pending_favs, map_size, unique_crashes, "
+                      "unique_hangs, max_depth, execs_per_sec, stability, n_fetched_random_hints, n_fetched_state_hints, n_fetched_taint_hints, n_calibration\n");
+                      /* ignore errors */
   }
 
 }
@@ -10488,8 +10281,6 @@ int main(int argc, char** argv) {
         if (in_dir) FATAL("Multiple -i options not supported");
         in_dir = optarg;
 
-        if (!strcmp(in_dir, "-")) in_place_resume = 1;
-
         break;
 
       case 'o': /* output dir */
@@ -10931,12 +10722,6 @@ int main(int argc, char** argv) {
 
   setup_post();
 
-  if (in_place_resume) {
-    u8 *fname = alloc_printf("%s/fuzz_bitmap", out_dir);
-    read_bitmap(fname);
-    ck_free(fname);
-  }
-
   setup_shm();
   init_count_class16();
   init_count_class16_eval();
@@ -10945,14 +10730,8 @@ int main(int argc, char** argv) {
 
   setup_dirs_fds();
 
-  if (in_place_resume) {
-    write_resume_time();
-  }
-
-  if (!in_place_resume) {
-    start_time = get_cur_time()-taint_elapsed_ms;
-    OKF("Subtracted %llu ms to start_time", taint_elapsed_ms);
-  }
+  start_time = get_cur_time()-taint_elapsed_ms;
+  OKF("Subtracted %llu ms to start_time", taint_elapsed_ms);
 
   read_testcases();
 
@@ -10966,10 +10745,6 @@ int main(int argc, char** argv) {
 
   if (!timeout_given) find_timeout();
 
-  if (in_place_resume) {
-    restore_stats_file();
-  }
-
   detect_file_args(argv + optind + 1);
 
   if (!out_file) setup_stdio_file();
@@ -10981,47 +10756,23 @@ int main(int argc, char** argv) {
   else
     use_argv = argv + optind;
 
-  if (in_place_resume) {
+  if (replay_mode) {
     u8 *tmp = alloc_printf("%s/blacklist_crash_traces", out_dir);
     load_traces_binary(blacklist_crash_traces, tmp);
     ck_free(tmp);
-    if (taint_aware_mode) load_ipsm_from_file();
   }
 
-  if (in_place_resume)
-    ts_0 = get_cur_time();
-  
-  if (!in_place_resume) {
-    if (replay_mode) {
-      u8 *tmp = alloc_printf("%s/blacklist_crash_traces", out_dir);
-      load_traces_binary(blacklist_crash_traces, tmp);
-      ck_free(tmp);
-    }
+  perform_dry_run(use_argv);
+  if (!replay_mode) write_max_tmout_secs();
 
-    perform_dry_run(use_argv);
-    if (!replay_mode) write_max_tmout_secs();
-
-    if (!replay_mode) {
-      u8 *tmp = alloc_printf("%s/blacklist_crash_traces", out_dir);
-      save_traces_binary(blacklist_crash_traces, tmp);
-      ck_free(tmp);
-    }
-  }
-  else {
-    read_max_tmout_secs();
-    if (dumb_mode != 1 && !no_forkserver && !forksrv_pid)
-      init_forkserver(use_argv);
+  if (!replay_mode) {
+    u8 *tmp = alloc_printf("%s/blacklist_crash_traces", out_dir);
+    save_traces_binary(blacklist_crash_traces, tmp);
+    ck_free(tmp);
   }
 
   if (replay_mode)
     exit(0);
-
-  if (in_place_resume) {
-    ts_1 = get_cur_time();
-    start_time += (ts_1-ts_0)/1000;
-  }
-
-  if (in_place_resume) start_time = get_cur_time();
 
   dry_run_phase = 0;
 
@@ -11100,7 +10851,47 @@ int main(int argc, char** argv) {
         }
       }
       else {
+        cull_queue();
 
+        if (!queue_cur) {
+
+          if (debug) {
+            FILE *fp = fopen("debug/fuzzing.log", "a+");
+            fprintf(fp, "\tAnother cycle...\n");
+            fclose(fp);
+          }
+
+          queue_cycle++;
+          current_entry_taint     = 0;
+          cur_skipped_paths = 0;
+          queue_cur         = queue;
+
+          while (seek_to) {
+            current_entry_taint++;
+            seek_to--;
+            queue_cur = queue_cur->next;
+          }
+
+          if (not_on_tty) {
+            ACTF("Entering queue cycle %llu.", queue_cycle);
+            fflush(stdout);
+          }
+
+          /* If we had a full queue cycle with no new finds, try
+            recombination strategies next. */
+
+          if (queued_paths == prev_queued) {
+
+            if (use_splicing) cycles_wo_finds++; else use_splicing = 1;
+
+          } else cycles_wo_finds = 0;
+
+          prev_queued = queued_paths;
+
+          if (sync_id && queue_cycle == 1 && getenv("AFL_IMPORT_FIRST"))
+            sync_fuzzers(use_argv);
+
+        }
       }
 
       // show_stats();
@@ -11124,10 +10915,14 @@ int main(int argc, char** argv) {
       if (taint_aware_mode && !no_more_taint_hints_at_all && !enable_taint_aware_mode) {
         old_queue_cur = queue_cur;
 
-        if (!old_taint_analyzed_queue_cur || !old_taint_analyzed_queue_cur->next || !old_taint_analyzed_queue_cur->next->taint_analyzed)
-          queue_cur = queue;
-        else
+        if (old_taint_analyzed_queue_cur && old_taint_analyzed_queue_cur->next && old_taint_analyzed_queue_cur->next->taint_analyzed) {
           queue_cur = old_taint_analyzed_queue_cur->next;
+          current_entry_taint++;
+        }
+        else {
+          queue_cur = queue;
+          current_entry_taint = 0;
+        }
 
         enable_taint_aware_mode = 1;
 
@@ -11145,26 +10940,51 @@ int main(int argc, char** argv) {
         }
       }
       else {
-        if (!taint_aware_mode || no_more_taint_hints) {
-          queue_cur = queue_cur->next;
-        }
-        else {
-          old_taint_analyzed_queue_cur = queue_cur;
-          queue_cur = old_queue_cur->next;
-        }
-        
-        enable_taint_aware_mode = 0;
+        if (taint_aware_mode) {
+          static int no_more_taint_hints_tmp = 0;
 
-        if (debug) {
-          if (queue_cur) {
-            FILE *fp = fopen("debug/fuzzing.log", "a+");
-            fprintf(fp, "\tSTATE_AWARE_MODE: queue_cur->fname = %s, enable_taint_aware_mode = %d\n", queue_cur->fname, enable_taint_aware_mode);
-            fclose(fp);
+          if (no_more_taint_hints > no_more_taint_hints_tmp) {
+            if (old_taint_analyzed_queue_cur && old_taint_analyzed_queue_cur->next && old_taint_analyzed_queue_cur->next->taint_analyzed) {
+              queue_cur = old_taint_analyzed_queue_cur->next;
+              current_entry_taint++;
+            }
+            else {
+              queue_cur = queue;
+              current_entry_taint = 0;
+            }
+
+            no_more_taint_hints_tmp = no_more_taint_hints;
+
+            if (debug) {
+              if (queue_cur) {
+                FILE *fp = fopen("debug/fuzzing.log", "a+");
+                fprintf(fp, "\tTAINT_AWARE_MODE: queue_cur->fname = %s, enable_taint_aware_mode = %d\n", queue_cur->fname, enable_taint_aware_mode);
+                fclose(fp);
+              }
+              else {
+                FILE *fp = fopen("debug/fuzzing.log", "a+");
+                fprintf(fp, "\tTAINT_AWARE_MODE: queue_cur = 0x%lx, old_taint_analyzed_queue_cur->next = 0x%lx, enable_taint_aware_mode = %d\n", queue_cur, old_taint_analyzed_queue_cur->next, enable_taint_aware_mode);
+                fclose(fp);            
+              }
+            }
           }
           else {
-            FILE *fp = fopen("debug/fuzzing.log", "a+");
-            fprintf(fp, "\tSTATE_AWARE_MODE: queue_cur = 0x%lx, enable_taint_aware_mode = %d\n", queue_cur, enable_taint_aware_mode);
-            fclose(fp);            
+            old_taint_analyzed_queue_cur = queue_cur;
+            queue_cur = old_queue_cur;
+            enable_taint_aware_mode = 0;
+
+            if (debug) {
+              if (queue_cur) {
+                FILE *fp = fopen("debug/fuzzing.log", "a+");
+                fprintf(fp, "\tSTATE_AWARE_MODE: queue_cur->fname = %s, enable_taint_aware_mode = %d\n", queue_cur->fname, enable_taint_aware_mode);
+                fclose(fp);
+              }
+              else {
+                FILE *fp = fopen("debug/fuzzing.log", "a+");
+                fprintf(fp, "\tSTATE_AWARE_MODE: queue_cur = 0x%lx, enable_taint_aware_mode = %d\n", queue_cur, enable_taint_aware_mode);
+                fclose(fp);            
+              }
+            }
           }
         }
       }
@@ -11242,34 +11062,76 @@ int main(int argc, char** argv) {
       if (taint_aware_mode && !no_more_taint_hints_at_all && !enable_taint_aware_mode) {
         old_queue_cur = queue_cur;
 
-        if (!old_taint_analyzed_queue_cur || !old_taint_analyzed_queue_cur->next || !old_taint_analyzed_queue_cur->next->taint_analyzed)
-          queue_cur = queue;
-        else
+        if (old_taint_analyzed_queue_cur && old_taint_analyzed_queue_cur->next && old_taint_analyzed_queue_cur->next->taint_analyzed) {
           queue_cur = old_taint_analyzed_queue_cur->next;
-        
+          current_entry_taint++;
+        }
+        else {
+          queue_cur = queue;
+          current_entry_taint = 0;
+        }
+
         enable_taint_aware_mode = 1;
 
-        if (debug && queue_cur) {
-          FILE *fp = fopen("debug/fuzzing.log", "a+");
-          fprintf(fp, "\tTAINT_AWARE_MODE: queue_cur->fname = %s, enable_taint_aware_mode = %d\n", queue_cur->fname, enable_taint_aware_mode);
-          fclose(fp);
+        if (debug) {
+          if (queue_cur) {
+            FILE *fp = fopen("debug/fuzzing.log", "a+");
+            fprintf(fp, "\tTAINT_AWARE_MODE: queue_cur->fname = %s, enable_taint_aware_mode = %d\n", queue_cur->fname, enable_taint_aware_mode);
+            fclose(fp);
+          }
+          else {
+            FILE *fp = fopen("debug/fuzzing.log", "a+");
+            fprintf(fp, "\tTAINT_AWARE_MODE: queue_cur = 0x%lx, old_taint_analyzed_queue_cur->next = 0x%lx, enable_taint_aware_mode = %d\n", queue_cur, old_taint_analyzed_queue_cur->next, enable_taint_aware_mode);
+            fclose(fp);            
+          }
         }
       }
       else {
-        if (!taint_aware_mode || no_more_taint_hints) {
-          queue_cur = queue_cur->next;
+        static int no_more_taint_hints_tmp = 0;
+
+        if (no_more_taint_hints > no_more_taint_hints_tmp) {
+          if (old_taint_analyzed_queue_cur && old_taint_analyzed_queue_cur->next && old_taint_analyzed_queue_cur->next->taint_analyzed) {
+            queue_cur = old_taint_analyzed_queue_cur->next;
+            current_entry_taint++;
+          }
+          else {
+            queue_cur = queue;
+            current_entry_taint = 0;
+          }
+
+          no_more_taint_hints_tmp = no_more_taint_hints;
+
+          if (debug) {
+            if (queue_cur) {
+              FILE *fp = fopen("debug/fuzzing.log", "a+");
+              fprintf(fp, "\tTAINT_AWARE_MODE: queue_cur->fname = %s, enable_taint_aware_mode = %d\n", queue_cur->fname, enable_taint_aware_mode);
+              fclose(fp);
+            }
+            else {
+              FILE *fp = fopen("debug/fuzzing.log", "a+");
+              fprintf(fp, "\tTAINT_AWARE_MODE: queue_cur = 0x%lx, old_taint_analyzed_queue_cur->next = 0x%lx, enable_taint_aware_mode = %d\n", queue_cur, old_taint_analyzed_queue_cur->next, enable_taint_aware_mode);
+              fclose(fp);            
+            }
+          }
         }
         else {
           old_taint_analyzed_queue_cur = queue_cur;
           queue_cur = old_queue_cur->next;
+          current_entry++;
           enable_taint_aware_mode = 0;
-        }
-        current_entry++;
 
-        if (debug && queue_cur) {
-          FILE *fp = fopen("debug/fuzzing.log", "a+");
-          fprintf(fp, "\tRANDOM_MODE: queue_cur->fname = %s, enable_taint_aware_mode = %d\n", queue_cur->fname, enable_taint_aware_mode);
-          fclose(fp);
+          if (debug) {
+            if (queue_cur) {
+              FILE *fp = fopen("debug/fuzzing.log", "a+");
+              fprintf(fp, "\tRANDOM_MODE: queue_cur->fname = %s, enable_taint_aware_mode = %d\n", queue_cur->fname, enable_taint_aware_mode);
+              fclose(fp);
+            }
+            else {
+              FILE *fp = fopen("debug/fuzzing.log", "a+");
+              fprintf(fp, "\tRANDOM_MODE: queue_cur = 0x%lx, enable_taint_aware_mode = %d\n", queue_cur, enable_taint_aware_mode);
+              fclose(fp);            
+            }
+          }
         }
       }
     }

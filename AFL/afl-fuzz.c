@@ -143,7 +143,6 @@ EXP_ST u8  skip_deterministic,        /* Skip deterministic stages?       */
            uses_asan,                 /* Target uses ASAN?                */
            no_forkserver,             /* Disable forkserver?              */
            crash_mode,                /* Crash mode! Yeah!                */
-           in_place_resume,           /* Attempt in-place resume?         */
            auto_changed,              /* Auto-generated tokens changed?   */
            no_cpu_meter_red,          /* Feng shui on the status screen   */
            no_arith,                  /* Skip arithmetic ops              */
@@ -1563,7 +1562,7 @@ EXP_ST void setup_shm(void) {
 
   u8* shm_str;
 
-  if (!in_bitmap && !in_place_resume) {
+  if (!in_bitmap) {
     memset(virgin_bits, 255, MAP_SIZE);
     memset(virgin_bits_eval, 255, MAP_SIZE);
   }
@@ -3352,7 +3351,7 @@ static void perform_dry_run(char** argv) {
 
         useless_at_start++;
 
-        if (!in_bitmap && !in_place_resume && !shuffle_queue)
+        if (!in_bitmap && !shuffle_queue)
           WARNF("No new instrumentation output, test case may be useless.");
 
         break;
@@ -3361,23 +3360,19 @@ static void perform_dry_run(char** argv) {
 
     if (q->var_behavior) WARNF("Instrumentation output varies across runs.");
 
-    if (!in_place_resume)
-      update_and_persist_blacklist(cur_crash_traces, blacklist_crash_traces, out_dir, debug);
+    update_and_persist_blacklist(cur_crash_traces, blacklist_crash_traces, out_dir, debug);
 
-    if (!in_place_resume) {
+    u64 cur_time = get_cur_time();
+    u8* new_name;
+    int len = snprintf(NULL, 0, "%s$%llu", q->fname, cur_time);
+    new_name = ck_alloc(len + 1);
+    sprintf((char*)new_name, "%s$%llu", q->fname, cur_time);
 
-      u64 cur_time = get_cur_time();
-      u8* new_name;
-      int len = snprintf(NULL, 0, "%s$%llu", q->fname, cur_time);
-      new_name = ck_alloc(len + 1);
-      sprintf((char*)new_name, "%s$%llu", q->fname, cur_time);
+    if (rename((char*)q->fname, (char*)new_name) != 0)
+      PFATAL("Unable to rename '%s' to '%s'", q->fname, new_name);
 
-      if (rename((char*)q->fname, (char*)new_name) != 0)
-        PFATAL("Unable to rename '%s' to '%s'", q->fname, new_name);
-
-      ck_free(q->fname);
-      q->fname = new_name;
-    }
+    ck_free(q->fname);
+    q->fname = new_name;
 
     t_bytes = count_non_255_bytes(virgin_bits_eval);
     t_byte_ratio = ((double)t_bytes * 100) / MAP_SIZE;
@@ -3418,7 +3413,7 @@ static void link_or_copy(u8* old_path, u8* new_path) {
 
   s32 i = -1;
 
-  if (!(in_place_resume && dry_run_phase))
+  if (!dry_run_phase)
     i = link(old_path, new_path);
   
   s32 sfd, dfd;
@@ -3509,23 +3504,9 @@ static void pivot_inputs(void) {
       u8* use_name = strstr(rsl, ",orig:");
 
       if (use_name) use_name += 6; else use_name = rsl;
-      if (!(in_place_resume))
-        nfn = alloc_printf("%s/queue/id:%06u,orig:%s", out_dir, id, use_name);
-      else {
-        char *base = strrchr(q->fname, '/');
-        if (base) base++;
-        else base = q->fname;
-        nfn = alloc_printf("%s/queue/%s", out_dir, base);
-      }
+      nfn = alloc_printf("%s/queue/id:%06u,orig:%s", out_dir, id, use_name);
 #else
-      if (!(in_place_resume))
-        nfn = alloc_printf("%s/queue/id_%06u", out_dir, id);
-      else {
-        char *base = strrchr(q->fname, '/');
-        if (base) base++;
-        else base = q->fname;
-        nfn = alloc_printf("%s/queue/%s", out_dir, base);
-      }
+      nfn = alloc_printf("%s/queue/id_%06u", out_dir, id);
 
 #endif /* ^!SIMPLE_FILES */
 
@@ -3545,8 +3526,6 @@ static void pivot_inputs(void) {
     id++;
 
   }
-
-  if (in_place_resume) nuke_resume_dir();
 
 }
 
@@ -3874,8 +3853,7 @@ static u32 find_start_position(void) {
 
   if (!resuming_fuzz) return 0;
 
-  if (in_place_resume) fn = alloc_printf("%s/fuzzer_stats", out_dir);
-  else fn = alloc_printf("%s/../fuzzer_stats", in_dir);
+  fn = alloc_printf("%s/../fuzzer_stats", in_dir);
 
   fd = open(fn, O_RDONLY);
   ck_free(fn);
@@ -3909,8 +3887,7 @@ static void find_timeout(void) {
 
   if (!resuming_fuzz) return;
 
-  if (in_place_resume) fn = alloc_printf("%s/fuzzer_stats", out_dir);
-  else fn = alloc_printf("%s/../fuzzer_stats", in_dir);
+  fn = alloc_printf("%s/../fuzzer_stats", in_dir);
 
   fd = open(fn, O_RDONLY);
   ck_free(fn);
@@ -3941,8 +3918,7 @@ static void find_start_time(void) {
 
   if (!resuming_fuzz) return;
 
-  if (in_place_resume) fn = alloc_printf("%s/fuzzer_stats", out_dir);
-  else fn = alloc_printf("%s/../fuzzer_stats", in_dir);
+  fn = alloc_printf("%s/../fuzzer_stats", in_dir);
 
   fd = open(fn, O_RDONLY);
   ck_free(fn);
@@ -3970,8 +3946,7 @@ static void restore_stats_file(void) {
 
   if (!resuming_fuzz) return;
 
-  if (in_place_resume) fn = alloc_printf("%s/fuzzer_stats", out_dir);
-  else fn = alloc_printf("%s/../fuzzer_stats", in_dir);
+  fn = alloc_printf("%s/../fuzzer_stats", in_dir);
 
   fd = open(fn, O_RDONLY);
   ck_free(fn);
@@ -4336,7 +4311,7 @@ static void maybe_delete_out_dir(void) {
 
     /* Let's see how much work is at stake. */
 
-    if (!in_place_resume && last_update - start_time > OUTPUT_GRACE * 60) {
+    if (last_update - start_time > OUTPUT_GRACE * 60) {
 
       SAYF("\n" cLRD "[-] " cRST
            "The job output directory already exists and contains the results of more\n"
@@ -4356,42 +4331,14 @@ static void maybe_delete_out_dir(void) {
 
   ck_free(fn);
 
-  /* The idea for in-place resume is pretty simple: we temporarily move the old
-     queue/ to a new location that gets deleted once import to the new queue/
-     is finished. If _resume/ already exists, the current queue/ may be
-     incomplete due to an earlier abort, so we want to use the old _resume/
-     dir instead, and we let rename() fail silently. */
-
-  if (in_place_resume) {
-
-    u8* orig_q = alloc_printf("%s/queue", out_dir);
-
-    in_dir = alloc_printf("%s/_resume", out_dir);
-
-    rename(orig_q, in_dir); /* Ignore errors */
-
-    OKF("Output directory exists, will attempt session resume.");
-
-    ck_free(orig_q);
-
-  } else {
-
-    OKF("Output directory exists but deemed OK to reuse.");
-
-  }
-
   ACTF("Deleting old session data...");
 
   /* Okay, let's get the ball rolling! First, we need to get rid of the entries
      in <out_dir>/.synced/.../id:*, if any are present. */
 
-  if (!in_place_resume) {
-
-    fn = alloc_printf("%s/.synced", out_dir);
-    if (delete_files(fn, NULL)) goto dir_cleanup_failed;
-    ck_free(fn);
-
-  }
+  fn = alloc_printf("%s/.synced", out_dir);
+  if (delete_files(fn, NULL)) goto dir_cleanup_failed;
+  ck_free(fn);
 
   /* Next, we need to clean up <out_dir>/queue/.state/ subdirectories: */
 
@@ -4420,80 +4367,39 @@ static void maybe_delete_out_dir(void) {
 
   /* All right, let's do <out_dir>/crashes/id:* and <out_dir>/hangs/id:*. */
 
-  if (!in_place_resume) {
-
-    fn = alloc_printf("%s/crashes/README.txt", out_dir);
-    unlink(fn); /* Ignore errors */
-    ck_free(fn);
-
-  }
+  fn = alloc_printf("%s/crashes/README.txt", out_dir);
+  unlink(fn); /* Ignore errors */
+  ck_free(fn);
 
   fn = alloc_printf("%s/crashes", out_dir);
 
-  /* Make backup of the crashes directory if it's not empty and if we're
-     doing in-place resume. */
-
-//   if (in_place_resume && rmdir(fn)) {
-
-//     time_t cur_t = time(0);
-//     struct tm* t = localtime(&cur_t);
-
-// #ifndef SIMPLE_FILES
-
-//     u8* nfn = alloc_printf("%s.%04u-%02u-%02u-%02u:%02u:%02u", fn,
-//                            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-//                            t->tm_hour, t->tm_min, t->tm_sec);
-
-// #else
-
-//     u8* nfn = alloc_printf("%s_%04u%02u%02u%02u%02u%02u", fn,
-//                            t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-//                            t->tm_hour, t->tm_min, t->tm_sec);
-
-// #endif /* ^!SIMPLE_FILES */
-
-//     rename(fn, nfn); /* Ignore errors. */
-//     ck_free(nfn);
-
-//   }
-
-  if (!in_place_resume) { 
-    if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
-  }
+  if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
   
   ck_free(fn);
 
-  if (!in_place_resume) {
-    fn = alloc_printf("%s/crash_traces", out_dir);
-    if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
-    ck_free(fn);
+  fn = alloc_printf("%s/crash_traces", out_dir);
+  if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
+  ck_free(fn);
 
-    fn = alloc_printf("%s/hangs", out_dir);
-    if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
-    ck_free(fn);    
-  }
+  fn = alloc_printf("%s/hangs", out_dir);
+  if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
+  ck_free(fn);    
 
   fn = alloc_printf("%s/.cur_input", out_dir);
   if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
   ck_free(fn);
 
-  if (!in_place_resume) {
-    fn = alloc_printf("%s/fuzz_bitmap", out_dir);
-    if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
-    ck_free(fn);
-  }
+  fn = alloc_printf("%s/fuzz_bitmap", out_dir);
+  if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
+  ck_free(fn);
 
-  if (!in_place_resume) {
-    fn  = alloc_printf("%s/fuzzer_stats", out_dir);
-    if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
-    ck_free(fn);
-  }
+  fn  = alloc_printf("%s/fuzzer_stats", out_dir);
+  if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
+  ck_free(fn);
 
-  if (!in_place_resume) {
-    fn = alloc_printf("%s/plot_data", out_dir);
-    if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
-    ck_free(fn);
-  }
+  fn = alloc_printf("%s/plot_data", out_dir);
+  if (unlink(fn) && errno != ENOENT) goto dir_cleanup_failed;
+  ck_free(fn);
 
   OKF("Output dir cleanup successful.");
 
@@ -4610,12 +4516,6 @@ void show_stats(void) {
   if(fuzz_tmout && cur_ms > start_time+(fuzz_tmout*1000))
     stop_soon = 2;
 
-  // if(!in_place_resume && fuzz_tmout && cur_ms > start_time+(300*1000))
-  //   exit(1);
-
-  // if(!in_place_resume && fuzz_tmout && cur_ms > start_time+(120*1000))
-  //   exit(1);
-
   /* If we're not on TTY, bail out. */
 
   if (not_on_tty) return;
@@ -4711,7 +4611,7 @@ static void visualize_stats(void) {
      except when resuming fuzzing or running in non-instrumented mode. */
 
   if (!dumb_mode && (last_path_time || resuming_fuzz || queue_cycle == 1 ||
-      in_bitmap || in_place_resume || crash_mode)) {
+      in_bitmap || crash_mode)) {
 
     SAYF(bV bSTOP "   last new path : " cRST "%-34s ",
          DTD(cur_ms, last_path_time));
@@ -5050,7 +4950,7 @@ static void show_init_stats(void) {
       WARNF("Some test cases are big (%s) - see %s/perf_tips.txt.",
             DMS(max_len), doc_path);
 
-    if (useless_at_start && !in_bitmap && !in_place_resume)
+    if (useless_at_start && !in_bitmap)
       WARNF(cLRD "Some test cases look useless. Consider using a smaller set.");
 
     if (queued_paths > 100)
@@ -7765,9 +7665,6 @@ EXP_ST void setup_dirs_fds(void) {
 
   } else {
 
-    if (in_place_resume)
-      FATAL("Resume attempted but old output directory not found");
-
     out_dir_fd = open(out_dir, O_RDONLY);
 
 #ifndef __sun
@@ -7823,30 +7720,28 @@ EXP_ST void setup_dirs_fds(void) {
 
     tmp = alloc_printf("%s/.synced/", out_dir);
 
-    if (mkdir(tmp, 0777) && (!in_place_resume || errno != EEXIST))
+    if (mkdir(tmp, 0777) && errno != EEXIST)
       PFATAL("Unable to create '%s'", tmp);
 
     ck_free(tmp);
 
   }
 
-  if (!in_place_resume) {
-    /* All recorded crashes. */
+  /* All recorded crashes. */
 
-    tmp = alloc_printf("%s/crashes", out_dir);
-    if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-    ck_free(tmp);
+  tmp = alloc_printf("%s/crashes", out_dir);
+  if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
+  ck_free(tmp);
 
-    tmp = alloc_printf("%s/crash_traces", out_dir);
-    if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-    ck_free(tmp);
+  tmp = alloc_printf("%s/crash_traces", out_dir);
+  if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
+  ck_free(tmp);
 
-    /* All recorded hangs. */
+  /* All recorded hangs. */
 
-    tmp = alloc_printf("%s/hangs", out_dir);
-    if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
-    ck_free(tmp);
-  }
+  tmp = alloc_printf("%s/hangs", out_dir);
+  if (mkdir(tmp, 0777)) PFATAL("Unable to create '%s'", tmp);
+  ck_free(tmp);
 
   /* Generally useful file descriptors. */
 
@@ -7858,29 +7753,18 @@ EXP_ST void setup_dirs_fds(void) {
 
   /* Gnuplot output file. */
 
-  if (!in_place_resume) {
-    tmp = alloc_printf("%s/plot_data", out_dir);
-    fd = open(tmp, O_WRONLY | O_CREAT | O_EXCL, 0777);
-    if (fd < 0) PFATAL("Unable to create '%s'", tmp);
-    ck_free(tmp);
+  tmp = alloc_printf("%s/plot_data", out_dir);
+  fd = open(tmp, O_WRONLY | O_CREAT | O_EXCL, 0777);
+  if (fd < 0) PFATAL("Unable to create '%s'", tmp);
+  ck_free(tmp);
 
-    plot_file = fdopen(fd, "w");
-    if (!plot_file) PFATAL("fdopen() failed");
+  plot_file = fdopen(fd, "w");
+  if (!plot_file) PFATAL("fdopen() failed");
 
-    fprintf(plot_file, "# unix_time, cycles_done, execs_done, cur_path, paths_total, "
-                      "pending_total, pending_favs, map_size, unique_crashes, "
-                      "unique_hangs, max_depth, execs_per_sec, stability, n_calibration\n");
-                      /* ignore errors */
-  }
-  else {
-    tmp = alloc_printf("%s/plot_data", out_dir);
-    fd = open(tmp, O_WRONLY | O_CREAT | O_APPEND, 0777);
-    if (fd < 0) PFATAL("Unable to open '%s'", tmp);
-    ck_free(tmp);
-
-    plot_file = fdopen(fd, "a");
-    if (!plot_file) PFATAL("fdopen() failed"); 
-  }
+  fprintf(plot_file, "# unix_time, cycles_done, execs_done, cur_path, paths_total, "
+                    "pending_total, pending_favs, map_size, unique_crashes, "
+                    "unique_hangs, max_depth, execs_per_sec, stability, n_calibration\n");
+                    /* ignore errors */
 
 }
 
@@ -8502,8 +8386,6 @@ int main(int argc, char** argv) {
         if (in_dir) FATAL("Multiple -i options not supported");
         in_dir = optarg;
 
-        if (!strcmp(in_dir, "-")) in_place_resume = 1;
-
         break;
 
       case 'o': /* output dir */
@@ -8792,23 +8674,13 @@ int main(int argc, char** argv) {
 
   setup_post();
 
-  if (in_place_resume) {
-    u8 *fname = alloc_printf("%s/fuzz_bitmap", out_dir);
-    read_bitmap(fname);
-    ck_free(fname);
-  }
-
   setup_shm();
   init_count_class16();
   init_count_class16_eval();
 
   setup_dirs_fds();
 
-  if (in_place_resume) {
-    write_resume_time();
-  }
-
-  if (!in_place_resume) start_time = get_cur_time();
+  start_time = get_cur_time();
 
   read_testcases();
 
@@ -8822,10 +8694,6 @@ int main(int argc, char** argv) {
 
   if (!timeout_given) find_timeout();
 
-  if (in_place_resume) {
-    restore_stats_file();
-  }
-
   detect_file_args(argv + optind + 1);
 
   if (!out_file) setup_stdio_file();
@@ -8837,32 +8705,12 @@ int main(int argc, char** argv) {
   else
     use_argv = argv + optind;
 
-  if (in_place_resume)
-    load_traces_binary(blacklist_crash_traces, out_dir);
+  perform_dry_run(use_argv);
+  write_max_tmout_secs();
 
-  if (in_place_resume)
-    ts_0 = get_cur_time();
-
-  if (!in_place_resume) {
-    perform_dry_run(use_argv);
-    write_max_tmout_secs();
-
-    u8 *tmp = alloc_printf("%s/blacklist_crash_traces", out_dir);
-    save_traces_binary(blacklist_crash_traces, tmp);
-    ck_free(tmp);
-  }
-  else {
-    read_max_tmout_secs();
-    if (dumb_mode != 1 && !no_forkserver && !forksrv_pid)
-      init_forkserver(use_argv);
-  }
-
-  if (in_place_resume) {
-    ts_1 = get_cur_time();
-    start_time += (ts_1-ts_0)/1000;
-  }
-
-  if (in_place_resume) start_time = get_cur_time();
+  tmp = alloc_printf("%s/blacklist_crash_traces", out_dir);
+  save_traces_binary(blacklist_crash_traces, tmp);
+  ck_free(tmp);
 
   dry_run_phase = 0;
 
