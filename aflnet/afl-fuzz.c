@@ -10970,7 +10970,12 @@ int main(int argc, char** argv) {
           }
           else {
             old_taint_analyzed_queue_cur = queue_cur;
-            queue_cur = old_queue_cur;
+            if (old_queue_cur) {
+              queue_cur = old_queue_cur;
+            }
+            else {
+              queue_cur = queue;
+            }
             enable_taint_aware_mode = 0;
 
             if (debug) {
@@ -11133,8 +11138,14 @@ int main(int argc, char** argv) {
           }
           else {
             old_taint_analyzed_queue_cur = queue_cur;
-            queue_cur = old_queue_cur->next;
-            current_entry++;
+            if (old_queue_cur) {
+              queue_cur = old_queue_cur->next;
+              current_entry++;
+            }
+            else {
+              queue_cur = queue;
+              current_entry = 0;
+            }
             enable_taint_aware_mode = 0;
 
             if (debug) {
