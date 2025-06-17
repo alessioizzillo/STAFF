@@ -924,7 +924,7 @@ void filter_and_apply_heuristics() {
         }
 
         std::sort(queue_copy.begin(), queue_copy.end(), [](const AppTbPCSubsequence& a, const AppTbPCSubsequence& b) {
-            return a.offset < b.offset || (a.offset == b.offset && a.count < b.count);
+            return a.count < b.count || (a.count == b.count && a.offset < b.offset);
         });
 
         std::vector<std::pair<size_t, size_t>> covered_ranges;
@@ -970,7 +970,7 @@ void filter_and_apply_heuristics() {
         }
 
         std::sort(queue_copy.begin(), queue_copy.end(), [](const CovSubsequence& a, const CovSubsequence& b) {
-            return a.offset < b.offset || (a.offset == b.offset && a.count < b.count);
+            return a.count < b.count || (a.count == b.count && a.offset < b.offset);
         });
 
         std::vector<std::pair<size_t, size_t>> covered_ranges;
