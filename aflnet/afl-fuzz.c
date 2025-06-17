@@ -6945,6 +6945,7 @@ AFLNET_REGIONS_SELECTION:;
 
         if (no_more_taint_hints == num_taint_analyzed_queue_entries) {
           no_more_taint_hints_at_all = 1;
+          queue_cur = NULL;
 
           if (debug) {
             FILE *fp = fopen("debug/fuzzing.log", "a+");
@@ -10940,7 +10941,7 @@ int main(int argc, char** argv) {
         }
       }
       else {
-        if (taint_aware_mode) {
+        if (taint_aware_mode && !taint_hints_all_at_once) {
           static int no_more_taint_hints_tmp = 0;
 
           if (no_more_taint_hints > no_more_taint_hints_tmp) {
@@ -11108,7 +11109,7 @@ int main(int argc, char** argv) {
         }
       }
       else {
-        if (taint_aware_mode) {
+        if (taint_aware_mode && !taint_hints_all_at_once) {
           static int no_more_taint_hints_tmp = 0;
 
           if (no_more_taint_hints > no_more_taint_hints_tmp) {
@@ -11163,8 +11164,14 @@ int main(int argc, char** argv) {
           }
         }
         else {
-          queue_cur = queue_cur->next;
-          current_entry++;
+          if (queue_cur) {
+            queue_cur = queue_cur->next;
+            current_entry++;
+          }
+          else {
+            queue_cur = queue;
+            current_entry = 0;
+          }
           enable_taint_aware_mode = 0;
 
           if (debug) {
