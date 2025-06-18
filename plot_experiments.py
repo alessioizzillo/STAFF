@@ -6,8 +6,6 @@ import numpy as np
 from collections import defaultdict
 from itertools import combinations
 import venn
-from scipy.stats import mannwhitneyu, chi2
-from math import log
 
 TRIM_LINES = False
 # INCLUDE_EXPERIMENTS = "0-82"
@@ -60,12 +58,8 @@ def parse_plot_data(exp_path):
 
         if first.startswith("# unix_time, paths_total, map_size"):
             names = [
-                "unix_time",
-                "paths_total",
-                "map_size",
-                "unique_crashes",
-                "unique_hangs",
-                "stability",
+                "unix_time", "paths_total", "map_size",
+                "unique_crashes", "unique_hangs", "stability",
                 "n_calibration",
             ]
             is_triforce = True
@@ -142,10 +136,7 @@ def read_params(param_file):
 
 def find_matching_experiments(base_dirs, var_params, fixed_params):
     experiments = defaultdict(list)
-    include_set = None
-
-    if INCLUDE_EXPERIMENTS:
-        include_set = parse_range_list(INCLUDE_EXPERIMENTS)
+    include_set = parse_range_list(INCLUDE_EXPERIMENTS) if INCLUDE_EXPERIMENTS else None
 
     for base_dir in base_dirs:
         for exp_id in sorted(os.listdir(base_dir)):
@@ -175,11 +166,10 @@ def find_matching_experiments(base_dirs, var_params, fixed_params):
 
     return experiments
 
-def merge_experiment_data(experiments, base_dir=None):
+def merge_experiment_data(experiments):
     merged_data = {}
     resume_markers = defaultdict(list)
     experiment_counts = {}
-    _map_size_series_raw = {}
 
     expected_cols = [
         'map_size', 'unique_crashes', 'unique_hangs', 'paths_total',
@@ -190,7 +180,6 @@ def merge_experiment_data(experiments, base_dir=None):
 
     for key, exp_list in experiments.items():
         all_dfs = []
-        map_size_series = []
         min_time, max_time = float('inf'), 0.0
 
         for (bdir, exp_id) in exp_list:
@@ -200,7 +189,6 @@ def merge_experiment_data(experiments, base_dir=None):
                 continue
 
             all_dfs.append(df)
-            map_size_series.append(df['map_size'].dropna().values)
             min_time = min(min_time, df['unix_time'].min())
             max_time = max(max_time, df['unix_time'].max())
             resume_markers[key].extend(resume_ts)
@@ -209,7 +197,6 @@ def merge_experiment_data(experiments, base_dir=None):
             continue
 
         experiment_counts[key] = len(all_dfs)
-        _map_size_series_raw[key] = map_size_series
 
         common_times = np.linspace(min_time, max_time, num=100)
         interpolated_dfs = []
@@ -237,40 +224,16 @@ def merge_experiment_data(experiments, base_dir=None):
 
         merged_data[key] = merged_df
 
-    pvals = {}
-    for key, series_list in _map_size_series_raw.items():
-        pair_p = []
-        for a, b in combinations(series_list, 2):
-            a, b = np.array(a), np.array(b)
-            L = min(len(a), len(b))
-            if L < 1:
-                continue
-            _, p = mannwhitneyu(a[:L], b[:L], alternative="two-sided")
-            pair_p.append(max(min(p, 1.0), 0.0))
-
-        if pair_p:
-            chi2_stat = -2 * sum(log(p) for p in pair_p if p > 0)
-            df = 2 * len(pair_p)
-            combined_p = chi2.sf(chi2_stat, df)
-            pvals[key] = round(combined_p, 4)
-        else:
-            pvals[key] = float('nan')
-
-    return merged_data, resume_markers, experiment_counts, pvals
+    return merged_data, resume_markers, experiment_counts
 
 def plot_metric(merged_data, metric, ylabel, title, output_path,
-                resume_markers, experiment_counts, pvals, var_params):
+                resume_markers, experiment_counts, var_params):
     plt.figure(figsize=(10, 14))
 
     for key, df in merged_data.items():
         label = ", ".join(f"{p}={v}" for (section, p), v in zip(var_params, key))
         n_exp = experiment_counts.get(key, '?')
-        p_val = pvals.get(key, float('nan'))
-
-        if np.isnan(p_val):
-            label += f" (n={n_exp})"
-        else:
-            label += f" (n={n_exp}, p={p_val})"
+        label += f" (n={n_exp})"
 
         mean_vals = df.groupby('unix_time')[metric].mean()
         std_vals  = df.groupby('unix_time')[metric].std()
@@ -290,12 +253,11 @@ def plot_metric(merged_data, metric, ylabel, title, output_path,
     plt.ylabel(ylabel)
     plt.title(title)
     plt.grid(True, linestyle='--', linewidth=0.5, alpha=0.7)
-    plt.tight_layout(rect=[0, 0, 2, 0.9])  # leave space for the legend on top
+    plt.tight_layout(rect=[0, 0, 2, 0.9])
     plt.savefig(output_path, bbox_inches='tight')
     plt.close()
 
-
-def plot_experiments(merged_data, resume_markers, experiment_counts, pvals, output_dir, var_params):
+def plot_experiments(merged_data, resume_markers, experiment_counts, output_dir, var_params):
     os.makedirs(output_dir, exist_ok=True)
 
     metrics_to_plot = [
@@ -321,7 +283,6 @@ def plot_experiments(merged_data, resume_markers, experiment_counts, pvals, outp
             output_path=os.path.join(output_dir, filename),
             resume_markers=resume_markers,
             experiment_counts=experiment_counts,
-            pvals=pvals,
             var_params=var_params
         )
 
@@ -370,13 +331,12 @@ if __name__ == "__main__":
     var_params, fixed_params = read_params(param_file)
 
     experiments = find_matching_experiments(base_dirs, var_params, fixed_params)
-    merged_data, resume_markers, experiment_counts, pvals = merge_experiment_data(experiments)
+    merged_data, resume_markers, experiment_counts = merge_experiment_data(experiments)
 
     plot_experiments(
         merged_data,
         resume_markers,
         experiment_counts,
-        pvals,
         output_dir,
         var_params
     )
