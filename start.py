@@ -949,6 +949,8 @@ def fuzz(out_dir, container_name, replay_exp):
     if out_dir:
         if ret:
             update_schedule_status(SCHEDULE_CSV_PATH, "failed", os.path.basename(out_dir))
+            if os.path.exists(out_dir):
+                shutil.rmtree(out_dir, ignore_errors=True)
         else:
             update_schedule_status(SCHEDULE_CSV_PATH, "succeeded", os.path.basename(out_dir))
 
