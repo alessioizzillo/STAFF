@@ -106,7 +106,10 @@ include_set = None
 if INCLUDE_EXPERIMENTS:
     include_set = parse_range_list(INCLUDE_EXPERIMENTS)
 
-for exp_dir in sorted(glob.glob(os.path.join(BASE_DIR, "exp_*"))):
+all_exp_dirs = []
+for base in BASE_DIRS:
+    all_exp_dirs.extend(glob.glob(os.path.join(base, "exp_*")))
+for exp_dir in sorted(all_exp_dirs):
     exp_name = os.path.basename(exp_dir)
     try:
         exp_id = int(exp_name.split("_")[1])
@@ -167,9 +170,9 @@ tool_rows_by_fw = {}
 rows = []
 
 headers = ["winner", "Firmware", "Mode", "num_experiments"] + [f"{m}_avg" for m in METRICS] + ["run_time_avg"]
-rows.append({h: "" for h in headers})
 
 for firmware in sorted(firmwares):
+    rows.append({h: "" for h in headers})
     tool_rows = {}
     for tool in TOOLS:
         key = (firmware, tool)
@@ -248,8 +251,6 @@ for firmware in sorted(firmwares):
         }
         reordered.update({k: v for k, v in row.items() if k not in reordered})
         rows.append(reordered)
-
-    rows.append({k: "" for k in rows[-1].keys()})
 
 df_fw_mode = pd.DataFrame(rows)
 
