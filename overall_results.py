@@ -6,7 +6,7 @@ from collections import defaultdict
 import pandas as pd
 from scipy.stats import mannwhitneyu
 
-BASE_DIR = "experiments"
+BASE_DIRS = ["experiments_done/baseline", "experiments"]
 OUTPUT_DIR = "results"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -53,6 +53,8 @@ def parse_fuzzer_stats(path, fallback_path=None, force_time_fallback=False):
 
     def load_times_from(p):
         nonlocal start_time, last_update
+        if not os.path.exists(p):
+            return 1
         with open(p) as f:
             for line in f:
                 if ":" not in line:
@@ -70,6 +72,7 @@ def parse_fuzzer_stats(path, fallback_path=None, force_time_fallback=False):
                         last_update = int(val)
                     except ValueError:
                         pass
+        return 0
 
     with open(path) as f:
         for line in f:
@@ -89,7 +92,8 @@ def parse_fuzzer_stats(path, fallback_path=None, force_time_fallback=False):
                 pass
 
     if force_time_fallback and fallback_path:
-        load_times_from(fallback_path)
+        if (load_times_from(fallback_path)):
+            return None
 
     if start_time and last_update:
         data["run_time"] = float(last_update - start_time)
@@ -138,7 +142,7 @@ for exp_dir in sorted(all_exp_dirs):
 
     old_stats = os.path.join(exp_dir, "outputs", "old_fuzzer_stats") if mode == "triforce" else None
     stats = parse_fuzzer_stats(stats_path, fallback_path=old_stats, force_time_fallback=(mode == "triforce"))
-    if stats.get("execs_done", 0) <= 0:
+    if not stats or stats.get("execs_done", 0) <= 0:
         continue
 
     if (mode == "triforce"):
@@ -166,7 +170,6 @@ for exp_dir in sorted(all_exp_dirs):
 if not valid_experiments:
     exit(1)
 
-tool_rows_by_fw = {}
 rows = []
 
 headers = ["winner", "Firmware", "Mode", "num_experiments"] + [f"{m}_avg" for m in METRICS] + ["run_time_avg"]
@@ -174,80 +177,106 @@ headers = ["winner", "Firmware", "Mode", "num_experiments"] + [f"{m}_avg" for m 
 for firmware in sorted(firmwares):
     rows.append({h: "" for h in headers})
     tool_rows = {}
+    baseline_scores = []
+
     for tool in TOOLS:
         key = (firmware, tool)
-        row = {"Firmware": firmware, "Mode": tool}
         metrics = agg.get(key, {})
         vals = metrics.get("bitmap_cvg", [])
-        # count experiments
+
+        row = {"Firmware": firmware, "Mode": tool}
         row["num_experiments"] = len(vals)
+
         for m in METRICS:
             vlist = metrics.get(m, [])
             avg = sum(vlist) / len(vlist) if vlist else 0.0
             row[f"{m}_avg"] = round(avg, 4) if m == "bitmap_cvg" else int(round(avg))
+
         runtimes = metrics.get("run_time", [])
         row["run_time_avg"] = int(round(sum(runtimes)/len(runtimes))) if runtimes else 0
 
-        for base in BASELINE_TOOLS:
-            comp = agg.get((firmware, base), {}).get("bitmap_cvg", [])
-            key_a12 = f"bitmap_cvg_A12_with_{base}"
-            key_p = f"bitmap_cvg_p_value_with_{base}"
-            if vals and comp:
-                row[key_a12] = round(effect_size_a12(vals, comp), 4)
-                try:
-                    u, p = mannwhitneyu(vals, comp, alternative='two-sided')
-                    row[key_p] = round(p, 4)
-                except ValueError:
-                    row[key_p] = None
-            else:
-                row[key_a12] = None
-                row[key_p] = None
         tool_rows[tool] = row
+
+        if tool in BASELINE_TOOLS:
+            baseline_scores.append((
+                tool,
+                row.get("unique_crashes_avg", 0),
+                row.get("bitmap_cvg_avg", 0.0)
+            ))
+
+    if not baseline_scores:
+        continue
+
+    baseline_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
+    best_baseline_tool = baseline_scores[0][0]
+    best_baseline_vals_cvg = agg.get((firmware, best_baseline_tool), {}).get("bitmap_cvg", [])
+    best_baseline_vals_crashes = agg.get((firmware, best_baseline_tool), {}).get("unique_crashes", [])
 
     def score(tool):
         r = tool_rows[tool]
         return (
-            r["unique_crashes_avg"],
-            r["bitmap_cvg_avg"],
-            TOOL_RANK[tool]
+            r.get("unique_crashes_avg", 0),
+            r.get("bitmap_cvg_avg", 0),
+            TOOL_RANK.get(tool, 0)
         )
 
-    scores = {tool: score(tool) for tool in TOOLS}
+    scores = {t: score(t) for t in tool_rows}
     max_crashes = max(s[0] for s in scores.values())
     tied_on_crashes = [t for t, s in scores.items() if s[0] == max_crashes]
 
     max_bitmap = max(scores[t][1] for t in tied_on_crashes)
     tied_finalists = [t for t in tied_on_crashes if scores[t][1] == max_bitmap]
 
-    legacy = ["triforce", "aflnet_base", "aflnet_state_aware"]
-    staff = ["staff_base", "staff_state_aware"]
+    legacy = [t for t in BASELINE_TOOLS if t in tool_rows]
+    staff = [t for t in ["staff_base", "staff_state_aware"] if t in tool_rows]
 
-    best_legacy = max((tool_rows[t] for t in legacy), key=lambda r: r["bitmap_cvg_avg"])
-    best_staff = max((tool_rows[t] for t in staff), key=lambda r: r["bitmap_cvg_avg"])
+    best_legacy = max((tool_rows[t] for t in legacy), key=lambda r: r.get("bitmap_cvg_avg", 0), default=None)
+    best_staff = max((tool_rows[t] for t in staff), key=lambda r: r.get("bitmap_cvg_avg", 0), default=None)
 
-    abs_diff = abs(best_legacy["bitmap_cvg_avg"] - best_staff["bitmap_cvg_avg"])
-    rel_diff = abs_diff / max(best_legacy["bitmap_cvg_avg"], 1e-6)
+    abs_diff = abs(best_legacy["bitmap_cvg_avg"] - best_staff["bitmap_cvg_avg"]) if best_legacy and best_staff else 0
+    rel_diff = abs_diff / max(best_legacy["bitmap_cvg_avg"], 1e-6) if best_legacy and best_staff else 0
 
-    legacy_crashes = max(tool_rows[t]["unique_crashes_avg"] for t in legacy)
-    staff_crashes = max(tool_rows[t]["unique_crashes_avg"] for t in staff)
+    legacy_crashes = max((tool_rows[t]["unique_crashes_avg"] for t in legacy), default=0)
+    staff_crashes = max((tool_rows[t]["unique_crashes_avg"] for t in staff), default=0)
 
-    # if legacy_crashes == staff_crashes and (abs_diff < 1.0 or rel_diff < 0.05):
-    if legacy_crashes == staff_crashes and (rel_diff < 0.05):
+    if legacy_crashes == staff_crashes and rel_diff < 0.05:
         winner_rank = 0
     elif len(tied_finalists) > 1 and any(TOOL_RANK[t] > 0 for t in tied_finalists) and any(TOOL_RANK[t] < 0 for t in tied_finalists):
         winner_rank = 0
     else:
-        winner_tool = max(tied_finalists, key=lambda t: TOOL_RANK[t])
-        winner_rank = TOOL_RANK[winner_tool]
+        winner_tool = max(tied_finalists, key=lambda t: TOOL_RANK.get(t, 0))
+        winner_rank = TOOL_RANK.get(winner_tool, 0)
 
-    for tool in TOOLS:
-        row = tool_rows[tool]
+    for tool, row in tool_rows.items():
         row["winner"] = winner_rank
+        row["best_baseline"] = best_baseline_tool
+
+        vals = agg.get((firmware, tool), {}).get("bitmap_cvg", [])
+        if vals and best_baseline_vals_cvg:
+            row["bitmap_cvg_p_value_with_best"] = round(mannwhitneyu(vals, best_baseline_vals_cvg, alternative='two-sided').pvalue, 4)
+            row["bitmap_cvg_A12_with_best"] = round(effect_size_a12(vals, best_baseline_vals_cvg), 4)
+        else:
+            row["bitmap_cvg_p_value_with_best"] = None
+            row["bitmap_cvg_A12_with_best"] = None
+
+        vals_crashes = agg.get((firmware, tool), {}).get("unique_crashes", [])
+        if vals_crashes and best_baseline_vals_crashes:
+            row["unique_crashes_p_value_with_best"] = round(mannwhitneyu(vals_crashes, best_baseline_vals_crashes, alternative='two-sided').pvalue, 4)
+            row["unique_crashes_A12_with_best"] = round(effect_size_a12(vals_crashes, best_baseline_vals_crashes), 4)
+        else:
+            row["unique_crashes_p_value_with_best"] = None
+            row["unique_crashes_A12_with_best"] = None
+
         reordered = {
             "winner": row["winner"],
             "Firmware": row["Firmware"],
             "Mode": row["Mode"],
             "num_experiments": row["num_experiments"],
+            "best_baseline": row["best_baseline"],
+            "bitmap_cvg_p_value_with_best": row["bitmap_cvg_p_value_with_best"],
+            "bitmap_cvg_A12_with_best": row["bitmap_cvg_A12_with_best"],
+            "unique_crashes_p_value_with_best": row["unique_crashes_p_value_with_best"],
+            "unique_crashes_A12_with_best": row["unique_crashes_A12_with_best"],
         }
         reordered.update({k: v for k, v in row.items() if k not in reordered})
         rows.append(reordered)
