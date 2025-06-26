@@ -3,6 +3,7 @@ import shutil
 import configparser
 import re
 import argparse
+import csv
 
 BASELINE_MODES = {"aflnet_base", "aflnet_state_aware", "triforce"}
 
@@ -62,14 +63,38 @@ def process_experiment_dir(exp_dir):
     move_experiment(exp_dir, mode, taint, coverage)
 
 def main():
-    parser = argparse.ArgumentParser(description="Organize experiment folders based on config.ini content.")
-    parser.add_argument("--input-dir", required=True, help="Root directory containing experiment folders (e.g., 0,1,2...)")
+    parser = argparse.ArgumentParser(description="Organize experiment folders based on config.ini content, optionally filtered by a CSV.")
+    parser.add_argument("--input-dir", required=True,
+                        help="Root directory containing experiment folders (e.g., 0,1,2...)")
+    parser.add_argument("--input-csv", required=False,
+                        help="Optional CSV file listing experiments and their statuses.")
     args = parser.parse_args()
+
+    succeeded_exps = None
+    rows = []
+    fieldnames = []
+    if args.input_csv:
+        with open(args.input_csv, newline='') as csvfile:
+            next(csvfile)
+            reader = csv.DictReader(csvfile)
+            fieldnames = reader.fieldnames
+            rows = list(reader)
+        succeeded_exps = [row['exp_name'].strip() for row in rows if row.get('status', '').strip().lower() == 'succeeded']
 
     for entry in os.listdir(args.input_dir):
         exp_path = os.path.join(args.input_dir, entry)
-        if os.path.isdir(exp_path):
-            process_experiment_dir(exp_path)
+        if not os.path.isdir(exp_path):
+            continue
+        if succeeded_exps is not None and entry not in succeeded_exps:
+            continue
+        process_experiment_dir(exp_path)
+
+    if succeeded_exps is not None:
+        remaining = [row for row in rows if row['exp_name'].strip() not in succeeded_exps]
+        with open(args.input_csv, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(remaining)
 
 if __name__ == "__main__":
     main()
