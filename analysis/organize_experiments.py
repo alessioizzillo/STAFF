@@ -73,9 +73,10 @@ def main():
     succeeded_exps = None
     rows = []
     fieldnames = []
+    group_header = None
     if args.input_csv:
-        with open(args.input_csv, newline='') as csvfile:
-            next(csvfile)
+        with open(args.input_csv, 'r', newline='') as csvfile:
+            group_header = csvfile.readline()
             reader = csv.DictReader(csvfile)
             fieldnames = reader.fieldnames
             rows = list(reader)
@@ -92,6 +93,8 @@ def main():
     if succeeded_exps is not None:
         remaining = [row for row in rows if row['exp_name'].strip() not in succeeded_exps]
         with open(args.input_csv, 'w', newline='') as csvfile:
+            if group_header is not None:
+                csvfile.write(group_header)
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(remaining)
