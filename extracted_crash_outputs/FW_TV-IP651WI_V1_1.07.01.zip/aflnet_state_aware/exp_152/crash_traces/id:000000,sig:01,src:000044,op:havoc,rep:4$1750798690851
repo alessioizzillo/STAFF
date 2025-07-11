@@ -1,0 +1,23 @@
+=== Trace 0 ===
+Process: alphapd
+  [00] inode: 8228, pc: 0x0004f150, module: libuClibc-0.9.28.so
+  [01] inode: 16391, pc: 0x000339f4, module: busybox
+  [02] inode: 8228, pc: 0x0004f130, module: libuClibc-0.9.28.so
+  [03] inode: 8228, pc: 0x0004f140, module: libuClibc-0.9.28.so
+  [04] inode: 8228, pc: 0x0004f138, module: libuClibc-0.9.28.so
+  [05] inode: 8228, pc: 0x0004f140, module: libuClibc-0.9.28.so
+  [06] inode: 8228, pc: 0x0004f138, module: libuClibc-0.9.28.so
+  [07] inode: 8228, pc: 0x0004f140, module: libuClibc-0.9.28.so
+  [08] inode: 8228, pc: 0x0004f138, module: libuClibc-0.9.28.so
+  [09] inode: 8228, pc: 0x0004f140, module: libuClibc-0.9.28.so
+  [10] inode: 8228, pc: 0x0004f138, module: libuClibc-0.9.28.so
+  [11] inode: 8228, pc: 0x0004f140, module: libuClibc-0.9.28.so
+  [12] inode: 8228, pc: 0x0004f138, module: libuClibc-0.9.28.so
+  [13] inode: 8228, pc: 0x0004f150, module: libuClibc-0.9.28.so
+  [14] inode: 16391, pc: 0x00033a0c, module: busybox
+  [15] inode: 16391, pc: 0x00033a18, module: busybox
+  [16] inode: 16391, pc: 0x00033a20, module: busybox
+  [17] inode: 8228, pc: 0x0004f130, module: libuClibc-0.9.28.so
+  [18] inode: 8228, pc: 0x0004f150, module: libuClibc-0.9.28.so
+  [19] inode: 16391, pc: 0x00033a34, module: busybox
+

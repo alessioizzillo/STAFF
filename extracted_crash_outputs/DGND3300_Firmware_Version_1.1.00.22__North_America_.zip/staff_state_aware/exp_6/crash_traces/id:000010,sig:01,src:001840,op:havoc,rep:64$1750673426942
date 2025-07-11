@@ -1,0 +1,23 @@
+=== Trace 3 ===
+Process: setup.cgi
+  [00] inode: 32774, pc: 0x0002abd4, module: libc.so.0
+  [01] inode: 32774, pc: 0x00029dc0, module: libc.so.0
+  [02] inode: 32774, pc: 0x00025f70, module: libc.so.0
+  [03] inode: 32774, pc: 0x00025f84, module: libc.so.0
+  [04] inode: 32774, pc: 0x00025f98, module: libc.so.0
+  [05] inode: 32774, pc: 0x00025fac, module: libc.so.0
+  [06] inode: 32774, pc: 0x00029de0, module: libc.so.0
+  [07] inode: 32774, pc: 0x0002a148, module: libc.so.0
+  [08] inode: 32774, pc: 0x0002930c, module: libc.so.0
+  [09] inode: 32774, pc: 0x0002931c, module: libc.so.0
+  [10] inode: 32774, pc: 0x0002955c, module: libc.so.0
+  [11] inode: 32774, pc: 0x0002956c, module: libc.so.0
+  [12] inode: 32774, pc: 0x00029578, module: libc.so.0
+  [13] inode: 32774, pc: 0x00029588, module: libc.so.0
+  [14] inode: 32774, pc: 0x000295b4, module: libc.so.0
+  [15] inode: 32774, pc: 0x000295f4, module: libc.so.0
+  [16] inode: 32774, pc: 0x00029610, module: libc.so.0
+  [17] inode: 32774, pc: 0x0002a34c, module: libc.so.0
+  [18] inode: 32774, pc: 0x0002a214, module: libc.so.0
+  [19] inode: 24746, pc: 0x000235a4, module: setup.cgi
+

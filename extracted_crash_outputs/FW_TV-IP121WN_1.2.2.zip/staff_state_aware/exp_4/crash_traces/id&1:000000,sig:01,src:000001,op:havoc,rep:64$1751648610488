@@ -1,0 +1,23 @@
+=== Trace 0 ===
+Process: network.cgi
+  [00] inode: 24578, pc: 0x000012f8, module: ld-uClibc-0.9.30.so
+  [01] inode: 24578, pc: 0x000012e0, module: ld-uClibc-0.9.30.so
+  [02] inode: 24578, pc: 0x000012f8, module: ld-uClibc-0.9.30.so
+  [03] inode: 24578, pc: 0x000012e0, module: ld-uClibc-0.9.30.so
+  [04] inode: 24578, pc: 0x000012c8, module: ld-uClibc-0.9.30.so
+  [05] inode: 24578, pc: 0x00001300, module: ld-uClibc-0.9.30.so
+  [06] inode: 24578, pc: 0x00001484, module: ld-uClibc-0.9.30.so
+  [07] inode: 24578, pc: 0x000014a4, module: ld-uClibc-0.9.30.so
+  [08] inode: 24578, pc: 0x000014bc, module: ld-uClibc-0.9.30.so
+  [09] inode: 24578, pc: 0x000014c4, module: ld-uClibc-0.9.30.so
+  [10] inode: 24578, pc: 0x000014e0, module: ld-uClibc-0.9.30.so
+  [11] inode: 24578, pc: 0x000014f4, module: ld-uClibc-0.9.30.so
+  [12] inode: 24578, pc: 0x0000508c, module: ld-uClibc-0.9.30.so
+  [13] inode: 24578, pc: 0x000050e4, module: ld-uClibc-0.9.30.so
+  [14] inode: 24578, pc: 0x0000517c, module: ld-uClibc-0.9.30.so
+  [15] inode: 24628, pc: 0x00031270, module: libuClibc-0.9.30.so
+  [16] inode: 24628, pc: 0x0003128c, module: libuClibc-0.9.30.so
+  [17] inode: 24628, pc: 0x00031294, module: libuClibc-0.9.30.so
+  [18] inode: 24592, pc: 0x00004aec, module: libaspfunc.so.0
+  [19] inode: 24592, pc: 0x00004b04, module: libaspfunc.so.0
+

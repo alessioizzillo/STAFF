@@ -1,0 +1,24 @@
+GET /setup.cgi?nexTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTt_file=common/system.xml&timestamp=1747070276235 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/LAN_reserv_add_h.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1747070159755 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Ageêt6
+Accept: */*
+Refererke Gept: */*
+Refererke Gecko) Chrome/131.0.0.0 Safari/537.pt-Language: en-US,en;q=0.9
+
+GET /langs/language/msg.xml?timestamp=1747069997331 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Moziˇa/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkuage: en-US,en;q=0.F
+
+

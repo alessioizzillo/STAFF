@@ -1,0 +1,23 @@
+=== Trace 3 ===
+Process: S10system.sh
+  [00] inode: 24578, pc: 0x00000f1c, module: ld-uClibc.so.0
+  [01] inode: 24578, pc: 0x00000f44, module: ld-uClibc.so.0
+  [02] inode: 24578, pc: 0x00000f2c, module: ld-uClibc.so.0
+  [03] inode: 24578, pc: 0x00000f44, module: ld-uClibc.so.0
+  [04] inode: 24578, pc: 0x00000f2c, module: ld-uClibc.so.0
+  [05] inode: 24578, pc: 0x00000f44, module: ld-uClibc.so.0
+  [06] inode: 24578, pc: 0x00000f2c, module: ld-uClibc.so.0
+  [07] inode: 24578, pc: 0x00000f44, module: ld-uClibc.so.0
+  [08] inode: 24578, pc: 0x00000f2c, module: ld-uClibc.so.0
+  [09] inode: 24578, pc: 0x00000f44, module: ld-uClibc.so.0
+  [10] inode: 24578, pc: 0x00000f2c, module: ld-uClibc.so.0
+  [11] inode: 24578, pc: 0x00000f3c, module: ld-uClibc.so.0
+  [12] inode: 24578, pc: 0x00000f50, module: ld-uClibc.so.0
+  [13] inode: 24578, pc: 0x00000f60, module: ld-uClibc.so.0
+  [14] inode: 24578, pc: 0x00001088, module: ld-uClibc.so.0
+  [15] inode: 24578, pc: 0x000010d0, module: ld-uClibc.so.0
+  [16] inode: 24578, pc: 0x000010ec, module: ld-uClibc.so.0
+  [17] inode: 24578, pc: 0x00001e3c, module: ld-uClibc.so.0
+  [18] inode: 24578, pc: 0x00001e88, module: ld-uClibc.so.0
+  [19] inode: 24578, pc: 0x00004858, module: ld-uClibc.so.0
+

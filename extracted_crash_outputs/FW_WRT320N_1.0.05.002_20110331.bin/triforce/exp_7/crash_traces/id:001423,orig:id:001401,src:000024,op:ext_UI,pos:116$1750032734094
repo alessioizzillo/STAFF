@@ -1,0 +1,23 @@
+=== Trace 0 ===
+Process: upnp
+  [00] inode: 40963, pc: 0x0003f6fc, module: libc.so.6
+  [01] inode: 40963, pc: 0x0003e36c, module: libc.so.6
+  [02] inode: 40963, pc: 0x0003e394, module: libc.so.6
+  [03] inode: 40963, pc: 0x0003e3f0, module: libc.so.6
+  [04] inode: 40963, pc: 0x0003e3cc, module: libc.so.6
+  [05] inode: 40963, pc: 0x0003e2cc, module: libc.so.6
+  [06] inode: 40963, pc: 0x0003e2e0, module: libc.so.6
+  [07] inode: 40963, pc: 0x0003e298, module: libc.so.6
+  [08] inode: 40963, pc: 0x0003eab4, module: libc.so.6
+  [09] inode: 40963, pc: 0x0003ea88, module: libc.so.6
+  [10] inode: 40963, pc: 0x0003e960, module: libc.so.6
+  [11] inode: 40963, pc: 0x000407a4, module: libc.so.6
+  [12] inode: 40963, pc: 0x0003bbb8, module: libc.so.6
+  [13] inode: 40963, pc: 0x0003bb08, module: libc.so.6
+  [14] inode: 40963, pc: 0x0003bb7c, module: libc.so.6
+  [15] inode: 40963, pc: 0x00033398, module: libc.so.6
+  [16] inode: 40963, pc: 0x0003bb8c, module: libc.so.6
+  [17] inode: 40963, pc: 0x0003bb20, module: libc.so.6
+  [18] inode: 40963, pc: 0x0003bb2c, module: libc.so.6
+  [19] inode: 24667, pc: 0x00012054, module: upnp
+

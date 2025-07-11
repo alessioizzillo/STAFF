@@ -1,0 +1,23 @@
+=== Trace 0 ===
+Process: rdr.cgi
+  [00] inode: 24628, pc: 0x0005775c, module: libuClibc-0.9.30.so
+  [01] inode: 24628, pc: 0x00057788, module: libuClibc-0.9.30.so
+  [02] inode: 24628, pc: 0x0004f754, module: libuClibc-0.9.30.so
+  [03] inode: 24628, pc: 0x000575f0, module: libuClibc-0.9.30.so
+  [04] inode: 24628, pc: 0x0005761c, module: libuClibc-0.9.30.so
+  [05] inode: 24628, pc: 0x0004f770, module: libuClibc-0.9.30.so
+  [06] inode: 24628, pc: 0x0004f7bc, module: libuClibc-0.9.30.so
+  [07] inode: 24628, pc: 0x0004f7c4, module: libuClibc-0.9.30.so
+  [08] inode: 24628, pc: 0x0004f820, module: libuClibc-0.9.30.so
+  [09] inode: 24628, pc: 0x0004f830, module: libuClibc-0.9.30.so
+  [10] inode: 24628, pc: 0x0004f844, module: libuClibc-0.9.30.so
+  [11] inode: 24628, pc: 0x0004f85c, module: libuClibc-0.9.30.so
+  [12] inode: 24628, pc: 0x0004f87c, module: libuClibc-0.9.30.so
+  [13] inode: 24628, pc: 0x0004f8c4, module: libuClibc-0.9.30.so
+  [14] inode: 24628, pc: 0x0004f978, module: libuClibc-0.9.30.so
+  [15] inode: 24628, pc: 0x000577c4, module: libuClibc-0.9.30.so
+  [16] inode: 24628, pc: 0x000577f0, module: libuClibc-0.9.30.so
+  [17] inode: 24628, pc: 0x0004f988, module: libuClibc-0.9.30.so
+  [18] inode: 24635, pc: 0x00004820, module: libweb.so.0
+  [19] inode: 41410, pc: 0x00000f70, module: rdr.cgi
+

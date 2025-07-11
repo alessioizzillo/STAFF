@@ -1,0 +1,23 @@
+=== Trace 1 ===
+Process: setup.cgi
+  [00] inode: 24746, pc: 0x0001055c, module: setup.cgi
+  [01] inode: 32774, pc: 0x0002f980, module: libc.so.0
+  [02] inode: 32774, pc: 0x0002f9a0, module: libc.so.0
+  [03] inode: 24746, pc: 0x0001056c, module: setup.cgi
+  [04] inode: 24746, pc: 0x00010574, module: setup.cgi
+  [05] inode: 24746, pc: 0x000105a4, module: setup.cgi
+  [06] inode: 24746, pc: 0x00011cd8, module: setup.cgi
+  [07] inode: 24746, pc: 0x00011ce0, module: setup.cgi
+  [08] inode: 24746, pc: 0x00011cf4, module: setup.cgi
+  [09] inode: 24746, pc: 0x00010500, module: setup.cgi
+  [10] inode: 24746, pc: 0x0001055c, module: setup.cgi
+  [11] inode: 32774, pc: 0x0002f980, module: libc.so.0
+  [12] inode: 32774, pc: 0x0002f9a0, module: libc.so.0
+  [13] inode: 24746, pc: 0x0001056c, module: setup.cgi
+  [14] inode: 24746, pc: 0x00010574, module: setup.cgi
+  [15] inode: 24746, pc: 0x000105a4, module: setup.cgi
+  [16] inode: 24746, pc: 0x00011d00, module: setup.cgi
+  [17] inode: 24746, pc: 0x00011d10, module: setup.cgi
+  [18] inode: 24746, pc: 0x000106cc, module: setup.cgi
+  [19] inode: 24746, pc: 0x000106d8, module: setup.cgi
+

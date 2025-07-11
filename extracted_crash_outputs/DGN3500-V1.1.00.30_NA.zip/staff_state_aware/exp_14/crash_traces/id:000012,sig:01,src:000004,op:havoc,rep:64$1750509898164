@@ -1,0 +1,23 @@
+=== Trace 0 ===
+Process: setup.cgi
+  [00] inode: 40966, pc: 0x0004957c, module: libc.so.0
+  [01] inode: 40966, pc: 0x00049574, module: libc.so.0
+  [02] inode: 40966, pc: 0x0004957c, module: libc.so.0
+  [03] inode: 40966, pc: 0x00049574, module: libc.so.0
+  [04] inode: 40966, pc: 0x0004957c, module: libc.so.0
+  [05] inode: 40966, pc: 0x00049574, module: libc.so.0
+  [06] inode: 40966, pc: 0x0004957c, module: libc.so.0
+  [07] inode: 40966, pc: 0x00049574, module: libc.so.0
+  [08] inode: 40966, pc: 0x0004957c, module: libc.so.0
+  [09] inode: 40966, pc: 0x00049574, module: libc.so.0
+  [10] inode: 40966, pc: 0x0004957c, module: libc.so.0
+  [11] inode: 40966, pc: 0x00049574, module: libc.so.0
+  [12] inode: 40966, pc: 0x00049590, module: libc.so.0
+  [13] inode: 40966, pc: 0x00037ff8, module: libc.so.0
+  [14] inode: 40966, pc: 0x00038000, module: libc.so.0
+  [15] inode: 40966, pc: 0x000387d0, module: libc.so.0
+  [16] inode: 40966, pc: 0x000465d8, module: libc.so.0
+  [17] inode: 57718, pc: 0x0000ccc0, module: setup.cgi
+  [18] inode: 57671, pc: 0x00018f2c, module: mini_httpd
+  [19] inode: 40966, pc: 0x00049d4c, module: libc.so.0
+

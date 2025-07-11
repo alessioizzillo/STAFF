@@ -1,0 +1,23 @@
+=== Trace 1 ===
+Process: httpd
+  [00] inode: 40963, pc: 0x0004e540, module: libc.so.6
+  [01] inode: 40963, pc: 0x0004e554, module: libc.so.6
+  [02] inode: 40963, pc: 0x0004e560, module: libc.so.6
+  [03] inode: 40963, pc: 0x0004e560, module: libc.so.6
+  [04] inode: 40963, pc: 0x0004e560, module: libc.so.6
+  [05] inode: 40963, pc: 0x0004e560, module: libc.so.6
+  [06] inode: 40963, pc: 0x0004e584, module: libc.so.6
+  [07] inode: 40963, pc: 0x0004e59c, module: libc.so.6
+  [08] inode: 40963, pc: 0x0004e5b4, module: libc.so.6
+  [09] inode: 40963, pc: 0x0004e5cc, module: libc.so.6
+  [10] inode: 40963, pc: 0x0004e5e4, module: libc.so.6
+  [11] inode: 24643, pc: 0x000547c4, module: httpd
+  [12] inode: 24643, pc: 0x000547e0, module: httpd
+  [13] inode: 24643, pc: 0x000547ec, module: httpd
+  [14] inode: 24643, pc: 0x00028b78, module: httpd
+  [15] inode: 40963, pc: 0x000500f0, module: libc.so.6
+  [16] inode: 40963, pc: 0x00050114, module: libc.so.6
+  [17] inode: 40963, pc: 0x00050164, module: libc.so.6
+  [18] inode: 40963, pc: 0x00050170, module: libc.so.6
+  [19] inode: 40963, pc: 0x0005018c, module: libc.so.6
+

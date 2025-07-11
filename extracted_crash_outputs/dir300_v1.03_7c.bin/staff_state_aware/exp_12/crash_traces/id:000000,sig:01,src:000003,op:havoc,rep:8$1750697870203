@@ -1,0 +1,23 @@
+=== Trace 0 ===
+Process: xgi
+  [00] inode: 24603, pc: 0x00002eb8, module: ld-uClibc.so.0
+  [01] inode: 24603, pc: 0x00002ec4, module: ld-uClibc.so.0
+  [02] inode: 24603, pc: 0x00002ed8, module: ld-uClibc.so.0
+  [03] inode: 24603, pc: 0x00002ee8, module: ld-uClibc.so.0
+  [04] inode: 24603, pc: 0x00000bac, module: ld-uClibc.so.0
+  [05] inode: 24603, pc: 0x00000c10, module: ld-uClibc.so.0
+  [06] inode: 24603, pc: 0x00000aec, module: ld-uClibc.so.0
+  [07] inode: 24605, pc: 0x000381dc, module: libc.so.0
+  [08] inode: 24605, pc: 0x000391cc, module: libc.so.0
+  [09] inode: 24605, pc: 0x0002e1b0, module: libc.so.0
+  [10] inode: 24605, pc: 0x00039218, module: libc.so.0
+  [11] inode: 24605, pc: 0x0004d100, module: libc.so.0
+  [12] inode: 24605, pc: 0x0004d140, module: libc.so.0
+  [13] inode: 24605, pc: 0x0005218c, module: libc.so.0
+  [14] inode: 24605, pc: 0x00052198, module: libc.so.0
+  [15] inode: 24605, pc: 0x00052198, module: libc.so.0
+  [16] inode: 24605, pc: 0x000521a8, module: libc.so.0
+  [17] inode: 24605, pc: 0x0004d14c, module: libc.so.0
+  [18] inode: 24605, pc: 0x0004d160, module: libc.so.0
+  [19] inode: 24605, pc: 0x00051bd0, module: libc.so.0
+

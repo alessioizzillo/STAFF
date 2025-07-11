@@ -1,0 +1,23 @@
+=== Trace 9 ===
+Process: rc
+  [00] inode: 57618, pc: 0x0001e200, module: busybox
+  [01] inode: 40966, pc: 0x00048a7c, module: libc.so.0
+  [02] inode: 40966, pc: 0x00048aa4, module: libc.so.0
+  [03] inode: 40966, pc: 0x00029834, module: libc.so.0
+  [04] inode: 40966, pc: 0x00048ab8, module: libc.so.0
+  [05] inode: 40966, pc: 0x00048ad8, module: libc.so.0
+  [06] inode: 40966, pc: 0x00048c80, module: libc.so.0
+  [07] inode: 40966, pc: 0x00029834, module: libc.so.0
+  [08] inode: 57618, pc: 0x0001e210, module: busybox
+  [09] inode: 57618, pc: 0x0001e258, module: busybox
+  [10] inode: 57618, pc: 0x0001e294, module: busybox
+  [11] inode: 57618, pc: 0x0001cbbc, module: busybox
+  [12] inode: 40966, pc: 0x00048a7c, module: libc.so.0
+  [13] inode: 40966, pc: 0x00048aa4, module: libc.so.0
+  [14] inode: 40966, pc: 0x00029834, module: libc.so.0
+  [15] inode: 40966, pc: 0x00048ab8, module: libc.so.0
+  [16] inode: 40966, pc: 0x00048ad8, module: libc.so.0
+  [17] inode: 40966, pc: 0x00048c80, module: libc.so.0
+  [18] inode: 40966, pc: 0x00029834, module: libc.so.0
+  [19] inode: 57618, pc: 0x0001cbd4, module: busybox
+
