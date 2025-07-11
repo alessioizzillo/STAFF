@@ -274,12 +274,13 @@ for fw in sorted(firmwares):
             else:
                 a12 = a12_cr
 
-            if   a12 <  A12_LOWER_THRESHOLD:
-                chosen = best_base
-            elif a12 >  A12_UPPER_THRESHOLD:
-                chosen = best_staff
-            else:
+            if A12_LOWER_THRESHOLD <= a12 <= A12_UPPER_THRESHOLD:
                 chosen = None
+            elif a12 <  A12_LOWER_THRESHOLD:
+                chosen = best_base
+            else:
+                chosen = best_staff
+                
             winner = TOOL_RANK[chosen] if chosen else 0
 
     for mode in TOOLS:

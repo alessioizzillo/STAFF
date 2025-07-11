@@ -12,3 +12,10 @@ client
 v2.3.3.tar.gz*
 taint_analysis
 debug
+extracted_crash_outputs
+results
+cpu_ids.csv
+experiments_to_do.csv
+schedule.csv
+config.ini
+plot_params.ini

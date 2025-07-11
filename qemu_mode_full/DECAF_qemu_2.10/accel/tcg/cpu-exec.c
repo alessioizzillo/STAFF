@@ -69,34 +69,21 @@ int if_physical_exist(int phys_addr) //phys_addr <= 0x7ffff000
 #include "afl-qemu-cpu-inl.h" //AFL_QEMU_CPU_SNIPPET
 #include <xxhash.h>
 
-uint32_t update_cov_xxhash(uint32_t pid, target_ulong cur_loc) {
-    int cur_loc_tmp = XXH32(&cur_loc, sizeof(cur_loc), 0);
-    cur_loc_tmp &= MAP_SIZE - 1;
+uint32_t update_cov_xxhash(uint32_t pid,
+                                         target_ulong adjusted_pc,
+                                         target_ulong inode_num) {
+    target_ulong pair[2];
+    pair[0] = adjusted_pc;
+    pair[1] = inode_num;
 
-    /* Implement probabilistic instrumentation by looking at the scrambled block
-       address. This keeps the instrumented locations stable across runs. */
+    uint32_t cur_loc = XXH32(pair, sizeof(pair), pid) & MAP_SIZE;
 
     target_ulong prev_loc = get_coverage_value(pid, "xxhash", 0);
-    insert_coverage_value(pid, "xxhash", cur_loc_tmp ^ prev_loc, 1);
-    insert_coverage_value(pid, "xxhash", cur_loc_tmp >> 1, 0);
+    insert_coverage_value(pid, "xxhash", cur_loc ^ prev_loc, 1);
+    insert_coverage_value(pid, "xxhash", cur_loc >> 1,    0);
 
-    return cur_loc_tmp ^ prev_loc;
+    return cur_loc ^ prev_loc;
 }
-
-// uint32_t update_cov_xxhash_buffer(uint32_t pid, target_ulong cur_loc) {
-//     static target_ulong prev_loc[MAX_PID];
-
-//     int cur_loc_tmp = XXH32(&cur_loc, sizeof(cur_loc), 0);
-//     cur_loc_tmp &= MAP_SIZE - 1;
-
-//     /* Implement probabilistic instrumentation by looking at the scrambled block
-//        address. This keeps the instrumented locations stable across runs. */
-
-//     global_cov_xxhash[pid] = cur_loc_tmp ^ prev_loc[pid];
-//     prev_loc[pid] = cur_loc_tmp >> 1;
-
-//     return cur_loc_tmp ^ prev_loc[pid];
-// }
 
 uint32_t update_cov_orig(uint32_t pid, target_ulong cur_loc) {
     int cur_loc_tmp = (cur_loc >> 4) ^ (cur_loc << 8);
@@ -1189,15 +1176,16 @@ tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                 get_pc_text_info_wrapper(pid, itb->pc, &adjusted_pc, &inode_num);
 
                 if (adjusted_pc) {
-                    // uint32_t cov_xxhash = update_cov_xxhash_buffer(pid, adjusted_pc ^ inode_num);
                     if (fuzz && afl_user_fork) {
-                        uint32_t cov_xxhash = update_cov_xxhash(pid, adjusted_pc ^ inode_num);
+                        uint32_t cov_xxhash = update_cov_xxhash(pid, adjusted_pc, inode_num);
                         if (!taint_tracking_enabled) {
                             if (coverage_tracing == EDGE) {
                                 afl_area_ptr[cov_xxhash]++;
                             }
                             else if (coverage_tracing == BLOCK) {
-                                afl_area_ptr[(adjusted_pc ^ inode_num) & (MAP_SIZE - 1)]++;
+                                target_ulong pair[2] = { adjusted_pc, inode_num };
+                                uint32_t loc = XXH32(pair, sizeof(pair), pid) & MAP_SIZE;
+                                afl_area_ptr[loc]++;
                             }
                         }
                         else {
@@ -1210,7 +1198,7 @@ tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                     }
 
                     if (taint_tracking_enabled && !fuzz) {
-                        update_cov_xxhash(pid, adjusted_pc ^ inode_num);
+                        update_cov_xxhash(pid, adjusted_pc, inode_num);
 
                         // global_app_tb_pc[pid] = adjusted_pc ^ inode_num;
                         // update_cov_orig_buffer(pid, adjusted_pc ^ inode_num);

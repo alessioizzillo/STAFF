@@ -23,8 +23,12 @@ case $1 in
     	docker run -dit --privileged --cpuset-cpus $3 --memory="15g" --network bridge --name $2 -v /dev:/dev -v $(pwd):/STAFF staff;
         ;;
 
+    run_bridge_docker)
+    	docker run -dit --privileged --cpuset-cpus $3 --memory="15g" --network bridge --name $2 -v /var/run/docker.sock:/var/run/docker.sock -v /dev:/dev -v $(pwd):/STAFF staff;
+        ;;
+
     run_exp)
-    	docker run -dit --privileged --cpuset-cpus=$3 --memory="15g" --network bridge --name $2 -v /dev:/dev -v $(pwd):/STAFF --mount type=tmpfs,destination=/dev/shm staff /bin/bash -c "$(cat command)";
+    	docker run -dit --privileged --cpuset-cpus=$3 --memory="15g" --network bridge --name $2 --volumes-from STAFF --mount type=tmpfs,destination=/dev/shm staff /bin/bash -c "$(cat command)";
         ;;
 
     run_postgres)

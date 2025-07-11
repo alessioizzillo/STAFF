@@ -5,8 +5,8 @@ import configparser
 import shutil
 
 BASE_DIRS = [
-    "experiments_done/baseline",
-    "experiments_done/staff_state_aware_0_taint_edge"
+    "experiments_done_old/baseline",
+    "experiments_done_old/staff_base_0_block"
 ]
 
 DEST_DIR = "extracted_crash_outputs"

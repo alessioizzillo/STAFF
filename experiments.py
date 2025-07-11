@@ -9,7 +9,7 @@ import docker
 import csv
 from configparser import ConfigParser
 from collections import defaultdict
-from time import sleep
+from time import sleep, strftime
 import re
 import shutil
 
@@ -22,8 +22,8 @@ N_CPU_MAX = int(os.cpu_count())
 logical_to_pair = {}
 pair_to_logical = defaultdict(list)
 CPUS_WHITELIST = None
-CPUS_WHITELIST = [0,56,4,60,64,8,12,68,10,66,6,62,2,58,16,72,20,76,24,80,26,82,22,78,18,74,14,70,28,84,32,88,36,92,40,96,38,94,34,90,30,86,100,44,104,48,108,52,110,54,106,50,1,57,5,61,65,9,13,69,11,67]
-reset_firmware_images = 1
+CPUS_WHITELIST = [0,56,4,60,64,8,12,68,10,66,6,62,2,58,16,72,20,76,24,80,26,82,22,78,18,74,14,70,28,84,32,88,36,92,40,96,38,94,34,90,30,86,100,44,104,48,108,52,110,54,106,50,102,46,42,98,1,57,5,61,65,9,13,69,11,67,107,51,103,47,43,99]
+reset_firmware_images = 0
 
 def usage():
     print("python3 experiments.py")
@@ -566,9 +566,8 @@ def create_config_file(config_data, index):
     
     return config_path
 
-if __name__ == "__main__":
+def main_loop():
     ensure_experiment_consistency(SCHEDULE_CSV, EXPERIMENTS_DIR)
-    experiments = parse_schedule(SCHEDULE_CSV)
 
     with open("cpu_ids.csv") as f:
         reader = csv.DictReader(f)
@@ -581,23 +580,36 @@ if __name__ == "__main__":
             logical_to_pair[logical_id] = pair
             pair_to_logical[pair].append(logical_id)
 
-    if experiments:
+    while True:
+        experiments = parse_schedule(SCHEDULE_CSV) or []
+
+        launched_any = False
+
         for idx, (status, exp_name, container_name, num_cores, config_data) in enumerate(experiments):
-            if status == "":
-                    exp_name, container_name = assign_names(SCHEDULE_CSV, idx, int(num_cores), config_data)
+            if status != "":
+                continue
 
-                    if exp_name and container_name:
-                        config_file_path = create_config_file(config_data, idx)
-                        print(f"Config file created: {config_file_path} (num_cores: {num_cores})")
-                        run_experiment(exp_name, container_name, int(num_cores), 0)
-            elif status == "replay":
-                if exp_name and container_name:
-                    config_data["GENERAL"]["status"] = ""
-                    config_data["GENERAL"]["mode"] = container_name
+            result = assign_names(SCHEDULE_CSV, idx, int(num_cores), config_data)
+            if result == (None, None):
+                print(f"[{strftime('%H:%M:%S')}] Not enough free CPUs for experiment row {idx}.")
+                break
 
-                    if exp_name and container_name:
-                        config_file_path = create_config_file(config_data, idx)
-                        print(f"Config file created: {config_file_path} (num_cores: {num_cores})")
-                        run_experiment(exp_name, container_name, int(num_cores), 1)
-                else:
-                    assert(exp_name and container_name)
+            exp_name, container_name = result
+            launched_any = True
+            cfg = create_config_file(config_data, idx)
+            print(f"Launching {container_name} ({exp_name}) on {num_cores} cores (cfg: {cfg})")
+            try:
+                run_experiment(exp_name, container_name, int(num_cores), replay=0)
+            except SystemExit as e:
+                print(f"Failed to launch {container_name}: {e}", file=sys.stderr)
+
+            break
+
+        if not launched_any:
+            print(f"[{strftime('%H:%M:%S')}] Nothing to launch right now—sleeping 1s…")
+            sleep(1)
+        else:
+            sleep(1)
+
+if __name__ == "__main__":
+    main_loop()
