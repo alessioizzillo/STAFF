@@ -6,7 +6,23 @@ import shutil
 
 BASE_DIRS = [
     "experiments_done_old/baseline",
-    "experiments_done_old/staff_base_0_block"
+    "experiments_done_old/staff_base_0_block",
+    "experiments_done_old/baseline",
+    "experiments_done_old/staff_base_0_block",
+    "experiments_done_old/staff_base_0_edge",
+    "experiments_done_old/staff_base_0_taint_block",
+    "experiments_done_old/staff_base_0_taint_edge",
+    "experiments_done_old/staff_base_1_edge",
+    "experiments_done_old/staff_state_aware_0_block",
+    "experiments_done_old/staff_state_aware_0_edge",
+    "experiments_done_old/staff_state_aware_0_taint_block",
+    "experiments_done_old/staff_state_aware_0_taint_edge",
+    "experiments_done_old/staff_state_aware_1_edge",
+    "experiments_done_old_2/baseline",
+    "experiments_done_old_2/staff_base_0_block",
+    "experiments_done_old_2/staff_base_0_edge",
+    "experiments_done_old_2/staff_state_aware_0_block",
+    "experiments_done_old_2/staff_state_aware_0_edge"
 ]
 
 DEST_DIR = "extracted_crash_outputs"
