@@ -76,7 +76,7 @@ uint32_t update_cov_xxhash(uint32_t pid,
     pair[0] = adjusted_pc;
     pair[1] = inode_num;
 
-    uint32_t cur_loc = XXH32(pair, sizeof(pair), pid) & MAP_SIZE;
+    uint32_t cur_loc = XXH32(pair, sizeof(pair), pid) & (MAP_SIZE - 1);
 
     target_ulong prev_loc = get_coverage_value(pid, "xxhash", 0);
     insert_coverage_value(pid, "xxhash", cur_loc ^ prev_loc, 1);
