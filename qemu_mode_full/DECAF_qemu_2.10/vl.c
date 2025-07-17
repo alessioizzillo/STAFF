@@ -3382,33 +3382,15 @@ int main(int argc, char **argv, char **envp)
         }  
     }
     else {
-        shm_unlink(SHARED_MEM_NAME);
-        shm_fd = shm_open(SHARED_MEM_NAME, O_RDWR, 0666);
-
-        if (shm_fd == -1) {
-            perror("shm_open");
-            exit(EXIT_FAILURE);
-        }
-
-        start_fork_flag = mmap(NULL, sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-        if (start_fork_flag == MAP_FAILED) {
-            perror("mmap");
-            exit(EXIT_FAILURE);
-        }
-
-        if (*start_fork_flag == 0) {
-            *start_fork_flag = 0;
-            printf("Shared memory initialized to: %d\n", *start_fork_flag);
-        } else {
-            printf("Reader read: %c\n", *start_fork_flag);
-        }
-
-        close(shm_fd);
-
         shm_unlink(SEND_NEXT_REGION);
-        shm_fd = shm_open(SEND_NEXT_REGION, O_RDWR, 0666);
+        shm_fd = shm_open(SEND_NEXT_REGION, O_CREAT | O_RDWR, 0666);
         if (shm_fd == -1) {
             perror("shm_open");
+            exit(EXIT_FAILURE);
+        }
+
+        if (ftruncate(shm_fd, sizeof(char)) == -1) {
+            perror("ftruncate");
             exit(EXIT_FAILURE);
         }
 

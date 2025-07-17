@@ -208,12 +208,7 @@ int main(int argc, char *argv[]) {
         perror("shm_open");
         exit(EXIT_FAILURE);
     }
-
-    if (ftruncate(shm_fd, sizeof(char)) == -1) {
-        perror("ftruncate");
-        exit(EXIT_FAILURE);
-    }
-
+    
     send_next_region = mmap(NULL, sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (send_next_region == MAP_FAILED) {
         perror("mmap");
