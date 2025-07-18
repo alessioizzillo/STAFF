@@ -25,10 +25,12 @@ extern uint32_t sink_id;
 
 int add_base_addr(int pid, uint64_t inode_num, uintptr_t base_addr, const std::string &module_name);
 void copy_inode_trace_to_shmem(int pid, char proc_name[MAX_PROCESS_NAME_LENGTH], trace_t *cur_crashes);
-void insert_inode_pc_trace(int pid, uint64_t inode, uint32_t pc);
-int get_func_and_module_name(int pid, uintptr_t pc, std::string &func_name, std::string &module_name);
+void insert_inode_pc_trace(int pid, uint64_t inode, uint32_t pc, int trace_len, uint8_t is_lib);
 int get_pc_text_info(int pid, uintptr_t pc, int &adjusted_pc, TSK_INUM_T &inode_num);
 int get_module_name_from_inode(int pid, uint64_t inode, char name_buf[MAX_MODULE_NAME_LENGTH]);
+void register_process(int pid, const std::string &procname, int parent_pid = -1);
+void unregister_process(int pid);
+void dump_pid_trace_to_file(int pid);
 
 extern "C" {
 #endif

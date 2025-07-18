@@ -92,6 +92,10 @@ extern enum COVERAGE_TRACING coverage_tracing;
 
 extern int kernel_base;
 
+extern int crash_analysis;
+extern int crash_analysis_TRACE_LEN;
+extern char *crash_analysis_target_procname;
+
 void remove_directory(const char *path);
 
 extern void init_thread_pool_after_fork();

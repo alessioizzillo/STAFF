@@ -841,14 +841,19 @@ static void callbacktests_loadmainmodule_callback(VMI_Callback_Params* params)
         return;
     }
 
-    if (debug && params->cp.cr3)
+    if ((debug || crash_analysis) && params->cp.cr3)
         status = VMI_find_process_by_cr3_all(params->cp.cr3, procname, 64, &pid, &par_pid);
 
-    if (debug && params->cp.cr3 && !status) {
+    if (params->cp.cr3 && !status)
+        remove_pid(pid);
+
+    if ((debug || crash_analysis) && params->cp.cr3 && !status) {
         if (pid == (uint32_t)(-1))
         {
             return;
         }
+
+        register_process_wrapper(pid, procname, par_pid);
 
         if (debug){
             FILE *fd;
@@ -938,17 +943,23 @@ static void callbacktests_loadmodule_callback(VMI_Callback_Params* params)
     if (params->cp.cr3 && !status) {
         if (debug){
             FILE *module_file = fopen("debug/modules.log","a+");
-            fprintf(module_file, "%s:::%s:::0x%lx\n", procname, params->lm.name, params->lm.base);
+            fprintf(module_file, "(par_pid: %d):::(pid: %d):::%s:::%s:::0x%lx\n", par_pid, pid, procname, params->lm.name, params->lm.base);
             fclose(module_file);
         }
 
-        if (callstack_trace && !strcmp(procname, program_analysis) && !strcmp(params->lm.name, program_analysis))
+        if (callstack_trace && !strcmp(procname, program_analysis))
             hookapi_hook_all_module_functions(procname, params->lm.name, 1, params->lm.cr3, pid, function_enter_callback, debug);
     }       
 }
 
 static void callbacktests_taint_loadmodule_callback(VMI_Callback_Params* params)
 {
+    if (debug){
+        FILE *module_file = fopen("debug/taint_modules.log","a+");
+        fprintf(module_file, "(pid: %d):::%s\n", params->lm.pid, params->lm.name);
+        fclose(module_file);
+    }
+
     load_module(params->lm.cr3, params->lm.name, params->lm.pid);
 }
 
@@ -982,8 +993,6 @@ static void callbacktests_removeproc_callback(VMI_Callback_Params* params)
         {
             DECAF_printf("\nProcname end:%s/%d,pid:%d, cur pgd:%x\n",procname, index, pid, params->rp.cr3);
         }
-
-        remove_pid(pid);
     }
 }
 
@@ -994,7 +1003,7 @@ int callbacktests_init(void)
     processbegin_handle = VMI_register_callback(VMI_CREATEPROC_CB, &callbacktests_loadmainmodule_callback, NULL);
     removeproc_handle = VMI_register_callback(VMI_REMOVEPROC_CB, &callbacktests_removeproc_callback, NULL);
     if (callstack_trace || debug || debug_taint) modulebegin_handle = VMI_register_callback(VMI_LOADMODULE_CB, &callbacktests_loadmodule_callback, NULL);
-    if (taint_tracking_enabled || fuzz) taint_modulebegin_handle = VMI_register_callback(VMI_LOADMODULE_CB, &callbacktests_taint_loadmodule_callback, NULL);
+    if (taint_tracking_enabled || fuzz || crash_analysis) taint_modulebegin_handle = VMI_register_callback(VMI_LOADMODULE_CB, &callbacktests_taint_loadmodule_callback, NULL);
 #ifdef STORE_PAGE_FUNC
     mem_write_cb_handle = DECAF_register_callback(DECAF_MEM_WRITE_CB,fuzz_mem_write,NULL);
 #endif                  
@@ -1213,7 +1222,7 @@ tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                 }
             }
         }
-        if (fuzz) {
+        if (fuzz || crash_analysis) {
             char procname[MAX_PROCESS_NAME_LENGTH] = {0};
 
             uint32_t pid = 0;
@@ -1232,7 +1241,7 @@ tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
                 get_pc_text_info_wrapper(pid, itb->pc, &adjusted_pc, &inode_num);
 
                 if (adjusted_pc) {
-                    insert_inode_pc_trace_wrapper(pid, inode_num, adjusted_pc);
+                    insert_inode_pc_trace_wrapper(pid, inode_num, adjusted_pc, itb->pc >= 0x70000000);
                 }
             }
         }
@@ -3292,7 +3301,7 @@ skip_to_pos:
                     }
                 }
 
-                if(fuzz)
+                if(fuzz || crash_analysis)
                 {
                     uint32_t pid;
                     uint32_t par_pid;
@@ -3303,18 +3312,32 @@ skip_to_pos:
                     if (pgd)
                         status = VMI_find_process_by_cr3_all(pgd, procname, 64, &pid, &par_pid);
                     
-                    if (debug_fuzz) {
-                        FILE *fd = fopen("debug/fuzzing.log","a+");
-                        fprintf(fd, "do_coredump_addr: %s\n", procname);
-                        fclose(fd);              
+                    if (fuzz) {
+                        if (debug_fuzz) {
+                            FILE *fd = fopen("debug/fuzzing.log","a+");
+                            fprintf(fd, "do_coredump_addr: %s\n", procname);
+                            fclose(fd);              
+                        }
+
+                        if (pgd && !status) {
+                            uint32_t value = XXH32(&procname, sizeof(procname), 0);
+                            if (child_retval) {
+                                *child_retval = 1;
+                                copy_inode_trace_to_shmem_wrapper(pid, procname);
+                            }
+                        }
                     }
 
-                    if (pgd && !status) {
-                        uint32_t value = XXH32(&procname, sizeof(procname), 0);
-                        if (child_retval) {
-                            *child_retval = 1;
-                            copy_inode_trace_to_shmem_wrapper(pid, procname);
-                        }
+                    if (crash_analysis && crash_analysis_target_procname && !strcmp(procname, crash_analysis_target_procname)) {
+                        if (pgd && !status) {
+                            if (debug){
+                                FILE *fd;
+                                fd = fopen("debug/processes.log","a+");
+                                fprintf(fd, "CRASHED pid %d (par_pid: %d, pgd: %d, name: %s)\n", pid, par_pid, pgd, procname);
+                                fclose(fd);        
+                            }
+                            dump_pid_trace_to_file_wrapper(pid);
+                        }                     
                     }
                 } 
             }

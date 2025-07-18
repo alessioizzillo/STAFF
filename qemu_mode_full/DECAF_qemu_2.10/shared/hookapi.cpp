@@ -733,6 +733,18 @@ int get_module_name_from_inode_wrapper(int pid, uint64_t inode, char name_buf[MA
   return -1;
 }
 
-void insert_inode_pc_trace_wrapper(int pid, uint64_t inode, uint32_t pc) {
-  insert_inode_pc_trace(pid, inode, pc);
+void insert_inode_pc_trace_wrapper(int pid, uint64_t inode, uint32_t pc, uint8_t is_lib) {
+  insert_inode_pc_trace(pid, inode, pc, crash_analysis ? crash_analysis_TRACE_LEN : TRACE_LEN, is_lib);
+}
+
+void dump_pid_trace_to_file_wrapper(int pid) {
+  dump_pid_trace_to_file(pid);
+}
+
+void register_process_wrapper(int pid, const char *procname, int parent_pid) {
+  register_process(pid, std::string(procname), parent_pid);
+}
+
+void unregister_process_wrapper(int pid) {
+  unregister_process(pid);
 }

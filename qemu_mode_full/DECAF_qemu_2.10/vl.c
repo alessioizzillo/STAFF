@@ -99,6 +99,10 @@ int target_offset = -1;
 int target_len = -1;
 // int taint_pkt = 0;
 
+extern int crash_analysis = 0;
+extern int crash_analysis_TRACE_LEN = TRACE_LEN;
+extern char *crash_analysis_target_procname = NULL;
+
 int afl_user_fork = 0;
 enum COVERAGE_TRACING coverage_tracing = EDGE;
 
@@ -3286,6 +3290,23 @@ int main(int argc, char **argv, char **envp)
         struct stat st = {0};
         if (stat("debug", &st) == -1)
             mkdir("debug", 0777);
+    }
+
+    env_var = getenv("CRASH_ANALYSIS");
+    if (env_var) {
+        crash_analysis = atoi(env_var);
+        if (access("crash_analysis", F_OK) == 0)
+            remove_directory("crash_analysis");
+        mkdir("crash_analysis", 0777);
+    }
+
+    env_var = getenv("TRACE_LEN");
+    if (env_var)
+        crash_analysis_TRACE_LEN = atoi(env_var);
+
+    env_var = getenv("TARGET_PROCNAME");
+    if (env_var) {
+        crash_analysis_target_procname = env_var;
     }
 
     if (fuzz) {

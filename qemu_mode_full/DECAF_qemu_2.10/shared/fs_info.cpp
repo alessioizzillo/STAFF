@@ -38,15 +38,21 @@ std::unordered_map<int, std::pair<TSK_INUM_T, uintptr_t>> pid_cache;
 
 int add_base_addr(int pid, uint64_t inode_num, uintptr_t base_addr, const std::string &module_name) {
     auto &vec = base_address_map[pid];
-    auto it = std::find_if(vec.begin(), vec.end(), [inode_num](const auto &entry) {
-        return entry.first == inode_num;
+
+    auto it = std::find_if(vec.begin(), vec.end(), [&](const auto &entry) {
+        const auto &existing_inode = entry.first;
+        const auto &existing_tup   = entry.second;
+        return existing_inode == inode_num
+            || std::get<0>(existing_tup) == base_addr;
     });
 
     if (it == vec.end()) {
         vec.emplace_back(inode_num, std::make_tuple(base_addr, module_name));
     } else {
+        it->first  = inode_num;
         it->second = std::make_tuple(base_addr, module_name);
     }
+
     return 0;
 }
 
@@ -199,161 +205,197 @@ struct DataStorage {
     std::vector<std::vector<std::tuple<std::string, std::tuple<int, int>>>> coverage_vec;
     std::vector<std::vector<std::pair<std::string, int>>> syscall_vec;
     std::vector<std::vector<int>> accept_fd_vec;
-    std::vector<std::deque<std::pair<uint64_t, uint32_t>>> inode_pc_trace_vec;
+    std::vector<std::deque<std::tuple<uint64_t, uint32_t, uint8_t>>> inode_pc_trace_vec;
+
+    std::unordered_map<int, std::string> pid_to_procname;
+    std::unordered_map<int, std::vector<int>> pid_relationships;
 };
 
 DataStorage storage;
 
-void insert_coverage_value(int pid, const char *cov_name, int value, int index) {
-    if (pid >= storage.coverage_vec.size()) {
-        storage.coverage_vec.resize(pid + 1);
-    }
+void set_procname(int pid, const std::string &name) {
+    storage.pid_to_procname[pid] = name;
+}
 
-    auto &cov_map = storage.coverage_vec[pid];
-    auto it = std::find_if(cov_map.begin(), cov_map.end(),
-        [&cov_name](const std::tuple<std::string, std::tuple<int, int>>& entry) {
-            return std::get<0>(entry) == cov_name;
-        });
+std::string get_procname(int pid) {
+    auto it = storage.pid_to_procname.find(pid);
+    return it != storage.pid_to_procname.end() ? it->second : std::string();
+}
 
-    if (it == cov_map.end()) {
-        cov_map.emplace_back(cov_name, std::make_tuple(0, 0));
-        it = cov_map.end() - 1;
-    }
+void add_pid_relationship(int parent_pid, int child_pid) {
+    storage.pid_relationships[parent_pid].push_back(child_pid);
+}
 
-    if (index == 0) {
-        std::get<0>(std::get<1>(*it)) = value;
-    } else if (index == 1) {
-        std::get<1>(std::get<1>(*it)) = value;
+std::vector<int> get_child_pids(int parent_pid) {
+    auto it = storage.pid_relationships.find(parent_pid);
+    return it != storage.pid_relationships.end() ? it->second : std::vector<int>();
+}
+
+void remove_pid_relationship(int parent_pid, int child_pid) {
+    auto it = storage.pid_relationships.find(parent_pid);
+    if (it == storage.pid_relationships.end()) return;
+    auto &vec = it->second;
+    vec.erase(std::remove(vec.begin(), vec.end(), child_pid), vec.end());
+    if (vec.empty())
+        storage.pid_relationships.erase(parent_pid);
+}
+
+void register_process(int pid, const std::string &procname, int parent_pid = -1) {
+    set_procname(pid, procname);
+    if (parent_pid >= 0) {
+        add_pid_relationship(parent_pid, pid);
     }
 }
 
+void unregister_process(int pid) {
+    storage.pid_to_procname.erase(pid);
+
+    std::vector<int> parents;
+    parents.reserve(storage.pid_relationships.size());
+    for (const auto &entry : storage.pid_relationships) {
+        parents.push_back(entry.first);
+    }
+    for (int parent_pid : parents) {
+        remove_pid_relationship(parent_pid, pid);
+    }
+
+    storage.pid_relationships.erase(pid);
+}
+
+void insert_coverage_value(int pid, const char *cov_name, int value, int index) {
+    if (pid >= (int)storage.coverage_vec.size())
+        storage.coverage_vec.resize(pid + 1);
+
+    auto &cov_map = storage.coverage_vec[pid];
+    auto it = std::find_if(cov_map.begin(), cov_map.end(),
+        [&cov_name](auto &entry){ return std::get<0>(entry) == cov_name; });
+
+    if (it == cov_map.end()) {
+        cov_map.emplace_back(cov_name, std::make_tuple(0,0));
+        it = cov_map.end() - 1;
+    }
+
+    if (index == 0)
+        std::get<0>(std::get<1>(*it)) = value;
+    else
+        std::get<1>(std::get<1>(*it)) = value;
+}
+
 int get_coverage_value(int pid, const char *cov_name, int index) {
-    if (pid < storage.coverage_vec.size()) {
+    if (pid < (int)storage.coverage_vec.size()) {
         const auto &cov_map = storage.coverage_vec[pid];
         auto it = std::find_if(cov_map.begin(), cov_map.end(),
-            [&cov_name](const std::tuple<std::string, std::tuple<int, int>>& entry) {
-                return std::get<0>(entry) == cov_name;
-            });
-
-        if (it != cov_map.end()) {
-            if (index == 0) {
-                return std::get<0>(std::get<1>(*it));
-            } else if (index == 1) {
-                return std::get<1>(std::get<1>(*it));
-            }
-        }
+            [&cov_name](auto &entry){ return std::get<0>(entry) == cov_name; });
+        if (it != cov_map.end())
+            return index==0
+                ? std::get<0>(std::get<1>(*it))
+                : std::get<1>(std::get<1>(*it));
     }
     return 0;
 }
 
 void remove_coverage_by_pid(int pid) {
-    if (pid < storage.coverage_vec.size()) {
+    if (pid < (int)storage.coverage_vec.size())
         storage.coverage_vec[pid].clear();
-    }
 }
 
 void insert_syscall_value(int pid, const char *var_name, int value) {
-    if (pid >= storage.syscall_vec.size()) {
+    if (pid >= (int)storage.syscall_vec.size())
         storage.syscall_vec.resize(pid + 1);
-    }
 
     auto &syscall_map = storage.syscall_vec[pid];
     auto it = std::find_if(syscall_map.begin(), syscall_map.end(),
-        [&var_name](const std::pair<std::string, int>& entry) {
-            return entry.first == var_name;
-        });
+        [&var_name](auto &entry){ return entry.first == var_name; });
 
-    if (it == syscall_map.end()) {
+    if (it == syscall_map.end())
         syscall_map.emplace_back(var_name, value);
-    } else {
+    else
         it->second = value;
-    }
 }
 
 int get_syscall_value(int pid, const char *var_name) {
-    if (pid < storage.syscall_vec.size()) {
+    if (pid < (int)storage.syscall_vec.size()) {
         const auto &syscall_map = storage.syscall_vec[pid];
         auto it = std::find_if(syscall_map.begin(), syscall_map.end(),
-            [&var_name](const std::pair<std::string, int>& entry) {
-                return entry.first == var_name;
-            });
-
-        if (it != syscall_map.end()) {
+            [&var_name](auto &entry){ return entry.first == var_name; });
+        if (it != syscall_map.end())
             return it->second;
-        }
     }
     return 0;
 }
 
 void remove_syscall_by_pid(int pid) {
-    if (pid < storage.syscall_vec.size()) {
+    if (pid < (int)storage.syscall_vec.size())
         storage.syscall_vec[pid].clear();
-    }
 }
 
 void insert_accept_fd(int pid, int fd) {
-    if (pid >= storage.accept_fd_vec.size()) {
+    if (pid >= (int)storage.accept_fd_vec.size())
         storage.accept_fd_vec.resize(pid + 1);
-    }
 
     auto &fd_set = storage.accept_fd_vec[pid];
-    if (std::find(fd_set.begin(), fd_set.end(), fd) == fd_set.end()) {
+    if (std::find(fd_set.begin(), fd_set.end(), fd) == fd_set.end())
         fd_set.push_back(fd);
-    }
 }
 
 void copy_accept_fds(int src_pid, int dst_pid) {
-    if (src_pid >= storage.accept_fd_vec.size()) {
+    if (src_pid >= (int)storage.accept_fd_vec.size())
         return;
-    }
-
-    const auto &src_fd_set = storage.accept_fd_vec[src_pid];
-
-    if (dst_pid >= storage.accept_fd_vec.size()) {
+    const auto &src = storage.accept_fd_vec[src_pid];
+    if (dst_pid >= (int)storage.accept_fd_vec.size())
         storage.accept_fd_vec.resize(dst_pid + 1);
-    }
-
-    auto &dst_fd_set = storage.accept_fd_vec[dst_pid];
-
-    for (int fd : src_fd_set) {
-        if (std::find(dst_fd_set.begin(), dst_fd_set.end(), fd) == dst_fd_set.end()) {
-            dst_fd_set.push_back(fd);
-        }
-    }
+    auto &dst = storage.accept_fd_vec[dst_pid];
+    for (int fd : src)
+        if (std::find(dst.begin(), dst.end(), fd) == dst.end())
+            dst.push_back(fd);
 }
 
 int is_accept_fd_open(int pid, int fd) {
-    if (pid < storage.accept_fd_vec.size()) {
-        const auto &fd_set = storage.accept_fd_vec[pid];
-        return std::find(fd_set.begin(), fd_set.end(), fd) != fd_set.end() ? 1 : 0;
-    }
+    if (pid < (int)storage.accept_fd_vec.size())
+        return std::find(
+            storage.accept_fd_vec[pid].begin(),
+            storage.accept_fd_vec[pid].end(), fd
+        ) != storage.accept_fd_vec[pid].end();
     return 0;
 }
 
 void remove_accept_fd(int pid, int fd) {
-    if (pid < storage.accept_fd_vec.size()) {
+    if (pid < (int)storage.accept_fd_vec.size()) {
         auto &fd_set = storage.accept_fd_vec[pid];
-        fd_set.erase(std::remove(fd_set.begin(), fd_set.end(), fd), fd_set.end());
+        fd_set.erase(
+            std::remove(fd_set.begin(), fd_set.end(), fd),
+            fd_set.end()
+        );
     }
 }
 
 void remove_all_accept_fds(int pid) {
-    if (pid < storage.accept_fd_vec.size()) {
+    if (pid < (int)storage.accept_fd_vec.size())
         storage.accept_fd_vec[pid].clear();
-    }
 }
 
-void insert_inode_pc_trace(int pid, uint64_t inode, uint32_t pc) {
-    if (pid >= storage.inode_pc_trace_vec.size()) {
+void insert_inode_pc_trace(int pid, uint64_t inode, uint32_t pc, int trace_len, uint8_t is_lib) {
+    if (pid >= (int)storage.inode_pc_trace_vec.size())
         storage.inode_pc_trace_vec.resize(pid + 1);
-    }
 
     auto &trace = storage.inode_pc_trace_vec[pid];
-    trace.emplace_back(inode, pc);
 
-    if (trace.size() > TRACE_LEN) {
-        trace.pop_front();
+    if (is_lib && !trace.empty()) {
+        const auto &last = trace.back();
+        if (std::get<2>(last)) { 
+            return;
+        }
     }
+
+    trace.emplace_back(inode, pc, is_lib);
+
+    if ((int)trace.size() > trace_len)
+        trace.pop_front();
+}
+
+void remove_inode_pc_trace_by_pid(int pid) {
+    if (pid < (int)storage.inode_pc_trace_vec.size())
+        storage.inode_pc_trace_vec[pid].clear();
 }
 
 void copy_inode_trace_to_shmem(int pid, char proc_name[MAX_PROCESS_NAME_LENGTH], trace_t *cur_crashes) {
@@ -376,7 +418,7 @@ void copy_inode_trace_to_shmem(int pid, char proc_name[MAX_PROCESS_NAME_LENGTH],
     const auto &trace_vec = storage.inode_pc_trace_vec[pid];
     int count = 0;
 
-    for (const auto &[inode, pc] : trace_vec) {
+    for (const auto &[inode, pc, is_lib] : trace_vec) {
         if (count >= TRACE_LEN) break;
 
         trace_element_t &el = target.trace[count];
@@ -393,10 +435,69 @@ void copy_inode_trace_to_shmem(int pid, char proc_name[MAX_PROCESS_NAME_LENGTH],
     }
 }
 
-void remove_inode_pc_trace_by_pid(int pid) {
-    if (pid < storage.inode_pc_trace_vec.size()) {
-        storage.inode_pc_trace_vec[pid].clear();
+static void dump_trace(FILE *f, int tid, const char *header) {
+    fprintf(f, "--- %s PID %d Trace ---\n", header, tid);
+    const auto &tvec = storage.inode_pc_trace_vec[tid];
+    int cnt = 0;
+    for (auto &[inode, pc, is_lib] : tvec) {
+        char buf[MAX_MODULE_NAME_LENGTH] = {0};
+        if (!get_module_name_from_inode(tid, inode, buf))
+            strncpy(buf, "unknown", MAX_MODULE_NAME_LENGTH - 1);
+        fprintf(f, "  [%03d] inode: %lu, pc: 0x%08lx, module: %s\n",
+                cnt++, inode, (unsigned long)pc, buf);
     }
+    fprintf(f, "Total %s trace elements: %d\n\n", header, cnt);
+}
+
+void dump_pid_trace_to_file(int pid) {
+    if (pid < 0 || pid >= (int)storage.inode_pc_trace_vec.size()) {
+        fprintf(stderr, "Invalid pid %d for trace dump\n", pid);
+        return;
+    }
+
+    char path_buf[256];
+    snprintf(path_buf, sizeof(path_buf), "crash_analysis/%d.log", pid);
+
+    FILE *f = fopen(path_buf, "w");
+    if (!f) {
+        perror("fopen (pid trace dump)");
+        return;
+    }
+
+    fprintf(f, "=== Trace for PID %d ===\n", pid);
+    auto pname = get_procname(pid);
+    fprintf(f, "Process: %s\n\n", pname.empty() ? "<unknown>" : pname.c_str());
+
+    dump_trace(f, pid, "Self");
+
+    std::vector<int> stack = { pid }, visited;
+    visited.reserve(16);
+    while (!stack.empty()) {
+        int cur = stack.back(); stack.pop_back();
+        visited.push_back(cur);
+
+        for (auto &entry : storage.pid_relationships) {
+            int parent = entry.first;
+            const auto &children = entry.second;
+            if (std::find(children.begin(), children.end(), cur) != children.end()
+                && std::find(visited.begin(), visited.end(), parent) == visited.end()) {
+                dump_trace(f, parent, "Parent");
+                stack.push_back(parent);
+            }
+        }
+    }
+
+    auto children = get_child_pids(pid);
+    if (!children.empty()) {
+        fprintf(f, "Children: ");
+        for (int c : children) {
+            auto cn = get_procname(c);
+            fprintf(f, "%d(%s) ", c, cn.empty() ? "<unknown>" : cn.c_str());
+        }
+        fprintf(f, "\n\n");
+    }
+
+    fclose(f);
 }
 
 void remove_pid(int pid) {
@@ -404,21 +505,16 @@ void remove_pid(int pid) {
     remove_syscall_by_pid(pid);
     remove_all_accept_fds(pid);
     remove_inode_pc_trace_by_pid(pid);
+    unregister_process(pid);
 }
 
 void clear_storage() {
-    for (auto &cov_map : storage.coverage_vec) {
-        cov_map.clear();
-    }
-    for (auto &syscall_map : storage.syscall_vec) {
-        syscall_map.clear();
-    }
-    for (auto &fd_set : storage.accept_fd_vec) {
-        fd_set.clear();
-    }
-    for (auto &trace : storage.inode_pc_trace_vec) {
-        trace.clear();
-    }
+    for (auto &c : storage.coverage_vec)     c.clear();
+    for (auto &s : storage.syscall_vec)      s.clear();
+    for (auto &f : storage.accept_fd_vec)    f.clear();
+    for (auto &t : storage.inode_pc_trace_vec) t.clear();
+    storage.pid_to_procname.clear();
+    storage.pid_relationships.clear();
 }
 
 // FS Tracking

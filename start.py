@@ -14,6 +14,10 @@ from analysis.taint_analysis import taint
 import csv
 import stat
 import glob
+import tempfile
+import angr
+import tarfile
+from FirmAE.sources.extractor.extractor import Extractor
 
 patterns = [
     "FirmAE/scratch/staff*",
@@ -73,6 +77,7 @@ DEFAULT_CONFIG = {
 }
 
 STAFF_DIR = os.getcwd()
+CRASH_DIR = os.path.join(STAFF_DIR, "extracted_crash_outputs")
 FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 PCAP_DIR = os.path.join(STAFF_DIR, "pcap")
 TAINT_DIR = os.path.join(STAFF_DIR, "taint_analysis")
@@ -85,6 +90,23 @@ EXP_DONE_PATH=os.path.join(STAFF_DIR, "experiments_done")
 captured_pcap_path = None
 PSQL_IP = None
 config = None
+
+def move_dir_contents(src_dir: str, dest_dir: str) -> None:
+    if not os.path.isdir(src_dir):
+        raise ValueError(f"Source {src_dir!r} is not a directory")
+    
+    os.makedirs(dest_dir, exist_ok=True)
+
+    for name in os.listdir(src_dir):
+        src_path  = os.path.join(src_dir, name)
+        dest_path = os.path.join(dest_dir, name)
+        
+        if os.path.exists(dest_path):
+            if os.path.isdir(dest_path):
+                shutil.rmtree(dest_path)
+            else:
+                os.remove(dest_path)
+        shutil.move(src_path, dest_path)
 
 # def wait_for_container_init(file_path="wait_for_container_init"):
 #     while os.path.exists(file_path):
@@ -479,53 +501,88 @@ def load_config(file_path="config.ini"):
 
     return final_config
 
-def replay_firmware(firmware, work_dir):
+def replay_firmware(firmware, work_dir, crash_analysis=False, crash_seed=None, target_procname=None):
     global config
+
+    os.environ["EXEC_MODE"] = "RUN"
+    os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')    
+    os.environ["INCLUDE_LIBRARIES"] = str(config["EMULATION_TRACING"]["include_libraries"])
+
+    if crash_analysis:
+        os.environ["CRASH_ANALYSIS"] = "1"
+        os.environ["TRACE_LEN"] = "300"
+        os.environ["TARGET_PROCNAME"] = target_procname
+        os.environ["DEBUG"] = "1"
+    else:
+        os.environ["TAINT"] = "1"
+        os.environ["FD_DEPENDENCIES_TRACK"] = "1"
+        os.environ["DEBUG"] = "1"
+        os.environ["DEBUG_DIR"] = os.path.join(work_dir, "debug", "interaction")
 
     with open(os.path.join(work_dir, "time_web"), 'r') as file:
         sleep = file.read().strip()
     sleep=int(float(sleep))
 
-    pcap_dir = os.path.join(PCAP_DIR, firmware)
+    if (crash_analysis):
+        print(f"\n[\033[32m+\033[0m] Crash mode (seed: {os.path.basename(crash_seed)})")
+
+        seed_path = crash_seed
+        process = subprocess.Popen(
+            ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", PSQL_IP],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        qemu_pid = process.pid
+        print("Booting firmware, wait %d seconds..."%(sleep))
+        time.sleep(sleep)
+
+        port = 80
+        command = ["sudo", "-E", os.path.join(STAFF_DIR, "aflnet", "client"), seed_path, os.path.join(work_dir, "qemu.final.serial.log"), open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(config["GENERAL_FUZZING"]["timeout"])]    
+        print(" ".join(command))
+        subprocess.run(command)
+
+        send_signal_recursive(qemu_pid, signal.SIGINT)
+    else:
+        pcap_dir = os.path.join(PCAP_DIR, firmware)
                     
-    print("\n[\033[32m+\033[0m] Replay mode")
+        print("\n[\033[32m+\033[0m] Replay mode")
 
-    sub_dirs = [d for d in os.listdir(pcap_dir) if os.path.isdir(os.path.join(pcap_dir, d))]
-    start_fork_executed = False
-    for proto in sub_dirs:
-        print("\n[\033[33m*\033[0m] Protocol: {}".format(proto))
-        for pcap_file in os.listdir(os.path.join(pcap_dir, proto)):
-            pcap_path = os.path.join(pcap_dir, proto, pcap_file)
-            print("\n[\033[34m*\033[0m] PCAP #{}".format(pcap_file))
+        sub_dirs = [d for d in os.listdir(pcap_dir) if os.path.isdir(os.path.join(pcap_dir, d))]
+        start_fork_executed = False
+        for proto in sub_dirs:
+            print("\n[\033[33m*\033[0m] Protocol: {}".format(proto))
+            for pcap_file in os.listdir(os.path.join(pcap_dir, proto)):
+                pcap_path = os.path.join(pcap_dir, proto, pcap_file)
+                print("\n[\033[34m*\033[0m] PCAP #{}".format(pcap_file))
 
-            seed_path = os.path.join(work_dir, "inputs", "%s.seed"%(pcap_file))
-            sources_hex = convert_pcap_into_single_seed_file(pcap_path, seed_path, config["AFLNET_FUZZING"]["region_delimiter"])
+                seed_path = os.path.join(work_dir, "inputs", "%s.seed"%(pcap_file))
+                sources_hex = convert_pcap_into_single_seed_file(pcap_path, seed_path, config["AFLNET_FUZZING"]["region_delimiter"])
 
-            process = subprocess.Popen(
-                ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", PSQL_IP],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-            qemu_pid = process.pid
-            print("Booting firmware, wait %d seconds..."%(sleep))
-            time.sleep(sleep)
+                process = subprocess.Popen(
+                    ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", PSQL_IP],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                qemu_pid = process.pid
+                print("Booting firmware, wait %d seconds..."%(sleep))
+                time.sleep(sleep)
 
-            port = None
-            try:
-                port = socket.getservbyname(proto)
-                print(f"The port for {proto.upper()} is {port}.")
-            except OSError:
-                print(f"Protocol {proto.upper()} not found.")
-            command = ["sudo", "-E", os.path.join(STAFF_DIR, "aflnet", "client"), seed_path, os.path.join(work_dir, "qemu.final.serial.log"), open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(config["GENERAL_FUZZING"]["timeout"])]    
-            print(" ".join(command))
-            subprocess.run(command)
+                port = None
+                try:
+                    port = socket.getservbyname(proto)
+                    print(f"The port for {proto.upper()} is {port}.")
+                except OSError:
+                    print(f"Protocol {proto.upper()} not found.")
+                command = ["sudo", "-E", os.path.join(STAFF_DIR, "aflnet", "client"), seed_path, os.path.join(work_dir, "qemu.final.serial.log"), open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(config["GENERAL_FUZZING"]["timeout"])]    
+                print(" ".join(command))
+                subprocess.run(command)
 
-            send_signal_recursive(qemu_pid, signal.SIGINT)
-            try:
-                os.waitpid(qemu_pid, 0)
-            except:
-                pass
-            time.sleep(2)
+                send_signal_recursive(qemu_pid, signal.SIGINT)
+                try:
+                    os.waitpid(qemu_pid, 0)
+                except:
+                    pass
+                time.sleep(2)
 
 
 ####################################################################
@@ -533,17 +590,9 @@ def replay_firmware(firmware, work_dir):
 def replay():
     global config
 
-    os.environ["EXEC_MODE"] = "RUN"
-    os.environ["TAINT"] = "1"
-    os.environ["FD_DEPENDENCIES_TRACK"] = "1"
-    os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')    
-    os.environ["INCLUDE_LIBRARIES"] = str(config["EMULATION_TRACING"]["include_libraries"])
-    os.environ["DEBUG"] = "1"
-
     if config["GENERAL"]["firmware"] != "all":
         iid = str(check("run"))
         work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
-        os.environ["DEBUG_DIR"] = os.path.join(work_dir, "debug", "interaction")
 
         if "true" in open(os.path.join(work_dir, "web_check")).read():
             replay_firmware(config["GENERAL"]["firmware"], work_dir)
@@ -571,12 +620,11 @@ def replay():
                 print(f"Replaying {os.path.basename(brand)}/{os.path.basename(device)}")
                 iid = str(check_firmware(os.path.join(os.path.basename(brand), os.path.basename(device)), "run"))
                 work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
-                os.environ["DEBUG_DIR"] = os.path.join(work_dir, "debug", "interaction")
 
                 if "true" in open(os.path.join(work_dir, "web_check")).read():
                     replay_firmware(os.path.join(os.path.basename(brand), os.path.basename(device)), work_dir)
 
-def run(capture):
+def run(capture, crash_analysis, crash_dir=None):
     global config
     global captured_pcap_path
 
@@ -590,6 +638,8 @@ def run(capture):
         shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
 
     os.environ["EXEC_MODE"] = "RUN"
+    # os.environ["CALLSTACK_TRACE"] = "1"
+    # os.environ["INCLUDE_LIBRARIES"] = "1"
     # os.environ["DEBUG"] = "1"
     # os.environ["TAINT"] = "1"
     
@@ -604,8 +654,7 @@ def run(capture):
 
     process = subprocess.Popen(
         ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.join(FIRMWARE_DIR, config["GENERAL"]["firmware"]), "run", PSQL_IP],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
+
     )
     qemu_pid = process.pid
 
@@ -1022,9 +1071,146 @@ def pre_analysis():
 
                     taint(work_dir, "run", os.path.join(os.path.basename(brand), os.path.basename(device)), sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
 
-def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_name):
-    global PSQL_IP
+def crash_analysis(crash_dir):
     global config
+
+    crash_dir = os.path.join(CRASH_DIR, os.path.basename(config["GENERAL"]["firmware"]))
+    for root, dirs, files in os.walk(crash_dir):
+        if os.path.basename(root) != 'crash_traces':
+            continue
+
+        firmware = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(root))))
+        extract_dir = os.path.join(os.getcwd(), "extracted")
+
+        if os.path.exists(extract_dir):
+            shutil.rmtree(extract_dir)
+        os.makedirs(extract_dir, exist_ok=True)
+
+        fw_path = None
+        for droot, _, dfiles in os.walk(FIRMWARE_DIR):
+            for fname in dfiles:
+                if firmware in fname:
+                    fw_path = os.path.join(droot, fname)
+                    break
+            if fw_path:
+                break
+        if not fw_path:
+            print(f"[WARN] Firmware '{firmware}' not found under {FIRMWARE_DIR}")
+            continue
+
+        env = os.environ.copy()
+        env["NO_PSQL"] = "1"
+        subprocess.run(
+            [
+                "./sources/extractor/extractor.py",
+                "-t", "run",
+                "-b", "unknown",
+                "-sql", "0.0.0.0",
+                "-np",
+                "-nk",
+                fw_path,
+                "extracted"
+            ],
+            env=env,
+            check=True
+        )
+        set_permissions_recursive(extract_dir)
+
+        tar_files = glob.glob(os.path.join(extract_dir, "*.tar.gz"))
+        if not tar_files:
+            raise FileNotFoundError("No .tar.gz files found in 'extracted/'")
+        latest_tar = max(tar_files, key=os.path.getmtime)
+        with tarfile.open(latest_tar, "r:gz") as tar:
+            tar.extractall(path=extract_dir)
+        
+        for trace_file in files:
+            trace_path = os.path.join(root, trace_file)
+
+            extended = []
+            with open(trace_path) as tf:
+                for line in tf:
+                    m = re.match(r".*Process:\s*(\S+)", line)
+                    if not m:
+                        extended.append(line)
+                        continue
+
+                    target_procname = m.group(1)
+                    firmware = os.path.basename(config["GENERAL"]["firmware"])
+                    brand = os.path.basename(os.path.dirname(config["GENERAL"]["firmware"]))
+                    iid = str(check_firmware(os.path.join(os.path.basename(brand), os.path.basename(firmware)), "run"))
+                    work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+
+                    if "true" in open(os.path.join(work_dir, "web_check")).read():
+                        seed_path = trace_path.replace("crash_traces", "crashes")
+                        replay_firmware(os.path.join(os.path.basename(brand), os.path.basename(firmware)), work_dir, True, seed_path, target_procname)                        
+                        
+                        print(os.path.join(work_dir, "crash_analysis"), os.path.join(os.path.dirname(trace_path), "crash_analysis"))
+                        move_dir_contents(os.path.join(work_dir, "crash_analysis"), os.path.join(os.path.dirname(trace_path), "crash_analysis"))
+                        for crash_log_file in os.listdir(os.path.join(os.path.dirname(trace_path), "crash_analysis")):
+                            crash_log_path = os.path.join(os.path.dirname(trace_path), "crash_analysis", crash_log_file)
+
+                            extended = []
+                            with open(crash_log_path) as f:
+                                for line2 in f:                            
+                                    m = re.match(r".*module:\s*(\S+)", line2)
+                                    if not m:
+                                        extended.append(line2)
+                                        continue
+
+                                    module_name = m.group(1)
+
+                                    pc_match = re.search(r"pc:\s*(0x[0-9A-Fa-f]+)", line2)
+                                    if not pc_match:
+                                        extended.append(line2)
+                                        continue
+
+                                    addr = int(pc_match.group(1), 16)
+
+                                    module_path = None
+                                    for droot, _, dfiles in os.walk(extract_dir):
+                                        if module_name in dfiles:
+                                            module_path = os.path.join(droot, module_name)
+                                            break
+
+                                    symbol = None
+                                    if module_path:
+                                        proj_mod = angr.Project(module_path, auto_load_libs=False)
+                                        sym2 = proj_mod.loader.find_symbol(addr)
+                                        if sym2 and sym2.name:
+                                            symbol = sym2.name
+                                        else:
+                                            mobj = proj_mod.loader.main_object
+                                            base_addr = getattr(mobj, "rebased_addr", None) \
+                                                        or getattr(mobj, "mapped_base", None) \
+                                                        or getattr(mobj, "linked_base", 0)
+
+                                            for fsym in mobj.symbols:
+                                                if fsym.is_function:
+                                                    start = fsym.rebased_addr - base_addr
+                                                    end = start + (fsym.size or 1)
+                                                    if start <= addr < end:
+                                                        symbol = fsym.name
+                                                        break
+                                    else:
+                                        print(f"[WARN] Module '{module_name}' not found under {extract_dir}")
+
+                                    if symbol:
+                                        extended.append(line2.rstrip() + f", symbol: {symbol}\n")
+                                    else:
+                                        extended.append(line2)
+
+                            with open(crash_log_path, "w") as outf:
+                                outf.writelines(extended)
+
+                            os.chmod(crash_log_path, 0o777)
+
+                            print(f"[INFO] Updated trace written back to {crash_log_path} with 777 permissions")
+
+        if os.path.exists(extract_dir):
+            shutil.rmtree(extract_dir, ignore_errors=True)
+
+def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_name, crash_dir=None):
+    global PSQL_IP, config
 
     PSQL_IP = "0.0.0.0"
     os.environ["NO_PSQL"] = "1"
@@ -1042,11 +1228,7 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
     config = load_config(CONFIG_INI_PATH)
 
     if not keep_config:
-        if "aflnet_base" in config["GENERAL"]["mode"] or \
-            "aflnet_state_aware" in config["GENERAL"]["mode"] or \
-            "triforce" in config["GENERAL"]["mode"] or \
-            "staff_base" in config["GENERAL"]["mode"] or \
-            "staff_state_aware" in config["GENERAL"]["mode"]:
+        if any(x in config["GENERAL"]["mode"] for x in ["aflnet_base", "aflnet_state_aware", "triforce", "staff_base", "staff_state_aware"]):
             if out_dir:
                 copy_file(CONFIG_INI_PATH, os.path.join(out_dir, "outputs"))
             else:
@@ -1057,27 +1239,25 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
     prev_dir = os.getcwd()
     os.chdir(FIRMAE_DIR)
 
-    if config["GENERAL"]["mode"] == "run":
-        run(False)
-    elif config["GENERAL"]["mode"] == "run_capture":
-        run(True)
-    elif config["GENERAL"]["mode"] == "replay":
+    mode = config["GENERAL"]["mode"]
+    if mode == "run":
+        run(False, False)
+    elif mode == "run_capture":
+        run(True, False)
+    elif mode == "replay":
         replay()
-    elif config["GENERAL"]["mode"] == "check":
+    elif mode == "crash_analysis":
+        crash_analysis(CRASH_DIR)
+    elif mode == "check":
         check("run")
-    elif config["GENERAL"]["mode"] == "pre_analysis":
+    elif mode == "pre_analysis":
         if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
             os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
         pre_analysis()
-    elif "aflnet_base" in config["GENERAL"]["mode"] or \
-        "aflnet_state_aware" in config["GENERAL"]["mode"] or \
-        "triforce" in config["GENERAL"]["mode"] or \
-        "staff_base" in config["GENERAL"]["mode"] or \
-        "staff_state_aware" in config["GENERAL"]["mode"] or \
-        replay_exp:
+    elif any(x in mode for x in ["aflnet_base", "aflnet_state_aware", "triforce", "staff_base", "staff_state_aware"]) or replay_exp:
         fuzz(out_dir, container_name, replay_exp)
     else:
-        assert(False)
+        assert False, f"Unknown mode: {mode}"
 
     os.chdir(prev_dir)
 
@@ -1089,7 +1269,15 @@ if __name__ == "__main__":
     parser.add_argument("--replay_exp", type=int, help="Replay an experiment (triforce)", default=0)
     parser.add_argument("--output", type=str, help="Output dir", default=None)
     parser.add_argument("--container_name", type=str, help="Container name", default=None)
+    parser.add_argument("--crash_dir", type=str, help="Directory of crash outputs for crash_analysis mode", default=None)
 
     args = parser.parse_args()
 
-    start(args.keep_config, args.reset_firmware_images, args.replay_exp, os.path.abspath(args.output) if args.output else None, args.container_name if args.container_name else None)
+    start(
+        args.keep_config,
+        args.reset_firmware_images,
+        args.replay_exp,
+        os.path.abspath(args.output) if args.output else None,
+        args.container_name if args.container_name else None,
+        args.crash_dir
+    )

@@ -2469,7 +2469,7 @@ u32 save_kl_messages_to_file(klist_t(lms) *kl_messages, u8 *fname, u8 replay_ena
 
   u32 message_count = 0;
   //Iterate through all messages in the linked list
-  for (it = kl_begin(kl_messages); it != kl_end(kl_messages) && message_count < max_count; it = kl_next(it)) {
+  for (it = kl_begin(kl_messages); it != kl_end(kl_messages) && message_count < max_count; it = kl_next(it), message_count++) {
     if (regions_to_keep && !regions_to_keep[message_count]) {
       if (debug) {
         FILE *fp = fopen("debug/fuzzing.log", "a+");

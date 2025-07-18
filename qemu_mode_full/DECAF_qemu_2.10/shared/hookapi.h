@@ -113,8 +113,11 @@ int hookapi_hook_all_module_functions(const char *proc_name, const char *mod_nam
 void load_module(target_ulong cr3, const char *mod_name, uint32_t pid);
 int get_module_name_from_inode_wrapper(int pid, uint64_t inode, char name_buf[MAX_MODULE_NAME_LENGTH]);
 int get_pc_text_info_wrapper(int pid, uintptr_t pc, int *adjusted_pc, uint64_t *inode_num);
-void insert_inode_pc_trace_wrapper(int pid, uint64_t inode, uint32_t pc);
+void insert_inode_pc_trace_wrapper(int pid, uint64_t inode, uint32_t pc, uint8_t is_lib);
 void copy_inode_trace_to_shmem_wrapper(int pid, char proc_name[MAX_PROCESS_NAME_LENGTH]);
+void dump_pid_trace_to_file_wrapper(int pid);
+void register_process_wrapper(int pid, const char *procname, int parent_pid);
+void unregister_process_wrapper(int pid);
 
 //Below are functions called internally within the framework
 void check_unresolved_hooks(void);

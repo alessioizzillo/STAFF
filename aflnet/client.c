@@ -158,6 +158,9 @@ int main(int argc, char *argv[]) {
     if (env_var) {
         debug_dir = env_var;
     }
+    else {
+        debug_mode = 0;
+    }
 
     if (debug_mode) {
         if (access("debug", F_OK) == 0)
