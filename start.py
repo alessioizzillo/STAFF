@@ -18,6 +18,7 @@ import tempfile
 import angr
 import tarfile
 from FirmAE.sources.extractor.extractor import Extractor
+from typing import Dict, Optional
 
 patterns = [
     "FirmAE/scratch/staff*",
@@ -90,29 +91,6 @@ EXP_DONE_PATH=os.path.join(STAFF_DIR, "experiments_done")
 captured_pcap_path = None
 PSQL_IP = None
 config = None
-
-def move_dir_contents(src_dir: str, dest_dir: str) -> None:
-    if not os.path.isdir(src_dir):
-        raise ValueError(f"Source {src_dir!r} is not a directory")
-    
-    os.makedirs(dest_dir, exist_ok=True)
-
-    for name in os.listdir(src_dir):
-        src_path  = os.path.join(src_dir, name)
-        dest_path = os.path.join(dest_dir, name)
-        
-        if os.path.exists(dest_path):
-            if os.path.isdir(dest_path):
-                shutil.rmtree(dest_path)
-            else:
-                os.remove(dest_path)
-        shutil.move(src_path, dest_path)
-
-# def wait_for_container_init(file_path="wait_for_container_init"):
-#     while os.path.exists(file_path):
-#         print(f"Waiting for {file_path} to be removed...")
-#         sleep(1)
-#     print(f"{file_path} removed, continuing execution.")
 
 def set_permissions_recursive(dir_path):
     for root, dirs, files in os.walk(dir_path):
@@ -513,6 +491,7 @@ def replay_firmware(firmware, work_dir, crash_analysis=False, crash_seed=None, t
         os.environ["TRACE_LEN"] = "300"
         os.environ["TARGET_PROCNAME"] = target_procname
         os.environ["DEBUG"] = "1"
+        os.environ["DEBUG_DIR"] = os.path.join(work_dir, "debug", "interaction")
     else:
         os.environ["TAINT"] = "1"
         os.environ["FD_DEPENDENCIES_TRACK"] = "1"
@@ -524,7 +503,7 @@ def replay_firmware(firmware, work_dir, crash_analysis=False, crash_seed=None, t
     sleep=int(float(sleep))
 
     if (crash_analysis):
-        print(f"\n[\033[32m+\033[0m] Crash mode (seed: {os.path.basename(crash_seed)})")
+        print(f"\n[\033[32m+\033[0m] Crash mode (seed: {crash_seed})")
 
         seed_path = crash_seed
         process = subprocess.Popen(
@@ -1071,33 +1050,23 @@ def pre_analysis():
 
                     taint(work_dir, "run", os.path.join(os.path.basename(brand), os.path.basename(device)), sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
 
-def crash_analysis(crash_dir):
+def crash_analysis(_=None):
     global config
 
-    crash_dir = os.path.join(CRASH_DIR, os.path.basename(config["GENERAL"]["firmware"]))
-    for root, dirs, files in os.walk(crash_dir):
-        if os.path.basename(root) != 'crash_traces':
-            continue
+    PROCESS_RE = re.compile(r".*Process:\s*(\S+)")
+    MODULE_RE  = re.compile(r".*module:\s*(\S+)")
+    PC_RE      = re.compile(r"pc:\s*(0x[0-9A-Fa-f]+)")
+    SYMBOL_TAG = ", symbol:"
 
-        firmware = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(root))))
-        extract_dir = os.path.join(os.getcwd(), "extracted")
+    module_cache: Dict[str, angr.Project] = {}
 
-        if os.path.exists(extract_dir):
-            shutil.rmtree(extract_dir)
-        os.makedirs(extract_dir, exist_ok=True)
+    def set_permissions_recursive(path: str, mode: int = 0o777) -> None:
+        for root, dirs, files in os.walk(path):
+            os.chmod(root, mode)
+            for f in files:
+                os.chmod(os.path.join(root, f), mode)
 
-        fw_path = None
-        for droot, _, dfiles in os.walk(FIRMWARE_DIR):
-            for fname in dfiles:
-                if firmware in fname:
-                    fw_path = os.path.join(droot, fname)
-                    break
-            if fw_path:
-                break
-        if not fw_path:
-            print(f"[WARN] Firmware '{firmware}' not found under {FIRMWARE_DIR}")
-            continue
-
+    def run_extractor(fw_path: str, extract_dir: str) -> None:
         env = os.environ.copy()
         env["NO_PSQL"] = "1"
         subprocess.run(
@@ -1109,104 +1078,163 @@ def crash_analysis(crash_dir):
                 "-np",
                 "-nk",
                 fw_path,
-                "extracted"
+                extract_dir
             ],
             env=env,
             check=True
         )
-        set_permissions_recursive(extract_dir)
 
-        tar_files = glob.glob(os.path.join(extract_dir, "*.tar.gz"))
-        if not tar_files:
-            raise FileNotFoundError("No .tar.gz files found in 'extracted/'")
-        latest_tar = max(tar_files, key=os.path.getmtime)
-        with tarfile.open(latest_tar, "r:gz") as tar:
-            tar.extractall(path=extract_dir)
-        
-        for trace_file in files:
-            trace_path = os.path.join(root, trace_file)
+    def build_fw_index(root: str) -> Dict[str, str]:
+        idx: Dict[str, str] = {}
+        for d, _, files in os.walk(root):
+            for fn in files:
+                idx[os.path.basename(fn)] = os.path.join(d, fn)
+        return idx
 
-            extended = []
-            with open(trace_path) as tf:
-                for line in tf:
-                    m = re.match(r".*Process:\s*(\S+)", line)
-                    if not m:
-                        extended.append(line)
-                        continue
+    def find_module_path(extract_dir: str, module_name: str) -> Optional[str]:
+        for d, _, files in os.walk(extract_dir):
+            if module_name in files:
+                return os.path.join(d, module_name)
+        return None
 
-                    target_procname = m.group(1)
-                    firmware = os.path.basename(config["GENERAL"]["firmware"])
-                    brand = os.path.basename(os.path.dirname(config["GENERAL"]["firmware"]))
-                    iid = str(check_firmware(os.path.join(os.path.basename(brand), os.path.basename(firmware)), "run"))
-                    work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+    def lookup_symbol(module_path: str, addr: int) -> Optional[str]:
+        proj = module_cache.get(module_path)
+        if proj is None:
+            proj = angr.Project(module_path, auto_load_libs=False)
+            module_cache[module_path] = proj
 
-                    if "true" in open(os.path.join(work_dir, "web_check")).read():
-                        seed_path = trace_path.replace("crash_traces", "crashes")
-                        replay_firmware(os.path.join(os.path.basename(brand), os.path.basename(firmware)), work_dir, True, seed_path, target_procname)                        
-                        
-                        print(os.path.join(work_dir, "crash_analysis"), os.path.join(os.path.dirname(trace_path), "crash_analysis"))
-                        move_dir_contents(os.path.join(work_dir, "crash_analysis"), os.path.join(os.path.dirname(trace_path), "crash_analysis"))
-                        for crash_log_file in os.listdir(os.path.join(os.path.dirname(trace_path), "crash_analysis")):
-                            crash_log_path = os.path.join(os.path.dirname(trace_path), "crash_analysis", crash_log_file)
+        sym = proj.loader.find_symbol(addr)
+        if sym and sym.name:
+            return sym.name
 
-                            extended = []
-                            with open(crash_log_path) as f:
-                                for line2 in f:                            
-                                    m = re.match(r".*module:\s*(\S+)", line2)
-                                    if not m:
-                                        extended.append(line2)
-                                        continue
+        mobj = proj.loader.main_object
+        base = getattr(mobj, "rebased_addr", None) \
+             or getattr(mobj, "mapped_base", None) \
+             or getattr(mobj, "linked_base", 0)
+        for f in mobj.symbols:
+            if f.is_function:
+                start = f.rebased_addr - base
+                end   = start + (f.size or 1)
+                if start <= addr < end:
+                    return f.name
+        return None
 
-                                    module_name = m.group(1)
+    def annotate_log_file(path: str, extract_dir: str) -> None:
+        with open(path, "r") as f:
+            lines = f.readlines()
 
-                                    pc_match = re.search(r"pc:\s*(0x[0-9A-Fa-f]+)", line2)
-                                    if not pc_match:
-                                        extended.append(line2)
-                                        continue
+        out: list[str] = []
+        for line in lines:
+            if SYMBOL_TAG in line:
+                out.append(line)
+                continue
 
-                                    addr = int(pc_match.group(1), 16)
+            m_mod = MODULE_RE.match(line)
+            m_pc  = PC_RE.search(line)
+            if not (m_mod and m_pc):
+                out.append(line)
+                continue
 
-                                    module_path = None
-                                    for droot, _, dfiles in os.walk(extract_dir):
-                                        if module_name in dfiles:
-                                            module_path = os.path.join(droot, module_name)
-                                            break
+            module_name = m_mod.group(1)
+            addr        = int(m_pc.group(1), 16)
+            module_path = find_module_path(extract_dir, module_name)
+            if not module_path:
+                out.append(line)
+                continue
 
-                                    symbol = None
-                                    if module_path:
-                                        proj_mod = angr.Project(module_path, auto_load_libs=False)
-                                        sym2 = proj_mod.loader.find_symbol(addr)
-                                        if sym2 and sym2.name:
-                                            symbol = sym2.name
-                                        else:
-                                            mobj = proj_mod.loader.main_object
-                                            base_addr = getattr(mobj, "rebased_addr", None) \
-                                                        or getattr(mobj, "mapped_base", None) \
-                                                        or getattr(mobj, "linked_base", 0)
+            sym = lookup_symbol(module_path, addr)
+            if sym:
+                out.append(line.rstrip("\n") + f"{SYMBOL_TAG} {sym}\n")
+            else:
+                out.append(line)
 
-                                            for fsym in mobj.symbols:
-                                                if fsym.is_function:
-                                                    start = fsym.rebased_addr - base_addr
-                                                    end = start + (fsym.size or 1)
-                                                    if start <= addr < end:
-                                                        symbol = fsym.name
-                                                        break
-                                    else:
-                                        print(f"[WARN] Module '{module_name}' not found under {extract_dir}")
+        with open(path, "w") as f:
+            f.writelines(out)
+        os.chmod(path, 0o777)
+        print(f"[INFO] Annotated symbols in {path}")
 
-                                    if symbol:
-                                        extended.append(line2.rstrip() + f", symbol: {symbol}\n")
-                                    else:
-                                        extended.append(line2)
+    def move_dir_contents(src_dir: str, dest_dir: str) -> None:
+        if not os.path.isdir(src_dir):
+            raise ValueError(f"Source {src_dir!r} is not a directory")
 
-                            with open(crash_log_path, "w") as outf:
-                                outf.writelines(extended)
+        if os.path.exists(dest_dir) and not os.path.isdir(dest_dir):
+            shutil.move(dest_dir, dest_dir.replace(os.path.basename(dest_dir), "seed"))
+            os.makedirs(dest_dir, exist_ok=True)
+            shutil.move(dest_dir.replace(os.path.basename(dest_dir), "seed"), dest_dir)
 
-                            os.chmod(crash_log_path, 0o777)
+        for name in os.listdir(src_dir):
+            s = os.path.join(src_dir, name)
+            d = os.path.join(dest_dir, name)
+            if os.path.exists(d):
+                if os.path.isdir(d):
+                    shutil.rmtree(d)
+                else:
+                    os.remove(d)
+            shutil.move(s, d)
 
-                            print(f"[INFO] Updated trace written back to {crash_log_path} with 777 permissions")
+    base_fw    = os.path.basename(config["GENERAL"]["firmware"])
+    crash_root = os.path.join(CRASH_DIR, base_fw)
+    fw_index   = build_fw_index(FIRMWARE_DIR)
 
-        if os.path.exists(extract_dir):
+    for root, dirs, files in os.walk(crash_root):
+        if os.path.basename(root) != "crashes":
+            continue
+
+        extract_dir = tempfile.mkdtemp(prefix="extracted_")
+        try:
+            fw_file = fw_index.get(base_fw)
+            if not fw_file:
+                print(f"[WARN] Firmware '{base_fw}' not found under {FIRMWARE_DIR}")
+                continue
+
+            run_extractor(fw_file, extract_dir)
+            set_permissions_recursive(extract_dir)
+
+            tars = glob.glob(os.path.join(extract_dir, "*.tar.gz"))
+            if not tars:
+                raise FileNotFoundError("No .tar.gz in extracted/")
+            latest = max(tars, key=os.path.getmtime)
+            with tarfile.open(latest, "r:gz") as tar:
+                tar.extractall(path=extract_dir)
+
+            for crash_file in files:
+                crash_file_path = os.path.join(root, crash_file)
+
+                if os.path.isdir(crash_file_path) or "README" in crash_file:
+                    continue
+
+                if (os.path.isfile(crash_file_path.replace("crashes", "crash_traces"))):
+                    crash_trace = crash_file_path.replace("crashes", "crash_traces")
+                else:
+                    crash_trace = os.path.join(crash_file_path.replace("crashes", "crash_traces"), "seed")
+
+                with open(crash_trace) as tf:
+                    for line in tf:
+                        m = PROCESS_RE.match(line)
+                        if not m:
+                            continue
+                        iid = str(check_firmware(
+                            os.path.join(os.path.dirname(config["GENERAL"]["firmware"]), base_fw),
+                            "run"
+                        ))
+                        work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+                        if "true" in open(os.path.join(work_dir, "web_check")).read():
+                            replay_firmware(
+                                os.path.join(os.path.dirname(config["GENERAL"]["firmware"]), base_fw),
+                                work_dir, True,
+                                crash_file_path,
+                                m.group(1)
+                            )
+                            dest = os.path.join(crash_file_path.replace("crashes", "crash_traces"))
+
+                            existing = set(os.listdir(dest)) if os.path.isdir(dest) else set()
+                            move_dir_contents(os.path.join(work_dir, "crash_analysis"), dest)
+                            new_files = set(os.listdir(dest)) - existing
+
+                            for fn in new_files:
+                                annotate_log_file(os.path.join(dest, fn), extract_dir)
+
+        finally:
             shutil.rmtree(extract_dir, ignore_errors=True)
 
 def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_name, crash_dir=None):
@@ -1247,6 +1275,8 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
     elif mode == "replay":
         replay()
     elif mode == "crash_analysis":
+        if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
+            os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
         crash_analysis(CRASH_DIR)
     elif mode == "check":
         check("run")

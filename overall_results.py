@@ -10,8 +10,7 @@ import re
 BLACKBOX = ["neaps_array", "ethlink", "aparraymsg"]
 
 BASE_DIRS = [
-    "experiments_done/baseline",
-    "experiments_done/staff_state_aware_0_block"
+    "experiments"
 ]
 OUTPUT_DIR = "results"
 os.makedirs(OUTPUT_DIR, exist_ok=True)

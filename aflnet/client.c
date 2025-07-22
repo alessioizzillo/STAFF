@@ -280,6 +280,7 @@ int main(int argc, char *argv[]) {
         int res = 0;
         char *response_buf = NULL;
         unsigned int response_len = 0;
+        int retry = 0;
 
 retry:
         res = net_send(sockfd, timeout, current_request, request_len);
@@ -334,8 +335,12 @@ retry:
                 }
             }
             printf("Connection re-established.\n");
+            sleep(1);
 
-            if (res == 3) goto retry;
+            if (res == 3 && !retry) {
+                retry = 1;
+                goto retry;
+            }
         }
 
         if (next_request) {
