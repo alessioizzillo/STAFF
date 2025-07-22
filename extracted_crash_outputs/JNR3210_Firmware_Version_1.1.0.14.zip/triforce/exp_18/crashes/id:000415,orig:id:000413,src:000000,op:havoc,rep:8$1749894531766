@@ -1,9 +1,0 @@
-GET /setup.cgi?next_fil=1748859060575 HTTP/11
-Host: 192.168.I.1
-Connection: kr-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKi like Gecko) Chrome/131.0.0.0 Safari/537.36
-AccePt: */*
-Referer: http://192.168.1.1/traff`c_neter_h.htm
-Accept-Encoding: gzip, deflate
-Accept-Language: en-US,en;q=0.9
-
-
