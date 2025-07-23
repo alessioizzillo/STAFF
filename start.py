@@ -1270,7 +1270,8 @@ def crash_analysis(_=None):
                                 shutil.copy(os.path.join(work_dir, "qemu.final.serial.log"), dest)
 
                             for fn in os.listdir(dest):
-                                if "qemu" not in fn or "seed" not in fn:
+                                if "qemu" not in fn and "seed" not in fn:
+                                    print(os.path.join(dest, fn))
                                     annotate_log_file(os.path.join(dest, fn), extract_dir)
 
         finally:
