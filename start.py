@@ -81,7 +81,7 @@ DEFAULT_CONFIG = {
 }
 
 STAFF_DIR = os.getcwd()
-CRASH_DIR = os.path.join(STAFF_DIR, "extracted_crash_outputs")
+CRASH_DIR = os.path.join(STAFF_DIR, "extracted_crash_outputs_old")
 FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 PCAP_DIR = os.path.join(STAFF_DIR, "pcap")
 TAINT_DIR = os.path.join(STAFF_DIR, "taint_analysis")
@@ -1194,6 +1194,9 @@ def crash_analysis(_=None):
         if not os.path.isdir(src_dir):
             raise ValueError(f"Source {src_dir!r} is not a directory")
 
+        if not os.listdir(src_dir):
+            return False
+
         if os.path.exists(dest_dir) and not os.path.isdir(dest_dir):
             shutil.move(dest_dir, dest_dir.replace(os.path.basename(dest_dir), "seed"))
             os.makedirs(dest_dir, exist_ok=True)
@@ -1208,6 +1211,8 @@ def crash_analysis(_=None):
                 else:
                     os.remove(d)
             shutil.move(s, d)
+
+        return True
 
     base_fw    = os.path.basename(config["GENERAL"]["firmware"])
     crash_root = os.path.join(CRASH_DIR, base_fw)
@@ -1247,6 +1252,7 @@ def crash_analysis(_=None):
                     crash_trace = os.path.join(crash_file_path.replace("crashes", "crash_traces"), "seed")
 
                 with open(crash_trace) as tf:
+                    not_reproducible = False
                     for line in tf:
                         m = PROCESS_RE.match(line)
                         if not m:
@@ -1267,7 +1273,10 @@ def crash_analysis(_=None):
                             dest = os.path.join(crash_file_path.replace("crashes", "crash_traces"))
 
                             if "seed" not in crash_trace:
-                                move_dir_contents(os.path.join(work_dir, "crash_analysis"), dest)
+                                ret = move_dir_contents(os.path.join(work_dir, "crash_analysis"), dest)
+                                if ret is False:
+                                    not_reproducible = True
+                                    break
                                 shutil.copy(os.path.join(work_dir, "qemu.final.serial.log"), dest)
 
                             for fn in os.listdir(dest):
@@ -1275,6 +1284,14 @@ def crash_analysis(_=None):
                                     print(os.path.join(dest, fn))
                                     annotate_log_file(os.path.join(dest, fn), extract_dir)
 
+                    if not_reproducible:
+                        print("NOT REPRODUCIBLE!", crash_file_path, crash_file_path.replace("crashes", "crash_traces"))
+
+                        for path in [crash_file_path, crash_file_path.replace("crashes", "crash_traces")]:
+                            if os.path.isdir(path):
+                                shutil.rmtree(path, ignore_errors=True)
+                            elif os.path.isfile(path):
+                                os.remove(path)
         finally:
             shutil.rmtree(extract_dir, ignore_errors=True)
 
