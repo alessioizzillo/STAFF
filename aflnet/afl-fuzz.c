@@ -2884,7 +2884,7 @@ static void cull_queue(void) {
       queued_favored++;
 
       if (state_aware_mode){
-        if ((top_rated[i]->generating_state_id == target_state_id || top_rated[i]->is_initial_seed) && (was_fuzzed_map[get_state_index(target_state_id)][top_rated[i]->index] == 0)) pending_favored++;
+        if ((top_rated[i]->generating_state_id == target_state_id || top_rated[i]->is_initial_seed) && (was_fuzzed_map[target_idx][top_rated[i]->index] == 0)) pending_favored++;
       }
       else{
         if (!top_rated[i]->was_fuzzed) pending_favored++;
