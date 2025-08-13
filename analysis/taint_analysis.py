@@ -1606,7 +1606,7 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
         print(f"\nProcessing user interaction: {user_interaction}")
         seed_path = os.path.join(taint_analysis_path, firmware, proto, user_interaction, user_interaction+".seed")
         seed_metadata = os.path.join(taint_analysis_path, firmware, proto, user_interaction, user_interaction+".seed_metadata.json")
-        results_file = os.path.join(taint_analysis_path, firmware, proto, user_interaction, f"{firmware}_{proto}_pre_analysis_results.json")
+        results_file = os.path.join(taint_analysis_path, firmware, proto, user_interaction, f"pre_analysis_perf.json")
 
         if os.path.exists(os.path.join(work_dir, "debug")):
             shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
