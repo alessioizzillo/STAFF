@@ -256,7 +256,7 @@ if __name__ == "__main__":
     results = []
     columns = [
         "winner", "Firmware", "Mode", "num_experiments",
-        *[f"{m}_avg" for m in METRICS],
+        *[f"{m}_avg" for m in METRICS if m != "start_time"],
         "run_time_avg", "best_baseline",
         "bitmap_cvg_p_value_with_best", "bitmap_cvg_A12_with_best",
         "unique_crashes_direct_p_value_with_best", "unique_crashes_direct_A12_with_best"
@@ -336,7 +336,8 @@ if __name__ == "__main__":
             }
 
             for m in METRICS:
-                row[f"{m}_avg"] = summary.get((fw,mode),{}).get(f"{m}_avg", "")
+                if m != "start_time":
+                    row[f"{m}_avg"] = summary.get((fw,mode),{}).get(f"{m}_avg", "")
             row["run_time_avg"] = summary.get((fw,mode),{}).get("run_time_avg", "")
 
             if best_base and mode != best_base and best_base_cr and agg[(fw,mode)]["unique_crashes_total"]:

@@ -1606,7 +1606,7 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
         print(f"\nProcessing user interaction: {user_interaction}")
         seed_path = os.path.join(taint_analysis_path, firmware, proto, user_interaction, user_interaction+".seed")
         seed_metadata = os.path.join(taint_analysis_path, firmware, proto, user_interaction, user_interaction+".seed_metadata.json")
-        results_file = os.path.join(taint_analysis_path, firmware, proto, user_interaction, f"pre_analysis_perf.json")
+        results_file = os.path.join(taint_analysis_path, firmware, proto, user_interaction, "pre_analysis_perf.json")
 
         if os.path.exists(os.path.join(work_dir, "debug")):
             shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
@@ -1622,7 +1622,6 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
             print(f"The port for {proto.upper()} is {port}.")
         except OSError:
             print(f"Protocol {proto.upper()} not found.")
-
         command = ["sudo", "-E", "/STAFF/aflnet/TaintQueue", seed_path, os.path.join(work_dir, "outputs"), "taint_metrics", "1"]
         process = subprocess.Popen(command)
         process.wait()
@@ -1637,11 +1636,12 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
         total_tp = 0
         total_fp = 0
         element_count = 0
-
         total_execution_time = 0.0
         sleep_time_added = False
         elements = data.get("elements", [])
         num_elements = len(elements)
+
+        annotated_elements = []
 
         for idx, element in enumerate(elements, start=1):
             print(f"\nProcessing element {idx} of {num_elements}")
@@ -1668,7 +1668,6 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
             )
             qemu_pid = process.pid
             print(f"Booting firmware, wait {sleep} seconds...")
-
             time.sleep(sleep)
             if not sleep_time_added:
                 total_execution_time += sleep
@@ -1706,32 +1705,59 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
 
             true_positives = inode_pcs_set & taint_inode_pcs
             false_positives = inode_pcs_set - taint_inode_pcs
+            false_negatives = taint_inode_pcs - inode_pcs_set
 
             tp = len(true_positives)
             fp = len(false_positives)
+            fn = len(false_negatives)
+
             precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+            accuracy = tp / (tp + fp + fn) if (tp + fp + fn) > 0 else 0.0
 
             sum_precision += precision
+            sum_recall += recall
+            sum_f1 += f1
+            sum_accuracy += accuracy
             total_tp += tp
             total_fp += fp
+            total_fn += fn
             element_count += 1
-
             total_execution_time += (time.time() - element_start_time)
 
-        mean_precision = sum_precision / element_count if element_count > 0 else 0.0
+            annotated_pcs = [
+                {"inode": inode, "pc": pc, "is_true_positive": (inode, pc) in taint_inode_pcs}
+                for inode, pc in inode_pcs
+            ]
+            annotated_element = dict(element)
+            annotated_element["pcs"] = annotated_pcs
+            annotated_elements.append(annotated_element)
 
-        results = {
-            "mean_precision": mean_precision,
-            "total_true_positives": total_tp,
-            "total_false_positives": total_fp,
-            "total_execution_time_sec": total_execution_time
-        }
+            mean_precision = sum_precision / element_count if element_count > 0 else 0.0
+            mean_recall = sum_recall / element_count if element_count > 0 else 0.0
+            mean_f1 = sum_f1 / element_count if element_count > 0 else 0.0
+            mean_accuracy = sum_accuracy / element_count if element_count > 0 else 0.0
+
+            results = {
+                "metrics": {
+                    "mean_precision": mean_precision,
+                    "mean_recall": mean_recall,
+                    "mean_f1_score": mean_f1,
+                    "mean_accuracy": mean_accuracy,
+                    "total_true_positives": total_tp,
+                    "total_false_positives": total_fp,
+                    "total_false_negatives": total_fn,
+                    "total_execution_time_sec": total_execution_time
+                },
+                "annotated_elements": annotated_elements
+            }
 
         with open(results_file, "w") as rf:
             json.dump(results, rf, indent=4)
 
         print(f"\nAggregated results saved to: {results_file}")
-        print(results)
+        print(results["metrics"])
 
 
 def start(firmware, timeout):
