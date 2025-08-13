@@ -1632,14 +1632,20 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
         with open(os.path.join(work_dir, "debug", user_interaction+".seed_app_tb_pcs_post.json")) as f:
             data = json.load(f)
         
-        sum_precision = 0.0
-        total_tp = 0
-        total_fp = 0
-        element_count = 0
         total_execution_time = 0.0
         sleep_time_added = False
         elements = data.get("elements", [])
         num_elements = len(elements)
+
+        sum_precision = 0.0
+        sum_recall = 0.0
+        sum_f1 = 0.0
+        sum_accuracy = 0.0
+
+        total_tp = 0
+        total_fp = 0
+        total_fn = 0
+        element_count = 0
 
         annotated_elements = []
 
