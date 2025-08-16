@@ -1468,6 +1468,10 @@ int send_over_network(int checkpoint)
   num_messages = kl_messages->size;
 
   for (it = kl_begin(kl_m); it != kl_end(kl_m); it = kl_next(it), messages_sent++) {
+    if (fuzz_tmout && cur_ms > start_time+(fuzz_tmout*1000)) {
+      kill_procs();
+      stop_fuzzing();
+    }
     retry = 0;
     if (taint_aware_mode && checkpoint_strategy && !checkpoint && target_region != -1 && messages_sent < target_region) {
       n_skipped_reqs_cp++;
@@ -10165,6 +10169,53 @@ static int check_ep_capability(cap_value_t cap, const char *filename) {
   return 0;
 }
 
+void kill_procs() {
+  /* If we stopped programmatically, we kill the forkserver and the current runner.
+     If we stopped manually, this is done by the signal handler. */
+  if (stop_soon == 2) {
+      if (child_pid > 0) kill(child_pid, SIGKILL);
+      if (forksrv_pid > 0) kill(forksrv_pid, SIGKILL);
+  }
+  /* Now that we've killed the forkserver, we wait for it to be able to get rusage stats. */
+  if (waitpid(forksrv_pid, NULL, 0) <= 0) {
+    WARNF("error waitpid\n");
+  }
+
+  write_bitmap();
+  write_stats_file(0, 0, 0);
+  save_auto();
+}
+
+void stop_fuzzing() {
+
+  SAYF(CURSOR_SHOW cLRD "\n\n+++ Testing aborted %s +++\n" cRST,
+       stop_soon == 2 ? "programmatically" : "by user");
+
+  /* Running for more than 30 minutes but still doing first cycle? */
+
+  if (queue_cycle == 1 && get_cur_time() - start_time > 30 * 60 * 1000) {
+
+    SAYF("\n" cYEL "[!] " cRST
+           "Stopped during the first cycle, results may be incomplete.\n"
+           "    (For info on resuming, see %s/README.)\n", doc_path);
+
+  }
+
+  fclose(plot_file);
+  destroy_queue();
+  destroy_extras();
+  ck_free(target_path);
+  ck_free(sync_id);
+
+  destroy_ipsm();
+
+  alloc_report();
+
+  OKF("We're done here. Have a nice day!\n");
+
+  exit(0);
+}
+
 #ifndef AFL_LIB
 
 /* Main entry point */
@@ -11285,49 +11336,11 @@ int main(int argc, char** argv) {
 
   if (queue_cur) show_stats();
 
-  /* If we stopped programmatically, we kill the forkserver and the current runner.
-     If we stopped manually, this is done by the signal handler. */
-  if (stop_soon == 2) {
-      if (child_pid > 0) kill(child_pid, SIGKILL);
-      if (forksrv_pid > 0) kill(forksrv_pid, SIGKILL);
-  }
-  /* Now that we've killed the forkserver, we wait for it to be able to get rusage stats. */
-  if (waitpid(forksrv_pid, NULL, 0) <= 0) {
-    WARNF("error waitpid\n");
-  }
-
-  write_bitmap();
-  write_stats_file(0, 0, 0);
-  save_auto();
+  kill_procs();
 
 stop_fuzzing:
 
-  SAYF(CURSOR_SHOW cLRD "\n\n+++ Testing aborted %s +++\n" cRST,
-       stop_soon == 2 ? "programmatically" : "by user");
-
-  /* Running for more than 30 minutes but still doing first cycle? */
-
-  if (queue_cycle == 1 && get_cur_time() - start_time > 30 * 60 * 1000) {
-
-    SAYF("\n" cYEL "[!] " cRST
-           "Stopped during the first cycle, results may be incomplete.\n"
-           "    (For info on resuming, see %s/README.)\n", doc_path);
-
-  }
-
-  fclose(plot_file);
-  destroy_queue();
-  destroy_extras();
-  ck_free(target_path);
-  ck_free(sync_id);
-
-  destroy_ipsm();
-
-  alloc_report();
-
-  OKF("We're done here. Have a nice day!\n");
-
-  exit(0);
+  stop_fuzzing();
 
 }
 
