@@ -36,6 +36,7 @@ ORANGE = "\033[38;5;214m"
 qemu_pid = None
 subregion_to_find = ""
 global_all_app_tb_pcs = None
+new_app_tb_pcs = None
 global_subregions = {
     "app_tb_pc": [],
     "coverage": []
@@ -49,6 +50,7 @@ global_regions_affections = {}
 
 error = 0
 global_max_len = 50
+n_run = 0
 
 # Hyperparams
 min_value = 0
@@ -457,61 +459,56 @@ class MultiSequenceTrie:
                 return None
         return list(current_node.positions)
 
-def summarize_node_dependencies(json_path):
+def filter_region_deps(json_path):
     with open(json_path, "r") as f:
-        data = json.load(f)
+        deps = json.load(f)
 
-    file_min_dst = {}
-    for src_str, dsts in data.items():
-        for dst_str, files in dsts.items():
-            dst = int(dst_str)
+    MWF = {}
+    for r_str, writers in deps.items():
+        for w_str, files in writers.items():
+            w = int(w_str)
             for f in files:
-                if f:
-                    if f not in file_min_dst or dst < file_min_dst[f]:
-                        file_min_dst[f] = dst
+                if not f:
+                    continue
+                if f not in MWF or w < MWF[f]:
+                    MWF[f] = w
 
-    node_files = {}
-    for f, dst_node in file_min_dst.items():
-        node_files.setdefault(dst_node, set()).add(f)
+    FW = {}
+    for f, w in MWF.items():
+        FW.setdefault(w, set()).add(f)
 
-    graph = {}
-    for src_str, dsts in data.items():
-        src = int(src_str)
-        graph.setdefault(src, set())
-        for dst_str in dsts.keys():
-            dst = int(dst_str)
-            graph[src].add(dst)
+    W = {}
+    for r_str, writers in deps.items():
+        r = int(r_str)
+        W.setdefault(r, set())
+        for w_str in writers.keys():
+            W[r].add(int(w_str))
 
-    def build_json(node, visited=None):
+    def build_filtered_deps(r, visited=None):
         if visited is None:
             visited = set()
-        if node in visited:
+        if r in visited:
             return {}
-        visited.add(node)
-        result = {}
-        for child in sorted(graph.get(node, [])):
-            entry = {}
-            if child in node_files:
-                entry[child] = sorted(node_files[child])
-            child_descendants = build_json(child, visited)
-            if child_descendants:
-                if entry:
-                    entry.update(child_descendants)
-                else:
-                    entry = child_descendants
-            result.update(entry)
-        return result
+        visited.add(r)
 
-    final_json = {}
-    for node_str in data.keys():
-        node = int(node_str)
-        final_json[node] = build_json(node, visited=set())
+        acc = {}
+        for w in sorted(W.get(r, [])):
+            child = build_filtered_deps(w, visited)
+            for rr, fileset in child.items():
+                acc.setdefault(rr, set()).update(fileset)
 
-    for key in final_json:
-        if isinstance(final_json[key], dict):
-            final_json[key] = list(final_json[key].keys())
-    
-    return final_json
+            if w in FW:
+                acc.setdefault(w, set()).update(FW[w])
+
+        return acc
+
+    filtered_deps = {}
+    for r_str in deps.keys():
+        r = int(r_str)
+        acc = build_filtered_deps(r, visited=set())
+        filtered_deps[r_str] = [ w for w, files in sorted(acc.items()) ]
+
+    return filtered_deps
 
 
 def process_log_file(log_path):
@@ -542,6 +539,7 @@ def process_log_file(log_path):
 
 def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, min_subregion_len, max_len):
     global global_all_app_tb_pcs
+    global new_app_tb_pcs
     global error
     global global_regions_dependance
     global global_regions_affections
@@ -646,7 +644,7 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
                                                     if current_region_store[1][j][2] not in global_all_app_tb_pcs:
                                                         sources[i][1][j + start_exist][2].append(current_region_store[1][j][2])
                                                         sources[i][1][j + start_exist][3].append(current_region_store[1][j][3])
-                                                        global_all_app_tb_pcs.add(current_region_store[1][j][2])
+                                                        new_app_tb_pcs.add(current_region_store[1][j][2])
 
                                     matched_any = True
                                     
@@ -698,7 +696,7 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
                                                     if current_region_load[1][j][2] not in global_all_app_tb_pcs:                                                        
                                                         sources[i][1][j + start_exist][2].append(current_region_load[1][j][2])
                                                         sources[i][1][j + start_exist][3].append(current_region_load[1][j][3])
-                                                        global_all_app_tb_pcs.add(current_region_load[1][j][2])
+                                                        new_app_tb_pcs.add(current_region_load[1][j][2])
 
                                     matched_any = True
 
@@ -751,7 +749,7 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
                                 if current_region_store[1][j][2] not in global_all_app_tb_pcs:   
                                     sources[i][1][j + start_exist][2].append(current_region_store[1][j][2])
                                     sources[i][1][j + start_exist][3].append(current_region_store[1][j][3])
-                                    global_all_app_tb_pcs.add(current_region_store[1][j][2])
+                                    new_app_tb_pcs.add(current_region_store[1][j][2])
 
                 matched_any = True
 
@@ -793,7 +791,7 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
                                 if current_region_load[1][j][2] not in global_all_app_tb_pcs:  
                                     sources[i][1][j + start_exist][2].append(current_region_load[1][j][2])
                                     sources[i][1][j + start_exist][3].append(current_region_load[1][j][3])
-                                    global_all_app_tb_pcs.add(current_region_load[1][j][2])
+                                    new_app_tb_pcs.add(current_region_load[1][j][2])
 
                     matched_any = True
 
@@ -819,27 +817,27 @@ def update_global(sources):
             global_fs_region_ids, global_region_list = global_sources[i]
 
             new_fs_regions = len(set(fs_region_ids) - set(global_fs_region_ids))
-            merged_fs_regions = list(set(global_fs_region_ids) & set(fs_region_ids))
-            delta += new_fs_regions / max(len(merged_fs_regions), 1)
-            global_fs_region_ids = merged_fs_regions
+            intersect_fs_regions = list(set(global_fs_region_ids) & set(fs_region_ids))
+            delta += new_fs_regions / max(len(intersect_fs_regions), 1)
+            global_fs_region_ids = intersect_fs_regions
             count += 1
 
             for j, (hex_value, region_ids, app_tb_pcs, coverages) in enumerate(region_list):
                 global_hex, global_ids, global_pcs, global_covs = global_region_list[j]
 
                 new_ids = len(set(region_ids) - set(global_ids))
-                merged_ids = list(set(global_ids) | set(region_ids))
-                delta += new_ids / max(len(merged_ids), 1)
+                intersect_ids = list(set(global_ids) & set(region_ids))
+                delta += new_ids / max(len(intersect_ids), 1)
 
                 new_pcs = len(set(app_tb_pcs) - set(global_pcs))
-                merged_pcs = list(set(global_pcs) | set(app_tb_pcs))
-                delta += new_pcs / max(len(merged_pcs), 1)
+                intersect_pcs = list(set(global_pcs) & set(app_tb_pcs))
+                delta += new_pcs / max(len(intersect_pcs), 1)
 
                 new_covs = len(set(coverages) - set(global_covs))
-                merged_covs = list(set(global_covs) | set(coverages))
-                delta += new_covs / max(len(merged_covs), 1)
+                intersect_covs = list(set(global_covs) & set(coverages))
+                delta += new_covs / max(len(intersect_covs), 1)
 
-                global_region_list[j] = (hex_value, merged_ids, merged_pcs, merged_covs)
+                global_region_list[j] = (hex_value, intersect_ids, intersect_pcs, intersect_covs)
                 count += 3
 
             global_sources[i] = (global_fs_region_ids, global_region_list)
@@ -1279,6 +1277,7 @@ def create_config(config_path, subregion_divisor, min_subregion_len, delta_thres
 
 def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subregion_len, delta_threshold, include_libraries, region_delimiter):
     global global_all_app_tb_pcs
+    global new_app_tb_pcs
     global global_subregions_app_tb_pcs
     global global_subregions_covs
     global global_sources
@@ -1286,7 +1285,9 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
     global qemu_pid
     global global_max_len
     global error
+    global n_run
 
+    elapsed_seconds = 0
     print("\n[\033[32m+\033[0m] TAINT ANALYSIS of the firmware '%s' (timeout: %d)\n"%(os.path.basename(firmware), timeout))
 
     all_app_tb_pcs_path = os.path.join(taint_dir, firmware, "all_app_tb_pcs.json")
@@ -1301,6 +1302,7 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
             global_all_app_tb_pcs = set()
     else:
         global_all_app_tb_pcs = set()
+    new_app_tb_pcs = set()
 
     os.environ["EXEC_MODE"] = "RUN"
     os.environ["TAINT"] = "1"
@@ -1393,6 +1395,7 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
 
                 ensure_file_coherence(fs_json_dir, taint_json_dir)
 
+                start = time.perf_counter()
                 for json_file in sorted(os.listdir(taint_json_dir)):
                     if json_file.startswith("taint_mem_") and json_file.endswith(".log"):
                         json_path = os.path.join(taint_json_dir, json_file)
@@ -1406,7 +1409,7 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
                             print(f"Removed orphaned taint JSON file: {json_path}")
                             continue
                         
-                        fs_relations_data = summarize_node_dependencies(fs_json_path)
+                        fs_relations_data = filter_region_deps(fs_json_path)
                         taint_data = process_log_file(json_path)
                         
                         delta_check = False
@@ -1417,10 +1420,12 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
                                 analysis_results = calculate_analysis_results()
 
                                 # if check_if_delta_is_little_enough_to_stop(delta, delta_threshold):
-                                if True:
+                                if n_run == 1:
                                     skip_run = True
                                     delta_check = True
                                     break
+                                else:
+                                    n_run += 1
                             else:
                                 if error == 2:
                                     if (global_max_len == -1):
@@ -1436,6 +1441,9 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
 
                         if delta_check:
                             break
+
+                end = time.perf_counter()
+                elapsed_seconds += int((end - start) * 1000)
             else:
                 taint_json_dir = os.path.join(taint_dir, firmware, proto, pcap_file, "taint_json")
                 if os.path.exists(taint_json_dir):
@@ -1464,6 +1472,8 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
                     print("Booting firmware, wait %d seconds..."%(sleep))
                     
                     time.sleep(sleep)
+
+                    start = time.perf_counter()
 
                     json_dir = "%s/taint/"%(work_dir)
 
@@ -1530,7 +1540,7 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
 
                     time.sleep(2)
 
-                    fs_relations_data = summarize_node_dependencies(fs_target_file)
+                    fs_relations_data = filter_region_deps(fs_target_file)
                     taint_data = process_log_file(taint_target_file)
 
                     delta_check = False
@@ -1541,9 +1551,11 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
                             analysis_results = calculate_analysis_results()
 
                             # if check_if_delta_is_little_enough_to_stop(delta, delta_threshold):
-                            if True:
+                            if n_run == 1:
                                 delta_check = True
                                 break
+                            else:
+                                n_run += 1
                         else:
                             if error == 2:
                                 if (global_max_len == -1):
@@ -1559,6 +1571,9 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
 
                     if delta_check:
                         break
+
+                    end = time.perf_counter()
+                    elapsed_seconds += int((end - start) * 1000)
             
             plot_dir_path = os.path.join(taint_dir, firmware, proto, pcap_file, "taint_plot")
             os.makedirs(plot_dir_path, exist_ok=True)
@@ -1586,12 +1601,13 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
             json_file_path = os.path.join(taint_dir, firmware, proto, pcap_file, "fs_relations.json")
             with open(json_file_path, "w") as f:
                 json.dump(global_fs_relations, f, indent=4)
+
+            for app_tb_pc in new_app_tb_pcs:
+                global_all_app_tb_pcs.add(app_tb_pc)
             all_app_tb_pcs_path = os.path.join(taint_dir, firmware, "all_app_tb_pcs.json")
             serializable = [[tb, pc] for (tb, pc) in global_all_app_tb_pcs]
             with open(all_app_tb_pcs_path, "w") as f:
                 json.dump(serializable, f, indent=4)
-            end = time.perf_counter()
-            elapsed_seconds = int((end - start) * 1000)
             with open(os.path.join(taint_dir, firmware, proto, pcap_file, "elapsed_time"), "w") as f:
                 f.write(f"{elapsed_seconds}")
             global_elapsed_seconds += elapsed_seconds
@@ -1602,7 +1618,26 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
             set_permissions_recursive(os.path.join(taint_dir, firmware, proto, pcap_file, "config.ini"))
 
 def pre_analysis_performance(work_dir, firmware, proto, include_libraries, region_delimiter, sleep, timeout, taint_analysis_path):
-    for user_interaction in os.listdir(os.path.join(taint_analysis_path, firmware, proto)):
+    MAX_USER_INTERACTIONS = 1
+    MAX_ELEMENTS = 5
+
+    user_interactions_list = os.listdir(os.path.join(taint_analysis_path, firmware, proto))
+    MAX_USER_INTERACTIONS = min(MAX_USER_INTERACTIONS, len(user_interactions_list))
+    user_interactions = user_interactions_list[:MAX_USER_INTERACTIONS]
+
+    total_tp_algo_vs_gt = 0
+    total_fp_algo_vs_gt = 0
+    total_tp_algo_vs_minimized = 0
+    total_fp_algo_vs_minimized = 0
+    total_tp_minimized_vs_gt = 0
+    total_fp_minimized_vs_gt = 0
+    element_count = 0
+    taint_inode_pcs = set()
+
+    all_gt_run_times = []
+    all_minimized_run_times = []
+
+    for user_interaction in user_interactions:
         print(f"\nProcessing user interaction: {user_interaction}")
         seed_path = os.path.join(taint_analysis_path, firmware, proto, user_interaction, user_interaction+".seed")
         seed_metadata = os.path.join(taint_analysis_path, firmware, proto, user_interaction, user_interaction+".seed_metadata.json")
@@ -1622,6 +1657,8 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
             print(f"The port for {proto.upper()} is {port}.")
         except OSError:
             print(f"Protocol {proto.upper()} not found.")
+            port = None
+
         command = ["sudo", "-E", "/STAFF/aflnet/TaintQueue", seed_path, os.path.join(work_dir, "outputs"), "taint_metrics", "1"]
         process = subprocess.Popen(command)
         process.wait()
@@ -1631,31 +1668,24 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
 
         with open(os.path.join(work_dir, "debug", user_interaction+".seed_app_tb_pcs_post.json")) as f:
             data = json.load(f)
-        
-        total_execution_time = 0.0
-        sleep_time_added = False
+
         elements = data.get("elements", [])
+        MAX_ELEMENTS = min(MAX_ELEMENTS, len(elements))
+        elements = elements[:MAX_ELEMENTS]
         num_elements = len(elements)
 
-        sum_precision = 0.0
-        sum_recall = 0.0
-        sum_f1 = 0.0
-        sum_accuracy = 0.0
-
-        total_tp = 0
-        total_fp = 0
-        total_fn = 0
-        element_count = 0
-
-        annotated_elements = []
+        json_dir = f"{work_dir}/taint/"
 
         for idx, element in enumerate(elements, start=1):
             print(f"\nProcessing element {idx} of {num_elements}")
+            element_count += 1
 
             region = element.get("index")
             offset = element.get("offset")
             length = element.get("count")
             inode_pcs = element.get("pcs", [])
+            affected_regions = element.get("affected_regions", [])
+            region_influences = element.get("region_influences", [])
 
             os.environ["EXEC_MODE"] = "RUN"
             os.environ["TAINT"] = "1"
@@ -1667,103 +1697,186 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
             os.environ["TARGET_LEN"] = str(length)
             os.environ["DEBUG"] = "1"
 
-            subprocess.run(["sudo", "-E", "/STAFF/FirmAE/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            process = subprocess.Popen(
-                ["sudo", "-E", "./run.sh", "-r", os.path.dirname(firmware), firmware, "run", "0.0.0.0"],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
-            qemu_pid = process.pid
-            print(f"Booting firmware, wait {sleep} seconds...")
-            time.sleep(sleep)
-            if not sleep_time_added:
-                total_execution_time += sleep
-                sleep_time_added = True
+            taint_runs = []
+            num_runs = 0
+            last_inter = None
 
-            element_start_time = time.time()
+            while True:
+                subprocess.run(["sudo", "-E", "/STAFF/FirmAE/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                process = subprocess.Popen(
+                    ["sudo", "-E", "./run.sh", "-r", os.path.dirname(firmware), firmware, "run", "0.0.0.0"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+                qemu_pid = process.pid
+                num_runs += 1
+                print(f"Booting firmware, run {num_runs}, wait {sleep} seconds...")
+                time.sleep(sleep)
 
-            json_dir = f"{work_dir}/taint/"
+                element_start_time = time.time()
+                command = ["sudo", "-E", "/STAFF/aflnet/client",
+                           seed_path, open(os.path.join(work_dir, "ip")).read().strip(),
+                           str(port), str(timeout)]
+                process = subprocess.Popen(command)
+                process.wait()
+                if process.returncode != 0:
+                    print("\nClient failed. Return Code:", process.returncode)
+                    exit(1)
 
-            try:
-                port = socket.getservbyname(proto)
-            except OSError:
-                print(f"Protocol {proto.upper()} not found.")
-                port = None
+                send_signal_recursive(qemu_pid, signal.SIGINT)
+                try:
+                    os.waitpid(qemu_pid, 0)
+                except:
+                    pass
+                time.sleep(2)
 
-            command = ["sudo", "-E", "/STAFF/aflnet/client", seed_path, open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(timeout)]
-            process = subprocess.Popen(command)
-            process.wait()
-            if process.returncode != 0:
-                print("\nClient failed. Return Code:", process.returncode)
-                exit(1)
+                run_rt = time.time() - element_start_time
+                all_gt_run_times.append(run_rt)
 
-            send_signal_recursive(qemu_pid, signal.SIGINT)
-            try:
-                os.waitpid(qemu_pid, 0)
-            except:
-                pass
-            time.sleep(2)
+                taint_mem_file = os.path.join(json_dir, "taint_mem.log")
+                taint_data = process_log_file(taint_mem_file)
+                current_run_set = {(entry["inode"], entry["app_tb_pc"]) for entry in taint_data}
+                taint_runs.append(current_run_set)
 
-            taint_mem_file = os.path.join(json_dir, "taint_mem.log")
-            taint_data = process_log_file(taint_mem_file)
+                if last_inter is None:
+                    last_inter = current_run_set
+                    print(f"Run {num_runs}: first intersection size = {len(last_inter)}")
+                    continue
 
-            taint_inode_pcs = {(entry["inode"], entry["app_tb_pc"]) for entry in taint_data}
+                current_inter = last_inter & current_run_set
+                print(f"Run {num_runs}: intersection size = {len(current_inter)}")
+
+                if current_inter == last_inter:
+                    print(f"Intersection stabilized after {num_runs} runs.")
+                    break
+
+                last_inter = current_inter
+
+            taint_inode_pcs = set.intersection(*taint_runs)
             inode_pcs_set = {(inode, pc) for inode, pc in inode_pcs}
 
-            true_positives = inode_pcs_set & taint_inode_pcs
-            false_positives = inode_pcs_set - taint_inode_pcs
-            false_negatives = taint_inode_pcs - inode_pcs_set
+            tp_gt = len(inode_pcs_set & taint_inode_pcs)
+            fp_gt = len(inode_pcs_set - taint_inode_pcs)
+            total_tp_algo_vs_gt += tp_gt
+            total_fp_algo_vs_gt += fp_gt
 
-            tp = len(true_positives)
-            fp = len(false_positives)
-            fn = len(false_negatives)
+            ids = sorted(set([i for i, v in enumerate(affected_regions) if v] + [i for i, v in enumerate(region_influences) if v]))
+            ids_arg = ",".join(map(str, ids))
+            os.environ["TARGET_REGION"] = str(ids.index(region))
 
-            precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
-            accuracy = tp / (tp + fp + fn) if (tp + fp + fn) > 0 else 0.0
+            minimized_runs = []
+            last_min_inter = None
+            n_minum_runs = 0
 
-            sum_precision += precision
-            sum_recall += recall
-            sum_f1 += f1
-            sum_accuracy += accuracy
-            total_tp += tp
-            total_fp += fp
-            total_fn += fn
-            element_count += 1
-            total_execution_time += (time.time() - element_start_time)
+            while True:
+                subprocess.run(["sudo", "-E", "/STAFF/FirmAE/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                process = subprocess.Popen(
+                    ["sudo", "-E", "./run.sh", "-r", os.path.dirname(firmware), firmware, "run", "0.0.0.0"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+                qemu_pid = process.pid
+                n_minum_runs += 1
+                print(f"Booting firmware for minimized run {n_minum_runs}, wait {sleep} seconds...")
+                time.sleep(sleep)
 
-            annotated_pcs = [
-                {"inode": inode, "pc": pc, "is_true_positive": (inode, pc) in taint_inode_pcs}
-                for inode, pc in inode_pcs
-            ]
-            annotated_element = dict(element)
-            annotated_element["pcs"] = annotated_pcs
-            annotated_elements.append(annotated_element)
+                minimized_start_time = time.time()
+                command = ["sudo", "-E", "/STAFF/aflnet/client",
+                           seed_path, open(os.path.join(work_dir, "ip")).read().strip(),
+                           str(port), str(timeout), "--ids="+ids_arg]
+                process = subprocess.Popen(command)
+                process.wait()
+                if process.returncode != 0:
+                    print("\nClient failed in minimized run. Return Code:", process.returncode)
+                    exit(1)
 
-            mean_precision = sum_precision / element_count if element_count > 0 else 0.0
-            mean_recall = sum_recall / element_count if element_count > 0 else 0.0
-            mean_f1 = sum_f1 / element_count if element_count > 0 else 0.0
-            mean_accuracy = sum_accuracy / element_count if element_count > 0 else 0.0
+                send_signal_recursive(qemu_pid, signal.SIGINT)
+                try:
+                    os.waitpid(qemu_pid, 0)
+                except:
+                    pass
+                time.sleep(2)
 
-            results = {
-                "metrics": {
-                    "mean_precision": mean_precision,
-                    "mean_recall": mean_recall,
-                    "mean_f1_score": mean_f1,
-                    "mean_accuracy": mean_accuracy,
-                    "total_true_positives": total_tp,
-                    "total_false_positives": total_fp,
-                    "total_false_negatives": total_fn,
-                    "total_execution_time_sec": total_execution_time
-                },
-                "annotated_elements": annotated_elements
-            }
+                run_rt_min = time.time() - minimized_start_time
+                all_minimized_run_times.append(run_rt_min)
 
-        with open(results_file, "w") as rf:
-            json.dump(results, rf, indent=4)
+                taint_mem_file = os.path.join(json_dir, "taint_mem.log")
+                taint_data = process_log_file(taint_mem_file)
+                minimized_taint_pcs = {(entry["inode"], entry["app_tb_pc"]) for entry in taint_data}
+                minimized_runs.append(minimized_taint_pcs)
 
-        print(f"\nAggregated results saved to: {results_file}")
-        print(results["metrics"])
+                if last_min_inter is None:
+                    last_min_inter = minimized_taint_pcs
+                    continue
+
+                current_min_inter = last_min_inter & minimized_taint_pcs
+                if current_min_inter == last_min_inter:
+                    print(f"Minimized intersection stabilized after {n_minum_runs} runs.")
+                    break
+
+                last_min_inter = current_min_inter
+
+            tp_min = len(inode_pcs_set & minimized_taint_pcs)
+            fp_min = len(inode_pcs_set - minimized_taint_pcs)
+            total_tp_algo_vs_minimized += tp_min
+            total_fp_algo_vs_minimized += fp_min
+
+            tp_min_vs_gt = len(minimized_taint_pcs & taint_inode_pcs)
+            fp_min_vs_gt = len(minimized_taint_pcs - taint_inode_pcs)
+            total_tp_minimized_vs_gt += tp_min_vs_gt
+            total_fp_minimized_vs_gt += fp_min_vs_gt
+
+    global_precision_algo_vs_gt = (total_tp_algo_vs_gt / (total_tp_algo_vs_gt + total_fp_algo_vs_gt)) if (total_tp_algo_vs_gt + total_fp_algo_vs_gt) > 0 else 0.0
+    global_precision_algo_vs_minimized = (total_tp_algo_vs_minimized / (total_tp_algo_vs_minimized + total_fp_algo_vs_minimized)) if (total_tp_algo_vs_minimized + total_fp_algo_vs_minimized) > 0 else 0.0
+    global_precision_minimized_vs_gt = (total_tp_minimized_vs_gt / (total_tp_minimized_vs_gt + total_fp_minimized_vs_gt)) if (total_tp_minimized_vs_gt + total_fp_minimized_vs_gt) > 0 else 0.0
+
+    global_avg_run_time = (sum(all_gt_run_times) / len(all_gt_run_times)) if all_gt_run_times else 0.0
+    global_avg_minimized_run_time = (sum(all_minimized_run_times) / len(all_minimized_run_times)) if all_minimized_run_times else 0.0
+
+    results = {
+        "firmware": firmware,
+        "metrics": {
+            "global_precision_algo_vs_gt": global_precision_algo_vs_gt,
+            "global_precision_algo_vs_minimized": global_precision_algo_vs_minimized,
+            "global_precision_minimized_vs_gt": global_precision_minimized_vs_gt,
+            "total_true_positives_algo_vs_gt": total_tp_algo_vs_gt,
+            "total_false_positives_algo_vs_gt": total_fp_algo_vs_gt,
+            "total_true_positives_algo_vs_minimized": total_tp_algo_vs_minimized,
+            "total_false_positives_algo_vs_minimized": total_fp_algo_vs_minimized,
+            "total_true_positives_minimized_vs_gt": total_tp_minimized_vs_gt,
+            "total_false_positives_minimized_vs_gt": total_fp_minimized_vs_gt,
+            "global_avg_run_time_sec": global_avg_run_time,
+            "global_avg_minimized_run_time_sec": global_avg_minimized_run_time,
+            "num_elements": element_count
+        }
+    }
+
+    with open(results_file, "w") as rf:
+        json.dump(results, rf, indent=4)
+
+    print(f"\nAggregated results saved to: {results_file}")
+    print(results["metrics"])
+
+    import csv
+    csv_file = "/STAFF/evaluation_precision.csv"
+    metrics = results["metrics"]
+
+    row = {
+        "firmware": firmware,
+        "num_elements": metrics["num_elements"],
+        "global_precision_algo_vs_gt": metrics["global_precision_algo_vs_gt"],
+        "global_precision_algo_vs_minimized": metrics["global_precision_algo_vs_minimized"],
+        "global_precision_minimized_vs_gt": metrics["global_precision_minimized_vs_gt"],
+        "global_avg_run_time_sec": metrics["global_avg_run_time_sec"],
+        "global_avg_minimized_run_time_sec": metrics["global_avg_minimized_run_time_sec"]
+    }
+
+    file_exists = os.path.isfile(csv_file)
+    with open(csv_file, "a", newline="") as cf:
+        writer = csv.DictWriter(cf, fieldnames=row.keys())
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row)
+
+    print(f"Row for {firmware} appended to {csv_file}")
 
 
 def start(firmware, timeout):

@@ -17,6 +17,16 @@
 #define RETRY_DELAY 2
 
 char *debug_dir = NULL;
+int *allowed_ids = NULL;
+int allowed_count = 0;
+
+int is_allowed_request(int req_id) {
+    if (allowed_count == 0) return 1;
+    for (int i = 0; i < allowed_count; i++) {
+        if (allowed_ids[i] == req_id) return 1;
+    }
+    return 0;
+}
 
 void recursive_remove(const char *path) {
     DIR *dir = opendir(path);
@@ -135,8 +145,21 @@ int main(int argc, char *argv[]) {
     else debug_mode = 0;
 
     for (int i = 1; i < argc; ++i) {
-        if (!strcmp(argv[i], "--manual") || !strcmp(argv[i], "--interactive"))
+        if (!strcmp(argv[i], "--manual") || !strcmp(argv[i], "--interactive")) {
             manual_mode = 1;
+        } else if (strncmp(argv[i], "--ids=", 6) == 0) {
+            char *id_str = argv[i] + 6;
+            char *token = strtok(id_str, ",");
+            while (token) {
+                allowed_ids = realloc(allowed_ids, sizeof(int) * (allowed_count + 1));
+                if (!allowed_ids) {
+                    perror("realloc");
+                    exit(2);
+                }
+                allowed_ids[allowed_count++] = atoi(token);
+                token = strtok(NULL, ",");
+            }
+        }
     }
 
     if (debug_mode && access("debug", F_OK) == 0)
@@ -145,7 +168,7 @@ int main(int argc, char *argv[]) {
         mkdir("debug", 0777);
 
     if (argc < 5) {
-        fprintf(stderr, "Usage: %s <requests_file> <server_ip> <server_port> <timeout_sec> [num_attempts] [--manual]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <requests_file> <server_ip> <server_port> <timeout_sec> [num_attempts] [--manual] [--ids=list]\n", argv[0]);
         exit(2);
     }
 
@@ -231,6 +254,21 @@ int main(int argc, char *argv[]) {
     int total_requests = 0;
 
     while (remaining_len > 0) {
+        size_t delim_len = strlen(region_delimiter);
+        char *next_request = memmem(current_request, remaining_len, region_delimiter, delim_len);
+        size_t request_len = next_request ? (size_t)(next_request - current_request) : remaining_len;
+
+        if (!is_allowed_request(request_id)) {
+            printf("Skipping request %d (not in allowed list)\n", request_id);
+            if (next_request) {
+                size_t consumed = (next_request - current_request) + delim_len;
+                current_request += consumed;
+                remaining_len -= consumed;
+            } else break;
+            request_id++;
+            continue;
+        }
+
         int retry_times = 0;
         if (manual_mode) {
             printf("[Press Enter to send next request, or 'q' + Enter to quit]: ");
@@ -240,10 +278,6 @@ int main(int argc, char *argv[]) {
                 break;
             }
         }
-
-        size_t delim_len = strlen(region_delimiter);
-        char *next_request = memmem(current_request, remaining_len, region_delimiter, delim_len);
-        size_t request_len = next_request ? (size_t)(next_request - current_request) : remaining_len;
 
         print_request(current_request, request_len);
         *send_next_region = 1;
@@ -340,5 +374,6 @@ retry:
 
     close(sockfd);
     free(requests);
+    if (allowed_ids) free(allowed_ids);
     return 0;
 }

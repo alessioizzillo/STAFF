@@ -11,6 +11,7 @@ config.ini
 client
 v2.3.3.tar.gz*
 taint_analysis
+taint_analysis_*
 results
 cpu_ids.csv
 experiments_to_do.csv
@@ -18,3 +19,9 @@ schedule.csv
 config.ini
 plot_params.ini
 extracted
+extracted_crash_out
+cpu_ids.csv
+evaluation_precision.csv
+schedule.csv
+TaintQueue
+plot_params.ini
