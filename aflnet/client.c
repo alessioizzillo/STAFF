@@ -235,10 +235,10 @@ int main(int argc, char *argv[]) {
     while (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Error connecting to server");
         attempt++;
-        if (num_attempts != -1 && attempt >= num_attempts) {
-            fprintf(stderr, "Reached maximum connection attempts (%d). Exiting.\n", num_attempts);
-            exit(2);
-        }
+        // if (num_attempts != -1 && attempt >= num_attempts) {
+        //     fprintf(stderr, "Reached maximum connection attempts (%d). Exiting.\n", num_attempts);
+        //     exit(2);
+        // }
         sleep(RETRY_DELAY);
     }
 

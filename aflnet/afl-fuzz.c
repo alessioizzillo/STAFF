@@ -4387,12 +4387,12 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
             new_var_bytes++;
             // stage_max    = CAL_CYCLES_LONG;
 
-            if (debug) {
-              var_byte_count = count_bytes(var_bytes);
-              FILE *fp = fopen("debug/var_byte_count.log", "a+");
-              fprintf(fp, "%d\n", var_byte_count);
-              fclose(fp);
-            }
+            // if (debug) {
+            //   var_byte_count = count_bytes(var_bytes);
+            //   FILE *fp = fopen("debug/var_byte_count.log", "a+");
+            //   fprintf(fp, "%d\n", var_byte_count);
+            //   fclose(fp);
+            // }
           }
 
           if (first_trace_eval[i] != trace_bits_eval[i]) {

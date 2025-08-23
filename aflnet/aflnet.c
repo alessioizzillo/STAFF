@@ -2498,7 +2498,6 @@ u32 save_kl_messages_to_file(klist_t(lms) *kl_messages, u8 *fname, u8 replay_ena
       memcpy(&mem[len], kl_val(it)->mdata, message_size);
       len = len + message_size;
     }
-    message_count++;
   }
 
   //Write everything to file & close the file
