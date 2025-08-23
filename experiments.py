@@ -305,13 +305,13 @@ def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat
                 container_name = row[container_name_idx]
                 num_cores = row[3]
 
-                if os.path.exists(exp_dir) and exp_name not in existing_experiments and exp_name != "":
-                    continue
-                elif (status == "" or exp_name == "" or container_name == "") and \
+                # if os.path.exists(exp_dir) and exp_name not in existing_experiments and exp_name != "":
+                #     continue
+                if (status == "" or exp_name == "" or container_name == "") and \
                         not (status == "" and exp_name == "" and container_name == ""):
                     continue
-                elif not os.path.exists(exp_dir) and exp_name != "":
-                    continue
+                # elif not os.path.exists(exp_dir) and exp_name != "":
+                #     continue
 
                 container_in_affinity = False
                 match = re.match(r"(.+)_(\d+)", container_name)
