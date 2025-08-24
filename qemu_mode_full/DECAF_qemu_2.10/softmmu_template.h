@@ -23,6 +23,7 @@
  */
 #include "zyw_config1.h"
 // #include "zyw_config2.h"
+#include "DECAF_fileio.h"
 #include "extern_vars.h"
 #ifdef STORE_PAGE_FUNC
 #include "DECAF_callback_to_QEMU.h"
