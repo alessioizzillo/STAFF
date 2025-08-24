@@ -87,6 +87,7 @@ char taint_json_path[MAX_PATH_LENGTH] = {0};
 int fd_dependencies_track = 0;
 int include_libraries = 0;
 int taint_edge_flag = 0;
+uint64_t mem_ops_count = 0, taint_mem_ops_count = 0;
 
 /* Track whether the taint tracking system is enabled or not */
 

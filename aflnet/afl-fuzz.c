@@ -126,6 +126,7 @@ int move_file(const char *source_path, const char *dest_dir) {
    really makes no sense to haul them around as function parameters. */
 
 FILE* warnf_output_file = NULL;
+u64 filtered_crashes = 0, deduplicated_crashes = 0;
 int sequence_minimization = 0;
 int no_more_taint_hints = 0, no_more_taint_hints_at_all = 0, num_taint_analyzed_queue_entries = 0, taint_hints_all_at_once = 0;
 int enable_taint_aware_mode = 0;
@@ -4179,6 +4180,7 @@ static u8 run_target(char** argv, u32 timeout) {
   }
 
   if (!check_and_filter_traces(cur_crash_traces, blacklist_crash_traces, debug)) {
+    filtered_crashes++;
     *child_retval = 0;
   }
 
@@ -4688,6 +4690,7 @@ static void perform_dry_run(char** argv) {
             fn = replace_dir(q->fname, tmp);
 
             if (!update_and_log_traces(cur_crash_traces, unique_crash_traces, fn)) {
+              deduplicated_crashes++;
               ck_free(fn);
               ck_free(tmp);
               break;
@@ -5197,6 +5200,7 @@ keep_as_crash:
 
         // if (!has_new_bits(virgin_crash, trace_bits)) return keeping;
         if (!update_and_log_traces(cur_crash_traces, unique_crash_traces, fn2)) {
+          deduplicated_crashes++;
           ck_free(fn);
           ck_free(fn2);
           return keeping;
@@ -5408,6 +5412,8 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
              "n_sent_reqs            : %llu\n"
              "n_skipped_reqs_min     : %llu\n"
              "n_skipped_reqs_cp      : %llu\n",
+             "deduplicated_crashes   : %llu\n",
+             "filtered_crashes       : %llu\n",
              start_time / 1000, get_cur_time() / 1000, getpid(),
              queue_cycle ? (queue_cycle - 1) : 0, total_execs, eps,
              queued_paths, queued_favored, queued_discovered, queued_imported,
@@ -5422,7 +5428,7 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
              (qemu_mode || dumb_mode || no_forkserver || crash_mode ||
               persistent_mode || deferred_mode) ? "" : "default",
              orig_cmdline, slowest_exec_ms, n_fetched_random_hints, n_fetched_taint_hints,
-             n_fetched_state_hints, total_cal_cycles, n_sent_reqs, n_skipped_reqs_min, n_skipped_reqs_cp);
+             n_fetched_state_hints, total_cal_cycles, n_sent_reqs, n_skipped_reqs_min, n_skipped_reqs_cp, deduplicated_crashes, filtered_crashes);
              /* ignore errors */
 
   /* Get rss value from the children

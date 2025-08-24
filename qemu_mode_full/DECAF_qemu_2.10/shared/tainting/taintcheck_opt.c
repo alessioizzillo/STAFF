@@ -468,6 +468,9 @@ void taint_mem_log(uint8_t event, uint32_t pc, uint32_t pid, uint32_t gpa, uint8
   int error;
   uint8_t last_buffer;
 
+  if (sink_id != -1)
+    taint_mem_ops_count++;
+
   if (qem_trace_buffer_sizes[qem_trace_current_buffer] >= MAX_BUF_SIZE) {
     last_buffer = qem_trace_current_buffer;
 

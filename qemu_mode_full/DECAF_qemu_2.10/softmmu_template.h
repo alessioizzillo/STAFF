@@ -261,6 +261,9 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
         }
     }
 
+    if (sink_id != -1)
+        mem_ops_count += 4;
+
     if (taint_tracking_enabled && env->tempidx) {
         char procname[MAX_PROCESS_NAME_LENGTH] = {0};
 
@@ -503,6 +506,10 @@ WORD_TYPE helper_be_ld_name(CPUArchState *env, target_ulong addr,
             }
         }
     }
+
+
+    if (sink_id != -1)
+        mem_ops_count += 4;
 
     if (taint_tracking_enabled && env->tempidx) {
         char procname[MAX_PROCESS_NAME_LENGTH] = {0};
@@ -751,6 +758,9 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     }
 
 #ifdef TARGET_MIPS
+    if (sink_id != -1)
+        mem_ops_count += 4;
+
     if (taint_tracking_enabled && env->tempidx) {
         char procname[MAX_PROCESS_NAME_LENGTH] = {0};
 
@@ -969,6 +979,9 @@ void helper_be_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     }
 
 #ifdef TARGET_MIPS
+    if (sink_id != -1)
+        mem_ops_count += 4;
+
     if (taint_tracking_enabled && env->tempidx) {
         char procname[MAX_PROCESS_NAME_LENGTH] = {0};
 

@@ -81,6 +81,7 @@ extern char taint_json_path[MAX_PATH_LENGTH];
 // extern uint32_t global_cov_xxhash[MAX_PID], global_cov_orig[MAX_PID], global_cov_sha1[MAX_PID], global_app_tb_pc[MAX_PID];
 #include <semaphore.h>
 
+extern uint64_t mem_ops_count, taint_mem_ops_count;
 extern int target_region;
 extern int target_offset;
 extern int target_len;

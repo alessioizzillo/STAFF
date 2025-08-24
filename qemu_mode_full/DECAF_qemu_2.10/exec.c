@@ -3055,6 +3055,8 @@ static MemTxResult address_space_write_continue(AddressSpace *as, hwaddr addr,
                                 taint_status[i] = 1;
                             }                                 
                         }
+                        FILE *fp = fopen("debug/mem_ops_count.log", "a+");
+                        fprintf(fp, "%d,%d\n", mem_ops_count, taint_mem_ops_count);
                     }
                     
                     taintcheck_taint_physmem(addr1, l, taint_status);
