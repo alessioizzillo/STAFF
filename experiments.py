@@ -15,14 +15,18 @@ import shutil
 
 EXPERIMENTS_DIR = "experiments"
 SCHEDULE_CSV = "schedule.csv"
+METHODS = {"aflnet_base", "aflnet_state_aware", "triforce", "staff_state_aware"}
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 N_CPU_MIN = 0
 N_CPU_MAX = int(os.cpu_count())
 logical_to_pair = {}
 pair_to_logical = defaultdict(list)
-CPUS_WHITELIST = None
-CPUS_WHITELIST = [0,56,4,60,64,8,12,68,10,66,6,62,2,58,16,72,20,76,24,80,26,82,22,78,18,74,14,70,28,84,32,88,36,92,40,96,34,90,30,86,108,52,110,54,1,57,5,61,65,9,13,69,11,67,63,7,3,59,17,73,21,77,25,81,27,83,23,79,19,75,15,71,29,85,33,89,41,97,35,91,31,87,105,49,107,51,103,47]
+CPUS_WHITELIST_1 = None
+CPUS_WHITELIST_2 = None
+CPUS_WHITELIST_1 = [22,78,18,74,14,70,28,84,32,88,36,92,40,96,38,94,34,90,30,86,100,44,104,48,108,52,110,54,106,50,102,46,42,98,1,57,5,61,65,9,13,69,11,67,63,7,3,59,17,73,21,77,25,81,27,83,23,79,19,75,15,71,29,85,33,89,37,93,41,97,39,95,35,91,31,87,101,45,105,49,109,53,111,55,107,51,103,47,43,99]
+CPUS_WHITELIST_2 = [0,56,4,60,64,8,12,68,10,66,6,62,2,58,16,72,20,76,24,80,26,82]
+
 reset_firmware_images = 1
 
 def usage():
@@ -145,7 +149,7 @@ def run_experiment(exp_name, container_name, n_cores, replay):
         if i not in affinity:
             affinity[i] = "none"
 
-    free_cpus = [i for i in range(N_CPU_MAX) if affinity[i] == "none" and (CPUS_WHITELIST is None or i in CPUS_WHITELIST)]
+    free_cpus = [i for i in range(N_CPU_MAX) if affinity[i] == "none" and ((CPUS_WHITELIST_1 is None and CPUS_WHITELIST_2 is None) or (any(s in container_name for s in METHODS) and i in CPUS_WHITELIST_1) or ((not any(s in container_name for s in METHODS)) and i in CPUS_WHITELIST_2))]
     if len(free_cpus) < n_cores:
         print(f"ERROR: too few CPUs available: {len(free_cpus)}")
         fcntl.lockf(lock, fcntl.LOCK_UN)
@@ -333,13 +337,13 @@ def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat
     if os.path.exists(exp_dir):
         for exp_dir_name in existing_experiments:
             exp_dir_path = os.path.join(exp_dir, exp_dir_name)
-            if os.path.isdir(exp_dir_path) and not os.listdir(exp_dir_path):
-                print(f"Removing orphan empty experiment directory: {exp_dir_path}")
-                os.rmdir(exp_dir_path)
+            # if os.path.isdir(exp_dir_path) and not os.listdir(exp_dir_path):
+            #     print(f"Removing orphan empty experiment directory: {exp_dir_path}")
+            #     os.rmdir(exp_dir_path)
 
-                for row in rows_to_keep:
-                    if row[exp_name_idx] == exp_dir_name:
-                        rows_to_remove.append(row)
+            #     for row in rows_to_keep:
+            #         if row[exp_name_idx] == exp_dir_name:
+            #             rows_to_remove.append(row)
 
         with open(csv_file, "r") as infile:
             rows = list(csv.reader(infile))
@@ -400,7 +404,7 @@ def assign_names(csv_file, idx, num_cores, config_data):
         if i not in affinity:
             affinity[i] = "none"
 
-    free_cpus = [i for i in range(N_CPU_MAX) if affinity[i] == "none" and (CPUS_WHITELIST is None or i in CPUS_WHITELIST)]
+    free_cpus = [i for i in range(N_CPU_MAX) if affinity[i] == "none" and ((CPUS_WHITELIST_1 is None and CPUS_WHITELIST_2 is None) or (any(s in container_name for s in METHODS) and i in CPUS_WHITELIST_1) or ((not any(s in container_name for s in METHODS)) and i in CPUS_WHITELIST_2))]
     if len(free_cpus) < num_cores:
         print(f"ERROR: too few CPUs available: {len(free_cpus)}")
         fcntl.lockf(lock, fcntl.LOCK_UN)
