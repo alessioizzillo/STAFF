@@ -411,7 +411,7 @@ def assign_names(csv_file, idx, num_cores, config_data):
         if i not in affinity:
             affinity[i] = "none"
 
-    free_cpus = [i for i in range(N_CPU_MAX) if affinity[i] == "none" and ((CPUS_WHITELIST_1 is None and CPUS_WHITELIST_2 is None) or (any(s in container_name for s in METHODS) and i in CPUS_WHITELIST_1) or ((not any(s in container_name for s in METHODS)) and i in CPUS_WHITELIST_2))]
+    free_cpus = [i for i in range(N_CPU_MAX) if affinity[i] == "none" and ((CPUS_WHITELIST_1 is None and CPUS_WHITELIST_2 is None) or (any(s in mode for s in METHODS) and i in CPUS_WHITELIST_1) or ((not any(s in mode for s in METHODS)) and i in CPUS_WHITELIST_2))]
     if len(free_cpus) < num_cores:
         print(f"ERROR: too few CPUs available: {len(free_cpus)}")
         fcntl.lockf(lock, fcntl.LOCK_UN)
@@ -606,8 +606,8 @@ def main_loop():
         for idx, (status, exp_name, container_name, num_cores, config_data) in enumerate(experiments_0):
             if status != "":
                 continue
-
-            result = assign_names(SCHEDULE_CSV, idx, int(num_cores), config_data)
+            
+            result = assign_names(SCHEDULE_CSV_0, idx, int(num_cores), config_data)
             if result == (None, None):
                 print(f"[{strftime('%H:%M:%S')}] Not enough free CPUs for experiment row {idx}.")
                 break
@@ -622,12 +622,14 @@ def main_loop():
                 print(f"Failed to launch {container_name}: {e}", file=sys.stderr)
 
             break
-
+        
+        sleep(1)
+        
         for idx, (status, exp_name, container_name, num_cores, config_data) in enumerate(experiments_1):
             if status != "":
                 continue
 
-            result = assign_names(SCHEDULE_CSV, idx, int(num_cores), config_data)
+            result = assign_names(SCHEDULE_CSV_1, idx, int(num_cores), config_data)
             if result == (None, None):
                 print(f"[{strftime('%H:%M:%S')}] Not enough free CPUs for experiment row {idx}.")
                 break
