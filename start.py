@@ -88,7 +88,8 @@ TAINT_DIR = os.path.join(STAFF_DIR, "taint_analysis")
 FIRMWARE_DIR = os.path.join(STAFF_DIR, "firmwares")
 ANALYSIS_DIR = os.path.join(STAFF_DIR, "analysis")
 CONFIG_INI_PATH=os.path.join(STAFF_DIR, "config.ini")
-SCHEDULE_CSV_PATH=os.path.join(STAFF_DIR, "schedule.csv")
+SCHEDULE_CSV_PATH_0=os.path.join(STAFF_DIR, "schedule_0.csv")
+SCHEDULE_CSV_PATH_1=os.path.join(STAFF_DIR, "schedule_1.csv")
 EXP_DONE_PATH=os.path.join(STAFF_DIR, "experiments_done")
 
 captured_pcap_path = None
@@ -979,11 +980,11 @@ def fuzz(out_dir, container_name, replay_exp):
 
     if out_dir:
         if ret:
-            update_schedule_status(SCHEDULE_CSV_PATH, "failed", os.path.basename(out_dir))
+            update_schedule_status(SCHEDULE_CSV_PATH_0, "failed", os.path.basename(out_dir))
             if os.path.exists(out_dir):
                 shutil.rmtree(out_dir, ignore_errors=True)
         else:
-            update_schedule_status(SCHEDULE_CSV_PATH, "succeeded", os.path.basename(out_dir))
+            update_schedule_status(SCHEDULE_CSV_PATH_0, "succeeded", os.path.basename(out_dir))
 
             # if os.path.isdir(out_dir):
             #     os.makedirs(EXP_DONE_PATH, exist_ok=True)
@@ -1357,23 +1358,23 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
     elif mode == "replay":
         replay()
         if out_dir:
-            update_schedule_status(SCHEDULE_CSV_PATH, "succeeded", os.path.basename(out_dir))
+            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif mode == "crash_analysis":
         if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
             os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
         crash_analysis(CRASH_DIR)
         if out_dir:
-            update_schedule_status(SCHEDULE_CSV_PATH, "succeeded", os.path.basename(out_dir))
+            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif mode == "check":
         check("run")
         if out_dir:
-            update_schedule_status(SCHEDULE_CSV_PATH, "succeeded", os.path.basename(out_dir))
+            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif mode == "pre_analysis":
         if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
             os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
         pre_analysis()
         if out_dir:
-            update_schedule_status(SCHEDULE_CSV_PATH, "succeeded", os.path.basename(out_dir))
+            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif mode == "pre_analysis_perf":
         if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
             os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
@@ -1391,7 +1392,7 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
             pre_analysis_performance(work_dir, config["GENERAL"]["firmware"], os.path.basename(config["AFLNET_FUZZING"]["proto"]), config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"], sleep, config["GENERAL_FUZZING"]["timeout"], TAINT_DIR)
         
         if out_dir:
-            update_schedule_status(SCHEDULE_CSV_PATH, "succeeded", os.path.basename(out_dir))
+            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif any(x in mode for x in ["aflnet_base", "aflnet_state_aware", "triforce", "staff_base", "staff_state_aware"]) or replay_exp:
         fuzz(out_dir, container_name, replay_exp)
     else:

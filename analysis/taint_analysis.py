@@ -1881,9 +1881,6 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
                 neutral_mem_runs.append(mem_ops_total)
                 neutral_taint_mem_runs.append(taint_mem_ops_total)
 
-                print(neutral_mem_runs, neutral_taint_mem_runs)
-                input("CONTINUE")
-
                 if last_neutral_inter is None:
                     last_neutral_inter = neutral_run_set
                     first_neutral_inter_size = len(last_neutral_inter)
