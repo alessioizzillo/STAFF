@@ -52,6 +52,7 @@ extern int exit_write;
 extern int checkpoint_afl_user_fork;
 extern int fd_dependencies_track;
 extern int include_libraries;
+extern int mem_ops_count_enable;
 
 extern void allocate_taint_memory_page_table(void);
 

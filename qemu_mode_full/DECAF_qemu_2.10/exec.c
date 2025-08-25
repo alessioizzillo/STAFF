@@ -3030,6 +3030,11 @@ static MemTxResult address_space_write_continue(AddressSpace *as, hwaddr addr,
                             for (i = 0; i < l; i++)
                                 taint_mem_log(0, 0, 0, addr1, 0, buf[i]);
                         }
+                        if (mem_ops_count_enable) {
+                            FILE *fp = fopen("debug/mem_ops_count.log", "a+");
+                            fprintf(fp, "%lld,%lld\n", mem_ops_count, taint_mem_ops_count);
+                            fclose(fp);
+                        }
                     }
                     else {
                         if (sink_id == target_region) {
@@ -3055,8 +3060,6 @@ static MemTxResult address_space_write_continue(AddressSpace *as, hwaddr addr,
                                 taint_status[i] = 1;
                             }                                 
                         }
-                        FILE *fp = fopen("debug/mem_ops_count.log", "a+");
-                        fprintf(fp, "%d,%d\n", mem_ops_count, taint_mem_ops_count);
                     }
                     
                     taintcheck_taint_physmem(addr1, l, taint_status);

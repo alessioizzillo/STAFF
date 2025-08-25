@@ -66,6 +66,7 @@ int fuzz = 0;
 unsigned int map_size = MAX_MAP_SIZE;
 enum EXEC_MODE exec_mode = RUN;
 int child_tmout = 3600;
+int mem_ops_count_enable = 0;
 int target_pid = 0;
 int target_fd = 0;
 int shm_id = 0;
@@ -3191,6 +3192,10 @@ int main(int argc, char **argv, char **envp)
     env_var = getenv("DEBUG_FS_TRACE");
     if (env_var && !strcmp(env_var, "1"))
         debug_fs_trace = 1;
+
+    env_var = getenv("MEM_OPS");
+    if (env_var && !strcmp(env_var, "1"))
+        mem_ops_count_enable = 1;
 
     env_var = getenv("FD_DEPENDENCIES_TRACK");
     if (env_var && !strcmp(env_var, "1")) {
