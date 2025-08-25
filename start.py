@@ -277,8 +277,15 @@ def copy_file(src_path, dest_dir):
     shutil.copy2(src_path, dest_path)
 
 def fast_copytree(source, destination):
-    os.makedirs(destination, exist_ok=True)
-    subprocess.run(["rsync", "-a", "--info=progress2", source + "/", destination], check=True)
+    result = subprocess.run(
+        ["rsync", "-a", "--info=progress2", source + "/", destination],
+        capture_output=True
+    )
+
+    if result.returncode not in (0, 24):
+        raise subprocess.CalledProcessError(
+            result.returncode, result.args, result.stdout, result.stderr
+        )
 
 def replace_pattern_in_file(file_path, pattern, replacement):
     with open(file_path, 'r') as file:
