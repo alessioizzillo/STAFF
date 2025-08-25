@@ -1302,7 +1302,6 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
             global_all_app_tb_pcs = set()
     else:
         global_all_app_tb_pcs = set()
-    new_app_tb_pcs = set()
 
     os.environ["EXEC_MODE"] = "RUN"
     os.environ["TAINT"] = "1"
@@ -1338,6 +1337,7 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
         print("\n[\033[33m*\033[0m] Protocol: {}".format(proto))
         for pcap_file in os.listdir(os.path.join(pcap_dir, proto)):
             n_run = 0
+            new_app_tb_pcs = set()
             start = time.perf_counter()
             required_files = ["config.ini", "taint_plot", "elapsed_time", "analysis_log", "app_tb_pc_subsequences.json", "cov_subsequences.json", "global_analysis_results.json", "region_dependancies.json", "region_affections.json", "fs_relations.json", pcap_file+".seed", pcap_file+".seed_metadata.json"]
 
