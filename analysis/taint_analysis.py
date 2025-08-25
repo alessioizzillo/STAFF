@@ -641,10 +641,19 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
                                                     #         global_regions_affections[i][current_region_store[0]].append(sub_curr_str)
                                                     if current_region_store[0] not in sources[i][1][j + start_exist][1]:
                                                         sources[i][1][j + start_exist][1].append(current_region_store[0])
-                                                    if current_region_store[1][j][2] not in global_all_app_tb_pcs:
-                                                        sources[i][1][j + start_exist][2].append(current_region_store[1][j][2])
-                                                        sources[i][1][j + start_exist][3].append(current_region_store[1][j][3])
-                                                        new_app_tb_pcs.add(current_region_store[1][j][2])
+                                                    inode_pc = current_region_store[1][j][2]
+                                                    if inode_pc not in global_all_app_tb_pcs:
+                                                        cov = current_region_store[1][j][3]
+
+                                                        inode_pc_lst = sources[i][1][j + start_exist][2]
+                                                        cov_lst = sources[i][1][j + start_exist][3]
+
+                                                        if inode_pc not in inode_pc_lst:
+                                                            inode_pc_lst.append(inode_pc)
+                                                        if cov not in cov_lst:
+                                                            cov_lst.append(cov)
+                                                        
+                                                        new_app_tb_pcs.add(inode_pc)
 
                                     matched_any = True
                                     
@@ -693,10 +702,19 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
                                                     #         global_regions_affections[i][current_region_load[0]].append(sub_curr_str)
                                                     if current_region_load[0] not in sources[i][1][j + start_exist][1]:
                                                         sources[i][1][j + start_exist][1].append(current_region_load[0])
-                                                    if current_region_load[1][j][2] not in global_all_app_tb_pcs:                                                        
-                                                        sources[i][1][j + start_exist][2].append(current_region_load[1][j][2])
-                                                        sources[i][1][j + start_exist][3].append(current_region_load[1][j][3])
-                                                        new_app_tb_pcs.add(current_region_load[1][j][2])
+                                                    inode_pc = current_region_load[1][j][2]
+                                                    if inode_pc not in global_all_app_tb_pcs:
+                                                        cov = current_region_load[1][j][3]
+
+                                                        inode_pc_lst = sources[i][1][j + start_exist][2]
+                                                        cov_lst = sources[i][1][j + start_exist][3]
+
+                                                        if inode_pc not in inode_pc_lst:
+                                                            inode_pc_lst.append(inode_pc)
+                                                        if cov not in cov_lst:
+                                                            cov_lst.append(cov)
+                                                        
+                                                        new_app_tb_pcs.add(inode_pc)
 
                                     matched_any = True
 
@@ -746,10 +764,19 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
                                 #         global_regions_affections[i][current_region_store[0]].append(sub_curr_str)
                                 if current_region_store[0] not in sources[i][1][j + start_exist][1]:
                                     sources[i][1][j + start_exist][1].append(current_region_store[0])
-                                if current_region_store[1][j][2] not in global_all_app_tb_pcs:   
-                                    sources[i][1][j + start_exist][2].append(current_region_store[1][j][2])
-                                    sources[i][1][j + start_exist][3].append(current_region_store[1][j][3])
-                                    new_app_tb_pcs.add(current_region_store[1][j][2])
+                                inode_pc = current_region_store[1][j][2]
+                                if inode_pc not in global_all_app_tb_pcs:
+                                    cov = current_region_store[1][j][3]
+
+                                    inode_pc_lst = sources[i][1][j + start_exist][2]
+                                    cov_lst = sources[i][1][j + start_exist][3]
+
+                                    if inode_pc not in inode_pc_lst:
+                                        inode_pc_lst.append(inode_pc)
+                                    if cov not in cov_lst:
+                                        cov_lst.append(cov)
+                                    
+                                    new_app_tb_pcs.add(inode_pc)
 
                 matched_any = True
 
@@ -788,10 +815,19 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
                                 #         global_regions_affections[i][current_region_load[0]].append(sub_curr_str)
                                 if current_region_load[0] not in sources[i][1][j + start_exist][1]:
                                     sources[i][1][j + start_exist][1].append(current_region_load[0])
-                                if current_region_load[1][j][2] not in global_all_app_tb_pcs:  
-                                    sources[i][1][j + start_exist][2].append(current_region_load[1][j][2])
-                                    sources[i][1][j + start_exist][3].append(current_region_load[1][j][3])
-                                    new_app_tb_pcs.add(current_region_load[1][j][2])
+                                inode_pc = current_region_load[1][j][2]
+                                if inode_pc not in global_all_app_tb_pcs:
+                                    cov = current_region_load[1][j][3]
+
+                                    inode_pc_lst = sources[i][1][j + start_exist][2]
+                                    cov_lst = sources[i][1][j + start_exist][3]
+
+                                    if inode_pc not in inode_pc_lst:
+                                        inode_pc_lst.append(inode_pc)
+                                    if cov not in cov_lst:
+                                        cov_lst.append(cov)
+                                    
+                                    new_app_tb_pcs.add(inode_pc)
 
                     matched_any = True
 
@@ -809,45 +845,49 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
 
 def update_global(sources):
     global global_sources
-    delta = 0.0
-    count = 0
 
-    if global_sources:
-        for i, (fs_region_ids, region_list) in enumerate(sources):
-            global_fs_region_ids, global_region_list = global_sources[i]
-
-            new_fs_regions = len(set(fs_region_ids) - set(global_fs_region_ids))
-            intersect_fs_regions = list(set(global_fs_region_ids) & set(fs_region_ids))
-            delta += new_fs_regions / max(len(intersect_fs_regions), 1)
-            global_fs_region_ids = intersect_fs_regions
-            count += 1
-
-            for j, (hex_value, region_ids, app_tb_pcs, coverages) in enumerate(region_list):
-                global_hex, global_ids, global_pcs, global_covs = global_region_list[j]
-
-                new_ids = len(set(region_ids) - set(global_ids))
-                intersect_ids = list(set(global_ids) & set(region_ids))
-                delta += new_ids / max(len(intersect_ids), 1)
-
-                new_pcs = len(set(app_tb_pcs) - set(global_pcs))
-                intersect_pcs = list(set(global_pcs) & set(app_tb_pcs))
-                delta += new_pcs / max(len(intersect_pcs), 1)
-
-                new_covs = len(set(coverages) - set(global_covs))
-                intersect_covs = list(set(global_covs) & set(coverages))
-                delta += new_covs / max(len(intersect_covs), 1)
-
-                global_region_list[j] = (hex_value, intersect_ids, intersect_pcs, intersect_covs)
-                count += 3
-
-            global_sources[i] = (global_fs_region_ids, global_region_list)
-
-        delta /= max(count, 1)
-    else:
+    if not global_sources:
         global_sources = sources
-        delta = 1.0
+        # return 1.0
+        return
 
-    return delta
+    gs = global_sources
+    # delta = 0.0
+    # count = 0
+
+    for i, (fs_region_ids, region_list) in enumerate(sources):
+        g_fs_region_ids, g_region_list = gs[i]
+
+        inter_fs = [x for x in fs_region_ids if x in g_fs_region_ids]
+        len_inter_fs = len(inter_fs)
+        # delta += (len(fs_region_ids) - len_inter_fs) / (len_inter_fs or 1)
+        g_fs_region_ids = inter_fs
+        # count += 1
+
+        for j, (hex_value, region_ids, app_tb_pcs, coverages) in enumerate(region_list):
+            g_hex, g_ids, g_pcs, g_covs = g_region_list[j]
+
+            inter_ids = [x for x in region_ids if x in g_ids]
+            len_inter_ids = len(inter_ids)
+            # delta += (len(region_ids) - len_inter_ids) / (len_inter_ids or 1)
+
+            inter_pcs = [x for x in app_tb_pcs if x in g_pcs]
+            len_inter_pcs = len(inter_pcs)
+            # delta += (len(app_tb_pcs) - len_inter_pcs) / (len_inter_pcs or 1)
+
+            inter_covs = [x for x in coverages if x in g_covs]
+            len_inter_covs = len(inter_covs)
+            # delta += (len(coverages) - len_inter_covs) / (len_inter_covs or 1)
+
+            g_region_list[j] = (hex_value, inter_ids, inter_pcs, inter_covs)
+            # count += 3
+
+        gs[i] = (g_fs_region_ids, g_region_list)
+
+    global_sources = gs
+    # delta /= (count or 1)
+    # return delta
+    return
 
 def calculate_delta(global_results, current_results):
     delta = 0
