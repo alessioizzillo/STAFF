@@ -537,6 +537,28 @@ def process_log_file(log_path):
 
     return events
 
+def serialize_global_sources(global_sources):
+    start = time.perf_counter()
+
+    serialized = []
+    for fs_region_ids, region_list in global_sources:
+        fs_list = list(fs_region_ids)
+        new_region_list = []
+        for hex_value, region_ids, app_tb_pcs, coverages in region_list:
+            new_region_list.append((
+                hex_value,
+                list(region_ids),
+                list(app_tb_pcs),
+                list(coverages)
+            ))
+        serialized.append((fs_list, new_region_list))
+
+    end = time.perf_counter()
+    elapsed_ms = int((end - start) * 1000)
+    print(f"\nSerialization ELAPSED: {elapsed_ms} ms\n")
+
+    return serialized
+
 def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, min_subregion_len, max_len):
     global global_all_app_tb_pcs
     global new_app_tb_pcs
@@ -544,8 +566,13 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
     global global_regions_dependance
     global global_regions_affections
 
+    try:
+        global global_max_len
+    except NameError:
+        global_max_len = max_len
+
     print("\n[\033[34m*\033[0m] max_len:", global_max_len)
-    
+
     output_dir = "taint_analysis_stats"
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
@@ -554,8 +581,6 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
     d3 = {}
 
     sources = []
-    # sources_hex = []
-    processing_taint_source = False
     discarded_regions = set()
     last_store_event = None
     current_region_store = [0, []]
@@ -565,41 +590,121 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
     multiples = set()
     multiples2 = set()
 
-    # output_target = sys.stdout if output_mode == "print" else open(output_file_path, "w")
+    sources_bytes = [bytes(x) for x in sources_hex]
+
+    global_all_set = global_all_app_tb_pcs
+    new_app_tb_set = new_app_tb_pcs
+
+    _min = min
+
+    def process_region_matches(region_owner_id, region_list):
+        L = len(region_list)
+        if L == 0:
+            return
+
+        current_value_bytes = bytes(entry[1] for entry in region_list)
+        Lb = len(current_value_bytes)
+
+        find_subseq = multi_trie.find_subsequence
+        sources_local = sources
+        sources_bytes_local = sources_bytes
+        global_all_local = global_all_set
+        add_new_app_tb = new_app_tb_set.add
+
+        for sub_len in range(Lb, 0, -1):
+            if (sub_len < (Lb / subregion_divisor) and sub_len >= min_subregion_len):
+                break
+
+            limit = Lb - sub_len + 1
+            matched_any = False
+
+            for start_curr in range(limit):
+                subslice = current_value_bytes[start_curr:start_curr + sub_len]
+
+                found_positions = find_subseq(subslice)
+                if not found_positions:
+                    continue
+
+                try:
+                    fp_len = len(found_positions)
+                except Exception:
+                    found_positions = tuple(found_positions)
+                    fp_len = len(found_positions)
+
+                if fp_len != 1:
+                    continue
+
+                i, start_exist = found_positions[0]
+
+                if region_owner_id < i:
+                    continue
+
+                if sources_bytes_local[i][start_exist:start_exist + sub_len] != subslice:
+                    continue
+
+                src_region_list = sources_local[i][1]
+                for j in range(sub_len):
+                    idx = j + start_exist
+                    src_entry = src_region_list[idx]
+
+                    deps_set = src_entry[1]
+                    inodes_set = src_entry[2]
+
+                    deps_set.add(region_owner_id)
+
+                    inode_pc = region_list[j][2]
+
+                    if inode_pc not in global_all_local:
+                        inodes_set.add(inode_pc)
+                        add_new_app_tb(inode_pc)
+
+                matched_any = True
+                break
+
+            if matched_any:
+                break
 
     previous_sink_id = -1
-    for event in tqdm(taint_data, desc="Processing sinks"):
-        # if event["event"] != 0 and processing_taint_source:
-        #     processing_taint_source = False
-        #     multi_trie.insert(sources_hex[-1], len(sources_hex)-1)
 
-        sink_id = -1
-        if event["event"] == 1 or event["event"] == 0:
+    fs_relations_lookup = fs_relations_data
+    sources_hex_local = sources_hex
+    multi_trie_insert = multi_trie.insert
+
+    for event in tqdm(taint_data, desc="Processing sinks"):
+        evtype = event.get("event", None)
+
+        if evtype in (0, 1):
             sink_id = event["sink_id"]
 
             if sink_id > previous_sink_id:
                 previous_sink_id = sink_id
-                if sink_id >= len(sources_hex):
+                if sink_id >= len(sources_hex_local):
                     error = 1
-                    print("Error: sink_id [%d] >= len(sources_hex) [%d]"%(sink_id, len(sources_hex)))
+                    print("Error: sink_id [%d] >= len(sources_hex) [%d]" % (sink_id, len(sources_hex_local)))
                     return None
-                sources.append((fs_relations_data[sink_id] if sink_id in fs_relations_data else [], [(byte, [], [], []) for byte in sources_hex[sink_id]]))
-                if not (multi_trie.insert(sources_hex[sink_id], sink_id)):
+
+                fs_rels = set(fs_relations_lookup.get(sink_id, []))
+                per_byte = [(b, set(), set(), set()) for b in sources_hex_local[sink_id]]
+                sources.append((fs_rels, per_byte))
+
+                ok = multi_trie_insert(sources_hex_local[sink_id], sink_id)
+                if not ok:
                     del multi_trie
                     time.sleep(1)
-                    process = psutil.Process(os.getpid())
-                    mem_used = process.memory_info().rss
-                    print(f"Current mem_used: {mem_used}")           
+                    proc = psutil.Process(os.getpid())
+                    mem_used = proc.memory_info().rss
+                    print(f"Current mem_used: {mem_used}")
                     error = 2
                     return None
+
                 global_regions_dependance[sink_id] = []
                 global_regions_affections[sink_id] = {}
             elif sink_id == previous_sink_id:
                 pass
             else:
-                assert(False)   # or continue
+                assert False
 
-        if event["event"] == 1 and (event["op_name"] in {0, 1}):
+        if evtype == 1 and event.get("op_name") in (0, 1):
             cov_xxhash = event["cov_xxhash"]
             app_tb_pc = event["app_tb_pc"]
             gpa = event["gpa"]
@@ -607,287 +712,82 @@ def process_json(sources_hex, taint_data, fs_relations_data, subregion_divisor, 
             value_hex = event["value"]
             inode = event["inode"]
 
-            if (op_name == 1):
-                if (last_store_event != None):
-                    if (last_store_event["gpa"] == gpa-1):
-                        current_region_store[1].append((gpa, value_hex, (inode, app_tb_pc), cov_xxhash))
-                    else:
-                        current_value_hex = bytes([value_hex for _, value_hex, _, _ in current_region_store[1]])
-                        # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-
-                        matched_any = False
-                        # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-
-                        for sub_len in range(len(current_value_hex), 0, -1):
-                            if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
-                                break
-
-                            for start_curr in range(len(current_value_hex) - sub_len + 1):
-                                found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
-                                # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                if found_positions:
-                                    if len(found_positions) == 1:
-                                        for i, start_exist in found_positions:
-                                            if current_region_store[0] >= i and sources_hex[i][start_exist:start_exist + sub_len ] == current_value_hex[start_curr:start_curr + sub_len]:
-                                                for j in range(sub_len):
-                                                    # if i not in global_regions_dependance[current_region_store[0]]:
-                                                    #     global_regions_dependance[current_region_store[0]].append(i)
-                                                    # if current_region_store[0] not in global_regions_affections[i]:
-                                                    #     sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                                    #     global_regions_affections[i][current_region_store[0]] = [sub_curr_str]
-                                                    # else:
-                                                    #     sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                                    #     if sub_curr_str not in global_regions_affections[i][current_region_store[0]]:
-                                                    #         global_regions_affections[i][current_region_store[0]].append(sub_curr_str)
-                                                    if current_region_store[0] not in sources[i][1][j + start_exist][1]:
-                                                        sources[i][1][j + start_exist][1].append(current_region_store[0])
-                                                    inode_pc = current_region_store[1][j][2]
-                                                    if inode_pc not in global_all_app_tb_pcs:
-                                                        cov = current_region_store[1][j][3]
-
-                                                        inode_pc_lst = sources[i][1][j + start_exist][2]
-                                                        cov_lst = sources[i][1][j + start_exist][3]
-
-                                                        if inode_pc not in inode_pc_lst:
-                                                            inode_pc_lst.append(inode_pc)
-                                                        if cov not in cov_lst:
-                                                            cov_lst.append(cov)
-                                                        
-                                                        new_app_tb_pcs.add(inode_pc)
-
-                                    matched_any = True
-                                    
-                                    if matched_any:
-                                        break
-
-                            if matched_any:
-                                break
-
-                        current_region_store[1] = [(gpa, value_hex, (inode, app_tb_pc), cov_xxhash)]                    
+            if op_name == 1:
+                if last_store_event is not None and last_store_event.get("gpa") == gpa - 1:
+                    current_region_store[1].append((gpa, value_hex, (inode, app_tb_pc), cov_xxhash))
                 else:
+                    if last_store_event is not None:
+                        process_region_matches(current_region_store[0], current_region_store[1])
+
                     current_region_store[1] = [(gpa, value_hex, (inode, app_tb_pc), cov_xxhash)]
+
                 current_region_store[0] = sink_id
                 last_store_event = event
             else:
-                if (last_load_event != None):
-                    if (last_load_event["gpa"] == gpa-1):
-                        current_region_load[1].append((gpa, value_hex, (inode, app_tb_pc), cov_xxhash))
-                    else:
-                        current_value_hex = bytes([value_hex for _, value_hex, _, _ in current_region_load[1]])
-                        # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-
-                        matched_any = False
-                        # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-
-                        for sub_len in range(len(current_value_hex), 0, -1):
-                            if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
-                                break
-
-                            for start_curr in range(len(current_value_hex) - sub_len + 1):
-                                found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
-                                # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                if found_positions:
-                                    if len(found_positions) == 1:           
-                                        for i, start_exist in found_positions:
-                                            if current_region_load[0] >= i and sources_hex[i][start_exist:start_exist + sub_len ] == current_value_hex[start_curr:start_curr + sub_len]:
-                                                for j in range(sub_len):
-                                                    # if i not in global_regions_dependance[current_region_load[0]]:
-                                                    #     global_regions_dependance[current_region_load[0]].append(i)
-                                                    # if current_region_load[0] not in global_regions_affections[i]:
-                                                    #     sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                                    #     global_regions_affections[i][current_region_load[0]] = [sub_curr_str]
-                                                    # else:
-                                                    #     sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                                    #     if sub_curr_str not in global_regions_affections[i][current_region_load[0]]:
-                                                    #         global_regions_affections[i][current_region_load[0]].append(sub_curr_str)
-                                                    if current_region_load[0] not in sources[i][1][j + start_exist][1]:
-                                                        sources[i][1][j + start_exist][1].append(current_region_load[0])
-                                                    inode_pc = current_region_load[1][j][2]
-                                                    if inode_pc not in global_all_app_tb_pcs:
-                                                        cov = current_region_load[1][j][3]
-
-                                                        inode_pc_lst = sources[i][1][j + start_exist][2]
-                                                        cov_lst = sources[i][1][j + start_exist][3]
-
-                                                        if inode_pc not in inode_pc_lst:
-                                                            inode_pc_lst.append(inode_pc)
-                                                        if cov not in cov_lst:
-                                                            cov_lst.append(cov)
-                                                        
-                                                        new_app_tb_pcs.add(inode_pc)
-
-                                    matched_any = True
-
-                                    if matched_any:
-                                        break
-
-                            if matched_any:
-                                break
-
-                        current_region_load[1] = [(gpa, value_hex, (inode, app_tb_pc), cov_xxhash)]
+                if last_load_event is not None and last_load_event.get("gpa") == gpa - 1:
+                    current_region_load[1].append((gpa, value_hex, (inode, app_tb_pc), cov_xxhash))
                 else:
+                    if last_load_event is not None:
+                        process_region_matches(current_region_load[0], current_region_load[1])
+
                     current_region_load[1] = [(gpa, value_hex, (inode, app_tb_pc), cov_xxhash)]
+
                 current_region_load[0] = sink_id
                 last_load_event = event
 
-    if (len(sources) != len(sources_hex)):
+    if current_region_store[1]:
+        process_region_matches(current_region_store[0], current_region_store[1])
+    if current_region_load[1]:
+        process_region_matches(current_region_load[0], current_region_load[1])
+
+    if len(sources) != len(sources_hex):
         error = 1
-        print("Error: len(sources) [%d] != len(sources_hex) [%d]"%(len(sources), len(sources_hex)))
+        print("Error: len(sources) [%d] != len(sources_hex) [%d]" % (len(sources), len(sources_hex)))
         return None
-
-    current_value_hex = bytes([value_hex for _, value_hex, _, _ in current_region_store[1]])
-    # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-
-    matched_any = False
-    # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-
-    for sub_len in range(len(current_value_hex), 0, -1):
-        if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
-            break
-
-        for start_curr in range(len(current_value_hex) - sub_len + 1):
-            found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
-            # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-            if found_positions:
-                if len(found_positions) == 1:
-                    for i, start_exist in found_positions:
-                        if current_region_store[0] >= i and sources_hex[i][start_exist:start_exist + sub_len ] == current_value_hex[start_curr:start_curr + sub_len]:
-                            for j in range(sub_len):
-                                # if i not in global_regions_dependance[current_region_store[0]]:
-                                #     global_regions_dependance[current_region_store[0]].append(i)
-                                # if current_region_store[0] not in global_regions_affections[i]:
-                                #     sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                #     global_regions_affections[i][current_region_store[0]] = [sub_curr_str]
-                                # else:
-                                #     sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                #     if sub_curr_str not in global_regions_affections[i][current_region_store[0]]:
-                                #         global_regions_affections[i][current_region_store[0]].append(sub_curr_str)
-                                if current_region_store[0] not in sources[i][1][j + start_exist][1]:
-                                    sources[i][1][j + start_exist][1].append(current_region_store[0])
-                                inode_pc = current_region_store[1][j][2]
-                                if inode_pc not in global_all_app_tb_pcs:
-                                    cov = current_region_store[1][j][3]
-
-                                    inode_pc_lst = sources[i][1][j + start_exist][2]
-                                    cov_lst = sources[i][1][j + start_exist][3]
-
-                                    if inode_pc not in inode_pc_lst:
-                                        inode_pc_lst.append(inode_pc)
-                                    if cov not in cov_lst:
-                                        cov_lst.append(cov)
-                                    
-                                    new_app_tb_pcs.add(inode_pc)
-
-                matched_any = True
-
-                if matched_any:
-                    break
-
-        if matched_any:
-            break
-
-    current_value_hex = bytes([value_hex for _, value_hex, _, _ in current_region_load[1]])
-    # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-
-    matched_any = False
-    # current_region_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex)
-
-    for sub_len in range(len(current_value_hex), 0, -1):
-        if (sub_len < len(current_value_hex)/subregion_divisor and sub_len >= min_subregion_len):
-            break
-
-        for start_curr in range(len(current_value_hex) - sub_len + 1):
-            found_positions = multi_trie.find_subsequence(current_value_hex[start_curr:start_curr + sub_len])
-            # sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-            if found_positions:
-                if len(found_positions) == 1:
-                    for i, start_exist in found_positions:
-                        if current_region_load[0] >= i and sources_hex[i][start_exist:start_exist + sub_len ] == current_value_hex[start_curr:start_curr + sub_len]:
-                            for j in range(sub_len):
-                                # if i not in global_regions_dependance[current_region_load[0]]:
-                                #     global_regions_dependance[current_region_load[0]].append(i)
-                                # if current_region_load[0] not in global_regions_affections[i]:
-                                #     sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                #     global_regions_affections[i][current_region_load[0]] = [sub_curr_str]
-                                # else:
-                                #     sub_curr_str = "".join(chr(val) if 32 < val < 127 else "." for val in current_value_hex[start_curr:start_curr + sub_len])
-                                #     if sub_curr_str not in global_regions_affections[i][current_region_load[0]]:
-                                #         global_regions_affections[i][current_region_load[0]].append(sub_curr_str)
-                                if current_region_load[0] not in sources[i][1][j + start_exist][1]:
-                                    sources[i][1][j + start_exist][1].append(current_region_load[0])
-                                inode_pc = current_region_load[1][j][2]
-                                if inode_pc not in global_all_app_tb_pcs:
-                                    cov = current_region_load[1][j][3]
-
-                                    inode_pc_lst = sources[i][1][j + start_exist][2]
-                                    cov_lst = sources[i][1][j + start_exist][3]
-
-                                    if inode_pc not in inode_pc_lst:
-                                        inode_pc_lst.append(inode_pc)
-                                    if cov not in cov_lst:
-                                        cov_lst.append(cov)
-                                    
-                                    new_app_tb_pcs.add(inode_pc)
-
-                    matched_any = True
-
-                    if matched_any:
-                        break
-
-            if matched_any:
-                break    
-
-    # collision_analysis(taint_data, "cov_orig", "ORIG")
-    # collision_analysis(taint_data, "cov_xxhash", "xxHash")
-    # collision_analysis(taint_data, "cov_sha1", "SHA1")
 
     return sources
 
 def update_global(sources):
     global global_sources
 
+    start = time.perf_counter()
+
     if not global_sources:
-        global_sources = sources
-        # return 1.0
+        global_sources = [
+            (fs_ids.copy(), [(hx, ids.copy(), pcs.copy(), cov.copy()) 
+                             for hx, ids, pcs, cov in region_list])
+            for fs_ids, region_list in sources
+        ]
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        print(f"\nELAPSED: {elapsed_ms} ms\n")
         return
 
     gs = global_sources
-    # delta = 0.0
-    # count = 0
+    n = min(len(sources), len(gs))
 
-    for i, (fs_region_ids, region_list) in enumerate(sources):
+    for i in range(n):
+        fs_region_ids, region_list = sources[i]
         g_fs_region_ids, g_region_list = gs[i]
 
-        inter_fs = [x for x in fs_region_ids if x in g_fs_region_ids]
-        len_inter_fs = len(inter_fs)
-        # delta += (len(fs_region_ids) - len_inter_fs) / (len_inter_fs or 1)
-        g_fs_region_ids = inter_fs
-        # count += 1
+        inter_fs = g_fs_region_ids & fs_region_ids
 
-        for j, (hex_value, region_ids, app_tb_pcs, coverages) in enumerate(region_list):
+        m = min(len(region_list), len(g_region_list))
+        for j in range(m):
+            hex_value, region_ids, app_tb_pcs, coverages = region_list[j]
             g_hex, g_ids, g_pcs, g_covs = g_region_list[j]
 
-            inter_ids = [x for x in region_ids if x in g_ids]
-            len_inter_ids = len(inter_ids)
-            # delta += (len(region_ids) - len_inter_ids) / (len_inter_ids or 1)
-
-            inter_pcs = [x for x in app_tb_pcs if x in g_pcs]
-            len_inter_pcs = len(inter_pcs)
-            # delta += (len(app_tb_pcs) - len_inter_pcs) / (len_inter_pcs or 1)
-
-            inter_covs = [x for x in coverages if x in g_covs]
-            len_inter_covs = len(inter_covs)
-            # delta += (len(coverages) - len_inter_covs) / (len_inter_covs or 1)
+            inter_ids = g_ids & region_ids
+            inter_pcs = g_pcs & app_tb_pcs
+            inter_covs = g_covs & coverages
 
             g_region_list[j] = (hex_value, inter_ids, inter_pcs, inter_covs)
-            # count += 3
 
-        gs[i] = (g_fs_region_ids, g_region_list)
+        gs[i] = (inter_fs, g_region_list)
 
     global_sources = gs
-    # delta /= (count or 1)
-    # return delta
-    return
+
+    elapsed_ms = int((time.perf_counter() - start) * 1000)
+    print(f"\nELAPSED: {elapsed_ms} ms\n")
 
 def calculate_delta(global_results, current_results):
     delta = 0
@@ -1630,9 +1530,9 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
             json_file_path = os.path.join(taint_dir, firmware, proto, pcap_file, "global_analysis_results.json")
             with open(json_file_path, "w") as f:
                 json.dump(analysis_results, f, indent=4)
-            json_file_path = os.path.join(taint_dir, firmware, proto, pcap_file, pcap_file+".seed_metadata.json")
+            json_file_path = os.path.join(taint_dir, firmware, proto, pcap_file, pcap_file + ".seed_metadata.json")
             with open(json_file_path, "w") as f:
-                json.dump(global_sources, f, indent=4)
+                json.dump(serialize_global_sources(global_sources), f, indent=4)
             json_file_path = os.path.join(taint_dir, firmware, proto, pcap_file, "region_dependancies.json")
             with open(json_file_path, "w") as f:
                 json.dump(global_regions_dependance, f, indent=4)
@@ -1659,7 +1559,7 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
             set_permissions_recursive(os.path.join(taint_dir, firmware, proto, pcap_file, "config.ini"))
 
 def pre_analysis_performance(work_dir, firmware, proto, include_libraries, region_delimiter, sleep, timeout, taint_analysis_path):
-    MAX_USER_INTERACTIONS = 1
+    MAX_USER_INTERACTIONS = 2
     MAX_ELEMENTS = 1
     UPPER_RUNS = 3
 
@@ -1696,6 +1596,8 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
     per_element_variability_neutral = []
 
     for user_interaction in user_interactions:
+        if "user_interaction_0" in user_interaction:
+            continue
         print(f"\nProcessing user interaction: {user_interaction}")
         seed_path = os.path.join(taint_analysis_path, firmware, proto, user_interaction, user_interaction + ".seed")
         seed_metadata = os.path.join(taint_analysis_path, firmware, proto, user_interaction, user_interaction + ".seed_metadata.json")
@@ -1726,6 +1628,7 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
 
         with open(os.path.join(work_dir, "debug", user_interaction + ".seed_app_tb_pcs_post.json")) as f:
             data = json.load(f)
+        input("WAIT")
 
         elements = data.get("elements", [])
         MAX_ELEMENTS = min(MAX_ELEMENTS, len(elements))
