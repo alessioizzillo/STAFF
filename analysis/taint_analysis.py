@@ -101,6 +101,61 @@ def send_signal_recursive(target_pid, signal_code):
     finally:
         os.kill(target_pid, signal_code)
 
+def cleanup(firmae_dir, work_dir):
+    print("\n[*] Cleanup Procedure..")
+
+    if os.path.exists(os.path.join(work_dir, "debug")):
+        shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
+
+    subprocess.run(["sudo", "-E", "umount", f"{work_dir}/dev/null"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(["sudo", "-E", "umount", f"{work_dir}/dev/urandom"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(["sudo", "-E", "umount", f"{work_dir}/proc_host/stat"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    current_pid = os.getpid()
+
+    parent_pids = set()
+    try:
+        pid = current_pid
+        while pid != 1:
+            output = subprocess.check_output(["ps", "-p", str(pid), "-o", "ppid="]).decode().strip()
+            ppid = int(output)
+            if ppid == pid or ppid == 0:
+                break
+            parent_pids.add(ppid)
+            pid = ppid
+    except Exception as e:
+        print(f"[!] Error while finding parent processes: {e}")
+
+    try:
+        output = subprocess.check_output(["ps", "-e", "-o", "pid=", "-o", "comm="]).decode().splitlines()
+
+        print("\n[*] Running processes before cleanup:")
+        for line in output:
+            pid_str, *command_parts = line.strip().split()
+            pid = int(pid_str)
+            command = ' '.join(command_parts)
+            print(f"    PID {pid}: {command}")
+
+        print("\n[*] Killing processes:")
+        for line in output:
+            pid_str, *command_parts = line.strip().split()
+            pid = int(pid_str)
+            command = ' '.join(command_parts)
+
+            if pid == 1 or pid == current_pid or pid in parent_pids:
+                continue
+
+            try:
+                os.kill(pid, signal.SIGKILL)
+                print(f"    [*] Killed PID {pid} ({command})")
+            except ProcessLookupError:
+                pass
+
+    except Exception as e:
+        print(f"[!] Error during process cleanup: {e}")
+
+    subprocess.run(["sudo", "-E", f"{firmae_dir}/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 def sigint_handler(sig, frame):
     if qemu_pid:
         send_signal_recursive(qemu_pid, signal.SIGKILL)
@@ -1216,7 +1271,7 @@ def create_config(config_path, subregion_divisor, min_subregion_len, delta_thres
 
     print(f"[+] Config file '{config_path}' created successfully.")
 
-def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subregion_len, delta_threshold, include_libraries, region_delimiter):
+def taint(firmae_dir, taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor, min_subregion_len, delta_threshold, include_libraries, region_delimiter):
     global global_all_app_tb_pcs
     global new_app_tb_pcs
     global global_subregions_app_tb_pcs
@@ -1252,7 +1307,7 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
     # os.environ["DEBUG"] = "1"
     # os.environ["DEBUG_DIR"] = os.path.join(work_dir, "debug", "interaction")
 
-    subprocess.run(["sudo", "-E", "/STAFF/FirmAE/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    cleanup(firmae_dir, work_dir)
 
     pcap_dir = os.path.join("/STAFF/pcap/", firmware)
 
@@ -1405,7 +1460,7 @@ def taint(taint_dir, work_dir, mode, firmware, sleep, timeout, subregion_divisor
 
             if not skip_run:
                 while(1):
-                    subprocess.run(["sudo", "-E", "/STAFF/FirmAE/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    cleanup(firmae_dir, work_dir)
                     process = subprocess.Popen(
                         ["sudo", "-E", "./run.sh", "-r", os.path.dirname(firmware), firmware, mode, "0.0.0.0"],
                         stdout=subprocess.DEVNULL,
@@ -1572,7 +1627,7 @@ def compute_f1_vs_ground_truth(run_sets, ground_truth):
             f1_scores.append(2 * tp / (2 * tp + fp + fn))
     return sum(f1_scores) / len(f1_scores) if f1_scores else 0.0
 
-def pre_analysis_performance(work_dir, firmware, proto, include_libraries, region_delimiter, sleep, timeout, taint_analysis_path):
+def pre_analysis_performance(firmae_dir, work_dir, firmware, proto, include_libraries, region_delimiter, sleep, timeout, taint_analysis_path):
     MAX_USER_INTERACTIONS = 2
     MAX_ELEMENTS = 1
     UPPER_RUNS = 3
@@ -1660,7 +1715,7 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
             stabilized_gt = False
 
             while True:
-                subprocess.run(["sudo", "-E", "/STAFF/FirmAE/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                cleanup(firmae_dir, work_dir)
                 process = subprocess.Popen(["sudo", "-E", "./run.sh", "-r", os.path.dirname(firmware), firmware, "run", "0.0.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 qemu_pid = process.pid
                 num_runs += 1
@@ -1733,7 +1788,7 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
                 os.environ["TARGET_LEN"] = str(-1)
                 os.environ["MEM_OPS"] = "1"
 
-                subprocess.run(["sudo", "-E", "/STAFF/FirmAE/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                cleanup(firmae_dir, work_dir)
                 process = subprocess.Popen(["sudo", "-E", "./run.sh", "-r", os.path.dirname(firmware), firmware, "run", "0.0.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 qemu_pid = process.pid
                 n_neutral_runs += 1
@@ -1823,7 +1878,7 @@ def pre_analysis_performance(work_dir, firmware, proto, include_libraries, regio
             n_minum_runs = 0
 
             while True:
-                subprocess.run(["sudo", "-E", "/STAFF/FirmAE/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                cleanup(firmae_dir, work_dir)
                 process = subprocess.Popen(["sudo", "-E", "./run.sh", "-r", os.path.dirname(firmware), firmware, "run", "0.0.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 qemu_pid = process.pid
                 n_minum_runs += 1
@@ -1969,7 +2024,7 @@ def start(firmware, timeout):
     if "true" in open(os.path.join(work_dir, "web_check")).read():
         with open("%s/time_web"%work_dir, 'r') as file:
             sleep = file.read().strip()
-        taint("/STAFF/taint_analysis", work_dir, "run", os.path.basename(firmware), sleep, timeout, subregion_divisor, min_subregion_len, delta_threshold)
+        taint("/STAFF/FirmAE", "/STAFF/taint_analysis", work_dir, "run", os.path.basename(firmware), sleep, timeout, subregion_divisor, min_subregion_len, delta_threshold)
 
     elif not subprocess.run(["sudo", "-E", "egrep", "-sqi", "false", "ping"]).returncode:
         print("WEB is FALSE and PING IS TRUE")

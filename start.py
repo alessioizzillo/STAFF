@@ -10,7 +10,7 @@ import socket
 import argparse
 import configparser
 from analysis.convert_pcap import convert_pcap_into_single_seed_file, convert_pcap_into_multiple_seed_files
-from analysis.taint_analysis import taint, pre_analysis_performance
+from analysis.taint_analysis import taint, pre_analysis_performance, cleanup
 import csv
 import stat
 import glob
@@ -158,61 +158,6 @@ def get_pcap_application_layer_protocol(pcap_file):
             return "mixed"
     else:
         return "none"
-
-def cleanup(work_dir):
-    print("\n[*] Cleanup Procedure..")
-
-    if os.path.exists(os.path.join(work_dir, "debug")):
-        shutil.rmtree(os.path.join(work_dir, "debug"), ignore_errors=True)
-
-    subprocess.run(["sudo", "-E", "umount", f"{work_dir}/dev/null"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.run(["sudo", "-E", "umount", f"{work_dir}/dev/urandom"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.run(["sudo", "-E", "umount", f"{work_dir}/proc_host/stat"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    current_pid = os.getpid()
-
-    parent_pids = set()
-    try:
-        pid = current_pid
-        while pid != 1:
-            output = subprocess.check_output(["ps", "-p", str(pid), "-o", "ppid="]).decode().strip()
-            ppid = int(output)
-            if ppid == pid or ppid == 0:
-                break
-            parent_pids.add(ppid)
-            pid = ppid
-    except Exception as e:
-        print(f"[!] Error while finding parent processes: {e}")
-
-    try:
-        output = subprocess.check_output(["ps", "-e", "-o", "pid=", "-o", "comm="]).decode().splitlines()
-
-        print("\n[*] Running processes before cleanup:")
-        for line in output:
-            pid_str, *command_parts = line.strip().split()
-            pid = int(pid_str)
-            command = ' '.join(command_parts)
-            print(f"    PID {pid}: {command}")
-
-        print("\n[*] Killing processes:")
-        for line in output:
-            pid_str, *command_parts = line.strip().split()
-            pid = int(pid_str)
-            command = ' '.join(command_parts)
-
-            if pid == 1 or pid == current_pid or pid in parent_pids:
-                continue
-
-            try:
-                os.kill(pid, signal.SIGKILL)
-                print(f"    [*] Killed PID {pid} ({command})")
-            except ProcessLookupError:
-                pass
-
-    except Exception as e:
-        print(f"[!] Error during process cleanup: {e}")
-
-    subprocess.run(["sudo", "-E", f"{FIRMAE_DIR}/flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def cleanup_and_exit(work_dir):
     cleanup(work_dir)
@@ -706,7 +651,7 @@ def fuzz(out_dir, container_name, replay_exp):
         with open(os.path.join(tmp_work_dir, "time_web"), 'r') as file:
             sleep = file.read().strip()
         sleep=int(float(sleep))
-        taint(TAINT_DIR, tmp_work_dir, "run", config["GENERAL"]["firmware"], sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
+        taint(FIRMAE_DIR, TAINT_DIR, tmp_work_dir, "run", config["GENERAL"]["firmware"], sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
 
     iid = str(check(mode))
     work_dir = os.path.join(FIRMAE_DIR, "scratch", mode, iid)
@@ -1036,7 +981,7 @@ def pre_analysis():
                 sleep = file.read().strip()
             sleep=int(float(sleep))
 
-            taint(TAINT_DIR, work_dir, "run", config["GENERAL"]["firmware"], sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
+            taint(FIRMAE_DIR, TAINT_DIR, work_dir, "run", config["GENERAL"]["firmware"], sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
     else:
         firmware_brands = {}
         
@@ -1067,7 +1012,7 @@ def pre_analysis():
                         sleep = file.read().strip()
                     sleep=int(float(sleep))
 
-                    taint(TAINT_DIR, work_dir, "run", os.path.join(os.path.basename(brand), os.path.basename(device)), sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
+                    taint(FIRMAE_DIR, TAINT_DIR, work_dir, "run", os.path.join(os.path.basename(brand), os.path.basename(device)), sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
 
 def crash_analysis(_=None):
     global config
@@ -1402,7 +1347,7 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
             with open(os.path.join(work_dir, "taint_metrics"), 'w') as file:
                 file.write(config["STAFF_FUZZING"]["taint_metrics"])
 
-            pre_analysis_performance(work_dir, config["GENERAL"]["firmware"], os.path.basename(config["AFLNET_FUZZING"]["proto"]), config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"], sleep, config["GENERAL_FUZZING"]["timeout"], TAINT_DIR)
+            pre_analysis_performance(FIRMAE_DIR, work_dir, config["GENERAL"]["firmware"], os.path.basename(config["AFLNET_FUZZING"]["proto"]), config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"], sleep, config["GENERAL_FUZZING"]["timeout"], TAINT_DIR)
         
         if out_dir:
             update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
