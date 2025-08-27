@@ -25,3 +25,4 @@ evaluation_precision.csv
 schedule.csv
 TaintQueue
 plot_params.ini
+pre_analysis_db
