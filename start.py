@@ -44,6 +44,7 @@ DEFAULT_CONFIG = {
         "blacklist_keywords": (".gif/.jpg/.png/.css/.js/.ico/.htm/.html", str)
     },
     "PRE-ANALYSIS": {
+        "pre_analysis_id": (0, int),
         "subregion_divisor": (10, int),
         "min_subregion_len": (3, int),
         "delta_threshold": (0.15, float)
@@ -84,7 +85,7 @@ STAFF_DIR = os.getcwd()
 CRASH_DIR = os.path.join(STAFF_DIR, "extracted_crash_out")
 FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 PCAP_DIR = os.path.join(STAFF_DIR, "pcap")
-TAINT_DIR = os.path.join(STAFF_DIR, "taint_analysis")
+TAINT_DIR = os.path.join(STAFF_DIR, "pre_analysis_db")
 FIRMWARE_DIR = os.path.join(STAFF_DIR, "firmwares")
 ANALYSIS_DIR = os.path.join(STAFF_DIR, "analysis")
 CONFIG_INI_PATH=os.path.join(STAFF_DIR, "config.ini")
@@ -137,6 +138,17 @@ def update_schedule_status(schedule_csv_path, status, exp_name):
         writer.writerows(updated_rows)
 
     fcntl.lockf(lock, fcntl.LOCK_UN)
+
+def get_taint_dir(pre_analysis_id, taint_db):
+    if not os.path.exists(taint_db):
+        os.makedirs(taint_db, exist_ok=True)
+        os.chmod(taint_db, 0o777)
+
+    if pre_analysis_id is None or pre_analysis_id < 0:
+        pre_analysis_id = 0
+
+    taint_dir = os.path.join(taint_db, f"pre_analysis_{pre_analysis_id}")
+    return taint_dir
 
 def get_pcap_application_layer_protocol(pcap_file):
     capture = pyshark.FileCapture(pcap_file)
@@ -640,6 +652,8 @@ def fuzz(out_dir, container_name, replay_exp):
     global config
 
     mode = container_name if container_name else config["GENERAL"]["mode"]
+    taint_dir = get_taint_dir(config["PRE-ANALYSIS"]["pre_analysis_id"], TAINT_DIR)
+    print(f"PRE-ANALYSIS dir: {taint_dir}")
 
     if "staff" in mode:
         tmp_iid = str(check("run"))
@@ -651,7 +665,7 @@ def fuzz(out_dir, container_name, replay_exp):
         with open(os.path.join(tmp_work_dir, "time_web"), 'r') as file:
             sleep = file.read().strip()
         sleep=int(float(sleep))
-        taint(FIRMAE_DIR, TAINT_DIR, tmp_work_dir, "run", config["GENERAL"]["firmware"], sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
+        taint(FIRMAE_DIR, taint_dir, tmp_work_dir, "run", config["GENERAL"]["firmware"], sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
 
     iid = str(check(mode))
     work_dir = os.path.join(FIRMAE_DIR, "scratch", mode, iid)
@@ -735,7 +749,7 @@ def fuzz(out_dir, container_name, replay_exp):
         os.environ["SEQUENCE_MINIMIZATION"] = str(config["STAFF_FUZZING"]["sequence_minimization"])
 
         inputs = os.path.join(work_dir, "inputs")
-        pcap_dir = os.path.join(TAINT_DIR, os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.basename(config["GENERAL"]["firmware"]))
+        pcap_dir = os.path.join(taint_dir, os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.basename(config["GENERAL"]["firmware"]))
         sub_dirs = [d for d in os.listdir(pcap_dir) if os.path.isdir(os.path.join(pcap_dir, d))]
         for pcap_file in os.listdir(os.path.join(pcap_dir, proto)):
             pcap_path = os.path.join(pcap_dir, proto, pcap_file)
@@ -843,7 +857,7 @@ def fuzz(out_dir, container_name, replay_exp):
         command += ["-H"]
         with open(os.path.join(work_dir, "taint_metrics"), 'w') as file:
             file.write(config["STAFF_FUZZING"]["taint_metrics"])
-        with open(os.path.join(TAINT_DIR, os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.basename(config["GENERAL"]["firmware"]), "global_elapsed_time"), "r") as f:
+        with open(os.path.join(taint_dir, os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.basename(config["GENERAL"]["firmware"]), "global_elapsed_time"), "r") as f:
             global_elapsed_time_ms = f.read().strip()
         command += ["-A", global_elapsed_time_ms]
         if config["STAFF_FUZZING"]["taint_hints_all_at_once"]:
@@ -981,7 +995,9 @@ def pre_analysis():
                 sleep = file.read().strip()
             sleep=int(float(sleep))
 
-            taint(FIRMAE_DIR, TAINT_DIR, work_dir, "run", config["GENERAL"]["firmware"], sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
+            taint_dir = get_taint_dir(config["PRE-ANALYSIS"]["pre_analysis_id"], TAINT_DIR)
+            print(f"PRE-ANALYSIS dir: {taint_dir}")
+            taint(FIRMAE_DIR, taint_dir, work_dir, "run", config["GENERAL"]["firmware"], sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
     else:
         firmware_brands = {}
         
@@ -1012,7 +1028,9 @@ def pre_analysis():
                         sleep = file.read().strip()
                     sleep=int(float(sleep))
 
-                    taint(FIRMAE_DIR, TAINT_DIR, work_dir, "run", os.path.join(os.path.basename(brand), os.path.basename(device)), sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
+                    taint_dir = get_taint_dir(config["PRE-ANALYSIS"]["pre_analysis_id"], TAINT_DIR)
+                    print(f"PRE-ANALYSIS dir: {taint_dir}")
+                    taint(FIRMAE_DIR, taint_dir, work_dir, "run", os.path.join(os.path.basename(brand), os.path.basename(device)), sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
 
 def crash_analysis(_=None):
     global config
@@ -1347,7 +1365,10 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
             with open(os.path.join(work_dir, "taint_metrics"), 'w') as file:
                 file.write(config["STAFF_FUZZING"]["taint_metrics"])
 
-            pre_analysis_performance(FIRMAE_DIR, work_dir, config["GENERAL"]["firmware"], os.path.basename(config["AFLNET_FUZZING"]["proto"]), config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"], sleep, config["GENERAL_FUZZING"]["timeout"], TAINT_DIR)
+            taint_dir = get_taint_dir(config["PRE-ANALYSIS"]["pre_analysis_id"], TAINT_DIR)
+            print(f"PRE-ANALYSIS dir: {taint_dir}")
+
+            pre_analysis_performance(FIRMAE_DIR, work_dir, config["GENERAL"]["firmware"], os.path.basename(config["AFLNET_FUZZING"]["proto"]), config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"], sleep, config["GENERAL_FUZZING"]["timeout"], taint_dir)
         
         if out_dir:
             update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
