@@ -173,7 +173,7 @@ def get_pcap_application_layer_protocol(pcap_file):
         return "none"
 
 def cleanup_and_exit(work_dir):
-    cleanup(work_dir)
+    cleanup(FIRMAE_DIR, work_dir)
     print("[+] ..End")
     exit(0)
 
@@ -904,7 +904,7 @@ def fuzz(out_dir, container_name, replay_exp):
 
     if "triforce" in mode or replay_exp:
         os.chdir(prev_dir)
-        cleanup(work_dir)
+        cleanup(FIRMAE_DIR, work_dir)
         subprocess.run(["sudo", "-E", "./run.sh", "-f", os.path.basename(os.path.dirname(config["GENERAL"]["firmware"])), os.path.join(FIRMWARE_DIR, config["GENERAL"]["firmware"]), mode, PSQL_IP])
         os.chdir(work_dir)
 
