@@ -3373,7 +3373,7 @@ static void perform_dry_run(char** argv) {
 
     update_and_persist_blacklist(cur_crash_traces, blacklist_crash_traces, out_dir, debug);
 
-    u64 cur_time = get_cur_time();
+    u64 cur_time = get_cur_time()-start_time;
     u8* new_name;
     int len = snprintf(NULL, 0, "%s$%llu", q->fname, cur_time);
     new_name = ck_alloc(len + 1);
@@ -3668,11 +3668,11 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 #ifndef SIMPLE_FILES
 
     fn = alloc_printf("%s/queue/id:%06u,%s$%lld", out_dir, queued_paths,
-                      describe_op(hnb), get_cur_time());
+                      describe_op(hnb), get_cur_time()-start_time);
 
 #else
 
-    fn = alloc_printf("%s/queue/id_%06u$%lld", out_dir, queued_paths, get_cur_time());
+    fn = alloc_printf("%s/queue/id_%06u$%lld", out_dir, queued_paths, get_cur_time()-start_time);
 
 #endif /* ^!SIMPLE_FILES */
 
@@ -3754,12 +3754,12 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 #ifndef SIMPLE_FILES
 
       fn = alloc_printf("%s/hangs/id:%06llu,%s$%lld", out_dir,
-                        unique_hangs, describe_op(0), get_cur_time());
+                        unique_hangs, describe_op(0), get_cur_time()-start_time);
 
 #else
 
       fn = alloc_printf("%s/hangs/id_%06llu$%lld", out_dir,
-                        unique_hangs, get_cur_time());
+                        unique_hangs, get_cur_time()-start_time);
 
 #endif /* ^!SIMPLE_FILES */
 
@@ -3784,16 +3784,16 @@ keep_as_crash:
 #ifndef SIMPLE_FILES
 
       fn = alloc_printf("%s/crashes/id:%06llu,sig:%02u,%s$%lld", out_dir,
-                        unique_crashes, kill_signal, describe_op(0), get_cur_time());
+                        unique_crashes, kill_signal, describe_op(0), get_cur_time()-start_time);
       fn2 = alloc_printf("%s/crash_traces/id:%06llu,sig:%02u,%s$%lld", out_dir,
-                        unique_crashes, kill_signal, describe_op(0), get_cur_time());
+                        unique_crashes, kill_signal, describe_op(0), get_cur_time()-start_time);
 
 #else
 
       fn = alloc_printf("%s/crashes/id_%06llu_%02u$%lld", out_dir, unique_crashes,
-                        kill_signal, get_cur_time());
+                        kill_signal, get_cur_time()-start_time);
       fn2 = alloc_printf("%s/crash_traces/id_%06llu_%02u$%lld", out_dir, unique_crashes,
-                        kill_signal, get_cur_time());
+                        kill_signal, get_cur_time()-start_time);
 
 #endif /* ^!SIMPLE_FILES */
 

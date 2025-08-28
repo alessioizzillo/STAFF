@@ -4738,7 +4738,7 @@ static void perform_dry_run(char** argv) {
       update_and_persist_blacklist(cur_crash_traces, blacklist_crash_traces, out_dir, debug);
 
     if (!replay_mode) {
-      u64 cur_time = get_cur_time();
+      u64 cur_time = get_cur_time()-start_time;
       u8* new_name;
       int len = snprintf(NULL, 0, "%s$%llu", q->fname, cur_time);
       new_name = ck_alloc(len + 1);
