@@ -1645,7 +1645,7 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, firmware, proto, include_libr
     firmware_dir = os.path.join(db_dir, firmware)
     os.makedirs(firmware_dir, exist_ok=True)
 
-    existing_runs = {}
+    complete = []
     for entry in os.listdir(firmware_dir):
         if entry.startswith(f"pre_analysis_{pre_analysis_id}_"):
             path = os.path.join(firmware_dir, entry)
@@ -1654,15 +1654,13 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, firmware, proto, include_libr
             except ValueError:
                 continue
             essential_files = ["info.json", "ground_truth.json", "pre_analysis.json"]
-            incomplete = any(not os.path.exists(os.path.join(path, f)) for f in essential_files)
-            existing_runs[run_idx] = not incomplete
+            if any(os.path.exists(os.path.join(path, f)) for f in essential_files):
+                complete.append(run_idx)
 
     run_indices = []
-    next_run_idx = 0
-    while len(run_indices) < n_taint_hints_to_eval:
-        if next_run_idx not in existing_runs or existing_runs[next_run_idx] is False:
-            run_indices.append(next_run_idx)
-        next_run_idx += 1
+    for i in range(n_taint_hints_to_eval):
+        if i not in complete:
+            run_indices.append(i)
 
     for next_run_idx in run_indices:
         chosen_user_interaction = random.choice(available_user_interactions)
