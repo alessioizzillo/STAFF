@@ -3,6 +3,7 @@ import json
 import struct
 import sys
 import pytsk3
+from collections import defaultdict
 
 RED = "\033[91m"
 GREEN = "\033[92m"
@@ -19,7 +20,6 @@ def process_log_file(log_path):
             data = f.read(struct_size)
             if len(data) < struct_size:
                 break
-
             unpacked = struct.unpack(struct_format, data)
             event = {
                 "index": idx,
@@ -34,7 +34,6 @@ def process_log_file(log_path):
             }
             events.append(event)
             idx += 1
-
     return events
 
 def build_inode_to_path_map(fs_image_path):
@@ -126,19 +125,31 @@ def get_infos_a(data, region_id, start_offset, count):
                 infos_a_set.add(tuple(entry))
     return infos_a_set
 
-def main():
-    if len(sys.argv) != 9:
-        print(f"Usage: {sys.argv[0]} <log_file> <fs_image> <input_json> <region_id> <offset> <count> <sink_id> <substring>")
-        sys.exit(1)
+def parse_args(argv):
+    params = {}
+    for arg in argv[1:]:
+        if "=" not in arg:
+            sys.exit(f"Invalid argument '{arg}', must be in form key=value")
+        k, v = arg.split("=", 1)
+        params[k.strip()] = v.strip()
+    return params
 
-    log_path = sys.argv[1]
-    fs_image = sys.argv[2]
-    json_file = sys.argv[3]
-    region_id = int(sys.argv[4])
-    offset = int(sys.argv[5])
-    count = int(sys.argv[6])
-    sink_id = int(sys.argv[7])
-    substring_filter = sys.argv[8]
+def main():
+    params = parse_args(sys.argv)
+
+    required = ["log", "fs", "json", "region", "offset", "count", "sinks", "substr"]
+    for r in required:
+        if r not in params:
+            sys.exit(f"Missing required parameter: {r}")
+
+    log_path = params["log"]
+    fs_image = params["fs"]
+    json_file = params["json"]
+    region_id = int(params["region"])
+    offset = int(params["offset"])
+    count = int(params["count"])
+    sink_ids = [int(s) for s in params["sinks"].split(",")]
+    substring_filter = params["substr"]
 
     with open(json_file, "r") as f:
         data = json.load(f)
@@ -146,35 +157,28 @@ def main():
 
     events = process_log_file(log_path)
     inode_map = build_inode_to_path_map(fs_image)
-    inode_pc_set = collect_inode_pc_tuples(events, sink_id, substring_filter)
 
-    print("List of (op_name, module_name, pc, position):")
-    merged = []
+    summary = defaultdict(lambda: defaultdict(lambda: {"green": 0, "red": 0}))
 
-    for op_name, inode, pc, pos in inode_pc_set:
-        module_name = inode_map.get(inode, f"<unknown_inode:{inode}>")
-        current = (module_name, pc)
-        
-        if merged and merged[-1]["key"] == current:
-            prev_op = merged[-1]["op_name"]
-            if prev_op != op_name:
-                merged[-1]["op_name"] = f"{prev_op}/{op_name}"
-            continue
-        
-        check_tpl = (inode, int(pc, 16))
-        color = GREEN if check_tpl in infos_a_set else RED
+    for sink_id in sink_ids:
+        inode_pc_set = collect_inode_pc_tuples(events, sink_id, substring_filter)
 
-        merged.append({
-            "op_name": op_name,
-            "module_name": module_name,
-            "pc": pc,
-            "pos": pos,
-            "color": color,
-            "key": current
-        })
+        for op_name, inode, pc, pos in inode_pc_set:
+            module_name = inode_map.get(inode, f"<unknown_inode:{inode}>")
+            check_tpl = (inode, int(pc, 16))
+            color = "green" if check_tpl in infos_a_set else "red"
+            summary[sink_id][module_name][color] += 1
 
-    for item in merged:
-        print(f"{item['color']}({item['op_name']}, {item['module_name']}, {item['pc']}, {item['pos']}){RESET}")
+    # ---- Print table ----
+    print("\nSummary per module and sink_id:")
+    for sink_id in sink_ids:
+        print(f"\nSink ID {sink_id}:")
+        print(f"{'Module':50} {'Present (green)':>15} {'Filtered (red)':>15}")
+        print("-" * 85)
+        for module, counts in summary[sink_id].items():
+            g = counts["green"]
+            r = counts["red"]
+            print(f"{module:50} {GREEN}{g:>15}{RESET} {RED}{r:>15}{RESET}")
 
 if __name__ == "__main__":
     main()

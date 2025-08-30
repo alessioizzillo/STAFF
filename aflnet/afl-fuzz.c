@@ -5201,14 +5201,14 @@ keep_as_crash:
 
 #ifndef SIMPLE_FILES
       if (enable_taint_aware_mode) {
-        u8 ts_tmp = get_cur_time()-start_time;
+        u64 ts_tmp = get_cur_time()-start_time;
         fn = alloc_printf("%s/crashes/id&1[%d,%d,%d]:%06llu,sig:%02u,%s$%lld", out_dir,
                           target_region, target_offset, target_len, unique_crashes, kill_signal, describe_op(0), ts_tmp);
         fn2 = alloc_printf("%s/crash_traces/id&1[%d,%d,%d]:%06llu,sig:%02u,%s$%lld", out_dir,
                           target_region, target_offset, target_len, unique_crashes, kill_signal, describe_op(0), ts_tmp);
       }
       else {
-        u8 ts_tmp = get_cur_time()-start_time;
+        u64 ts_tmp = get_cur_time()-start_time;
         fn = alloc_printf("%s/crashes/id&0:%06llu,sig:%02u,%s$%lld", out_dir,
                           unique_crashes, kill_signal, describe_op(0), ts_tmp);
         fn2 = alloc_printf("%s/crash_traces/id&0:%06llu,sig:%02u,%s$%lld", out_dir,

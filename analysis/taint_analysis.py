@@ -1487,7 +1487,7 @@ def taint(firmae_dir, taint_dir, work_dir, mode, firmware, sleep, timeout, subre
                             print(f"The port for {proto.upper()} is {port}.")
                         except OSError:
                             print(f"Protocol {proto.upper()} not found.")
-                        command = ["sudo", "-E", "/STAFF/aflnet/client", seed_path, open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(timeout), "20"]
+                        command = ["sudo", "-E", "/STAFF/aflnet/client", seed_path, open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(timeout), "50"]
                         
                         print("Current Working Directory:", os.getcwd())
                         process = subprocess.Popen(command)
@@ -1731,7 +1731,7 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, firmware, proto, include_libr
             while True:
                 start_ts = time.time()
                 client_cmd = ["sudo", "-E", "/STAFF/aflnet/client", seed_path,
-                              open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(timeout), "20"]
+                              open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(timeout), "50"]
                 result = subprocess.run(client_cmd)
                 retcode = result.returncode
                 if retcode == 0:
@@ -1805,7 +1805,7 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, firmware, proto, include_libr
         while True:
             start_min_ts = time.time()
             client_cmd = ["sudo", "-E", "/STAFF/aflnet/client", seed_path,
-                          open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(timeout), "20"]
+                          open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(timeout), "50"]
             if ids_arg: client_cmd.append("--ids=" + ids_arg)
             result = subprocess.run(client_cmd)
             retcode = result.returncode
@@ -1874,7 +1874,7 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, firmware, proto, include_libr
         with open(results_file, "w") as rf:
             json.dump(results, rf, indent=4)
 
-def aggregate_pre_analysis_metrics(db_dir, metric_name, output_csv="out.csv"):
+def aggregate_pre_analysis_metrics(db_dir, metric_name, max_runs=None, output_csv="out.csv"):
     results = []
     for firmware in os.listdir(db_dir):
         firmware_path = os.path.join(db_dir, firmware)
@@ -1885,15 +1885,20 @@ def aggregate_pre_analysis_metrics(db_dir, metric_name, output_csv="out.csv"):
         time_deltas = []
 
         for fw in os.listdir(firmware_path):
-            for run_dir in os.listdir(os.path.join(firmware_path, fw)):
-                if not run_dir.startswith("pre_analysis_"):
-                    continue
+            run_dirs = [
+                rd for rd in os.listdir(os.path.join(firmware_path, fw))
+                if rd.startswith("pre_analysis_")
+            ]
+            run_dirs.sort()
+
+            if max_runs is not None:
+                run_dirs = run_dirs[:max_runs]
+
+            for run_dir in run_dirs:
                 run_path = os.path.join(firmware_path, fw, run_dir)
 
                 ground_truth_path = os.path.join(run_path, "ground_truth.json")
                 pre_path = os.path.join(run_path, "pre_analysis.json")
-                taint_path = os.path.join(run_path, "taint.json")
-                min_taint_path = os.path.join(run_path, "minimized_taint.json")
                 times_path = os.path.join(run_path, "times_ms.json")
 
                 if not (os.path.exists(ground_truth_path) and os.path.exists(pre_path)):
@@ -1947,7 +1952,7 @@ def aggregate_pre_analysis_metrics(db_dir, metric_name, output_csv="out.csv"):
                 avg_value = np.mean(metric_values) if metric_values else None
 
             if avg_value is not None:
-                results.append({"firmware": firmware, metric_name: avg_value})
+                results.append({"firmware": fw, metric_name: avg_value})
 
     df = pd.DataFrame(results)
     df.to_csv(output_csv, index=False)
@@ -1955,11 +1960,12 @@ def aggregate_pre_analysis_metrics(db_dir, metric_name, output_csv="out.csv"):
 
 def print_usage():
     print("Usage:")
-    print("  sudo python3 taint_analysis.py -d <db_dir> -m <metric>")
+    print("  sudo python3 taint_analysis.py -d <db_dir> -m <metric> [-n <max_runs>]")
     print("")
     print("Arguments:")
-    print("  -d <db_dir>    Path to the database directory containing pre_analysis experiments")
-    print("  -m <metric>    Metric to compute: accuracy, f1, precision, recall, time")
+    print("  -d <db_dir>     Path to the database directory containing pre_analysis experiments")
+    print("  -m <metric>     Metric to compute: accuracy, f1, precision, recall, time")
+    print("  -n <max_runs>   (Optional) Use only the first N runs per firmware")
 
 if __name__ == "__main__":
     if os.geteuid() != 0:
@@ -1968,6 +1974,7 @@ if __name__ == "__main__":
 
     db_dir = None
     metric = None
+    max_runs = None
 
     i = 1
     while i < len(sys.argv):
@@ -1990,6 +1997,18 @@ if __name__ == "__main__":
                 print_usage()
                 sys.exit(1)
             i += 1
+        elif arg == "-n":
+            i += 1
+            if i < len(sys.argv):
+                try:
+                    max_runs = int(sys.argv[i])
+                except ValueError:
+                    print("[-] -n must be an integer.")
+                    sys.exit(1)
+            else:
+                print("[-] Missing value for -n argument.")
+                sys.exit(1)
+            i += 1
         elif arg == "-h":
             print_usage()
             sys.exit(0)
@@ -2007,5 +2026,6 @@ if __name__ == "__main__":
         print(f"[-] db_dir '{db_dir}' does not exist or is not a directory")
         sys.exit(1)
 
-    print(f"[+] Aggregating metric '{metric}' over database '{db_dir}'")
-    aggregate_pre_analysis_metrics(db_dir, metric)
+    print(f"[+] Aggregating metric '{metric}' over database '{db_dir}'" +
+          (f" (first {max_runs} runs)" if max_runs else ""))
+    aggregate_pre_analysis_metrics(db_dir, metric, max_runs=max_runs)
