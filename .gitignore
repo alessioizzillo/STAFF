@@ -27,3 +27,5 @@ TaintQueue
 plot_params.ini
 pre_analysis_db
 pre_analysis_exp
+extracted_crashes_out*
+extracted_crash_out*
