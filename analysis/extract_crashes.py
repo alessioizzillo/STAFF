@@ -30,6 +30,12 @@ METHOD_ABBR = {
     "staff_state_aware": "STAFF"
 }
 
+TOOL_FILTER = "staff_state_aware"
+ALLOWED_TOOLS = set(DEFAULT_METHODS) | {"all"}
+
+FILTER_METRIC_CHOICE = "recall"
+DEDUP_METRIC_CHOICE = "recall"
+
 PC_RANGES = {
     # "DGN3500-V1.1.00.30_NA.zip": {
     #     "setup.cgi": {
@@ -1019,6 +1025,311 @@ def build_three_tables_and_write_consistent(
 
     return (table1_rows, table2_rows, table3_rows), agg
 
+def build_detection_efficiency_table(
+        experiments_dir: str,
+        extracted_root: str,
+        fw_names_csv: str,
+        out_csv: str = "out4.csv",
+        out_tex: str = "out4.tex",
+        verbose: bool = True,
+        tool_filter: str = None
+    ):
+    if tool_filter is None:
+        tool_filter = TOOL_FILTER
+    tool_filter = str(tool_filter).strip().lower()
+    if tool_filter not in ALLOWED_TOOLS:
+        raise ValueError(f"tool_filter must be one of {sorted(ALLOWED_TOOLS)}; got: {tool_filter}")
+
+    ALLOWED_METRICS = {"precision", "recall", "f1", "accuracy"}
+    fm_choice = str(FILTER_METRIC_CHOICE).strip().lower() if "FILTER_METRIC_CHOICE" in globals() else "precision"
+    dm_choice = str(DEDUP_METRIC_CHOICE).strip().lower() if "DEDUP_METRIC_CHOICE" in globals() else "precision"
+    if fm_choice not in ALLOWED_METRICS:
+        raise ValueError(f"FILTER_METRIC_CHOICE must be one of {sorted(ALLOWED_METRICS)}; got: {fm_choice}")
+    if dm_choice not in ALLOWED_METRICS:
+        raise ValueError(f"DEDUP_METRIC_CHOICE must be one of {sorted(ALLOWED_METRICS)}; got: {dm_choice}")
+
+    def parse_fuzzer_stats_file(path: str):
+        out = {}
+        if not os.path.isfile(path):
+            return out
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            for ln in fh:
+                ln = ln.strip()
+                if not ln or ":" not in ln:
+                    continue
+                k, v = ln.split(":", 1)
+                out[k.strip()] = v.strip()
+        return out
+
+    def safe_int(s):
+        if s is None:
+            return None
+        s = str(s).strip()
+        if s == "":
+            return None
+        try:
+            return int(s)
+        except Exception:
+            try:
+                return int(float(s))
+            except Exception:
+                return None
+
+    def pc_to_int(pc_str):
+        if pc_str is None:
+            return None
+        s = str(pc_str).strip()
+        try:
+            return int(s, 0)
+        except Exception:
+            m = re.search(r"(0x[0-9a-fA-F]+)", s)
+            if m:
+                try:
+                    return int(m.group(1), 16)
+                except Exception:
+                    pass
+            m2 = re.search(r"(\d+)", s)
+            if m2:
+                try:
+                    return int(m2.group(1), 10)
+                except Exception:
+                    pass
+        return None
+
+    def map_raw_to_mapped_key_and_flag(fw: str, module: str, pc_str: str):
+        raw = (fw, module, pc_str)
+        pc_int = pc_to_int(pc_str)
+        for fw_key, modmap in PC_RANGES.items():
+            fw_match = (fw_key == fw) or (fw_key.lower() == fw.lower()) or (fw_key in fw) or (fw.lower() in fw_key.lower())
+            if not fw_match:
+                continue
+            ranges = modmap.get(module) or modmap.get(module.lower())
+            if not ranges:
+                continue
+            if pc_int is None:
+                pc_int = pc_to_int(pc_str)
+                if pc_int is None:
+                    continue
+            for fun_name, rng in ranges.items():
+                try:
+                    s = int(rng[0])
+                    e = int(rng[1])
+                except Exception:
+                    continue
+                if s <= pc_int <= e:
+                    return (fw, module, fun_name), True
+        return raw, False
+
+    def latex_escape(s):
+        if s is None:
+            return ""
+        s = str(s)
+        s = s.replace("\\", "\\textbackslash{}")
+        s = s.replace("_", "\\_")
+        s = s.replace("%", "\\%")
+        s = s.replace("&", "\\&")
+        s = s.replace("#", "\\#")
+        s = s.replace("{", "\\{")
+        s = s.replace("}", "\\}")
+        return s
+
+    fw_map = {}
+    if os.path.isfile(fw_names_csv):
+        with open(fw_names_csv, newline="", encoding="utf-8") as fh:
+            rdr = csv.DictReader(fh)
+            for r in rdr:
+                key = r.get("firmware", "").strip()
+                if not key:
+                    continue
+                fw_map[key] = (r.get("brand", "").strip(), r.get("name", "").strip(), r.get("version", "").strip())
+
+    per_fw_metrics = defaultdict(lambda: {
+        "n_exps": 0,
+        "filtering_values": [],
+        "dedup_values": [],
+    })
+
+    if not os.path.isdir(experiments_dir):
+        raise FileNotFoundError(f"experiments_dir not found: {experiments_dir}")
+
+    def safe_metrics(TP, FP, FN, TN):
+        denom_p = TP + FP
+        denom_r = TP + FN
+        denom_acc = TP + TN + FP + FN
+        precision = (TP / denom_p) if denom_p > 0 else None
+        recall = (TP / denom_r) if denom_r > 0 else None
+        f1 = (2 * precision * recall / (precision + recall)) if (precision is not None and recall is not None and (precision + recall) > 0) else None
+        accuracy = ((TP + TN) / denom_acc) if denom_acc > 0 else None
+        return {"precision": precision, "recall": recall, "f1": f1, "accuracy": accuracy,
+                "TP": TP, "FP": FP, "FN": FN, "TN": TN}
+
+    for sub in sorted(os.listdir(experiments_dir)):
+        if not sub.startswith("exp_"):
+            continue
+        exp_dir = os.path.join(experiments_dir, sub)
+        if not os.path.isdir(exp_dir):
+            continue
+
+        config_path = os.path.join(exp_dir, "outputs", "config.ini")
+        mode_val = None
+        firmware_basename = None
+        if os.path.isfile(config_path):
+            cfg = configparser.ConfigParser()
+            try:
+                cfg.read(config_path)
+                mode_val = cfg.get("GENERAL", "mode", fallback=None)
+                firmware_path = cfg.get("GENERAL", "firmware", fallback=None)
+                if firmware_path:
+                    firmware_basename = os.path.basename(firmware_path)
+            except Exception:
+                pass
+
+        mode_norm = mode_val.strip().lower() if (mode_val is not None) else None
+
+        if tool_filter != "all":
+            if mode_norm is None:
+                if verbose:
+                    print(f"[SKIP] {sub}: no mode in config.ini but tool_filter={tool_filter}")
+                continue
+            if mode_norm != tool_filter:
+                if verbose:
+                    print(f"[SKIP] {sub}: mode={mode_norm} != tool_filter={tool_filter}")
+                continue
+
+        if firmware_basename is None:
+            firmware_basename = sub
+
+        fuzzer_stats_path = os.path.join(exp_dir, "outputs", "fuzzer_stats")
+        if not os.path.isfile(fuzzer_stats_path):
+            if verbose:
+                print(f"[INFO] skipping {sub}: no fuzzer_stats")
+            continue
+
+        stats = parse_fuzzer_stats_file(fuzzer_stats_path)
+        unique = safe_int(stats.get("unique_crashes")) or 0
+        dedup = safe_int(stats.get("deduplicated_crashes")) or 0
+        filt = safe_int(stats.get("filtered_crashes")) or 0
+
+        extracted_exp_dir = os.path.join(extracted_root, firmware_basename, mode_norm if mode_norm else "", sub)
+        if not os.path.isdir(extracted_exp_dir):
+            extracted_exp_dir = None
+            fw_dir = os.path.join(extracted_root, firmware_basename)
+            if os.path.isdir(fw_dir):
+                for method in sorted(os.listdir(fw_dir)):
+                    candidate = os.path.join(fw_dir, method, sub)
+                    if os.path.isdir(candidate):
+                        extracted_exp_dir = candidate
+                        break
+
+        skipped_by_modules = 0
+        dedup_savings_total = 0
+        funcs = defaultdict(int)
+        skipped = defaultdict(int)
+
+        if extracted_exp_dir and os.path.isdir(extracted_exp_dir):
+            traces_dir = os.path.join(extracted_exp_dir, "crash_traces")
+            if os.path.isdir(traces_dir):
+                method_for_skip = mode_norm if mode_norm else ""
+                for entry in sorted(os.listdir(traces_dir)):
+                    tpath = os.path.join(traces_dir, entry)
+                    if not os.path.isfile(tpath):
+                        continue
+                    try:
+                        pc, module = _parse_first_frame_pc_module(tpath)
+                    except Exception:
+                        pc, module = (None, None)
+                    module_norm = module or "(unknown)"
+                    pc_norm = pc or "(unknown)"
+
+                    if (firmware_basename, method_for_skip, module_norm) in SKIP_MODULES or \
+                       (firmware_basename, "any", module_norm) in SKIP_MODULES:
+                        skipped_by_modules += 1
+                        if not skipped[(firmware_basename, module_norm)]:
+                            skipped[(firmware_basename, module_norm)] = 1
+                        else:
+                            dedup_savings_total += 1
+                        continue
+
+                    mapped_key, mapped_flag = map_raw_to_mapped_key_and_flag(firmware_basename, module_norm, pc_norm)
+
+                    if not funcs[mapped_key]:
+                        funcs[mapped_key] = 1
+                    else:
+                        dedup_savings_total += 1
+
+        filt_TP = filt
+        filt_FN = skipped_by_modules
+        filt_TN = unique + dedup # Not exactly correct
+        filt_FP = 0
+
+        dedup_TP = dedup
+        dedup_FN = dedup_savings_total
+        dedup_TN = len(funcs.keys())
+        dedup_FP = 0
+
+        filt_metrics = safe_metrics(filt_TP, filt_FP, filt_FN, filt_TN)
+        dedup_metrics = safe_metrics(dedup_TP, dedup_FP, dedup_FN, dedup_TN)
+
+        f_val = filt_metrics.get(fm_choice)
+        d_val = dedup_metrics.get(dm_choice)
+        per_fw_metrics[firmware_basename]["n_exps"] += 1
+        if f_val is not None:
+            per_fw_metrics[firmware_basename]["filtering_values"].append(f_val)
+        if d_val is not None:
+            per_fw_metrics[firmware_basename]["dedup_values"].append(d_val)
+
+        if verbose:
+            print(f"[EXP] {sub} fw={firmware_basename}")
+
+    out_rows = []
+    for fw_basename, vals in sorted(per_fw_metrics.items()):
+        n = vals["n_exps"]
+        mean_filter = None
+        mean_dedup = None
+        if vals["filtering_values"]:
+            mean_filter = sum(vals["filtering_values"]) / len(vals["filtering_values"])
+        if vals["dedup_values"]:
+            mean_dedup = sum(vals["dedup_values"]) / len(vals["dedup_values"])
+
+        col_filter_name = f"mean_filtering_{fm_choice}"
+        col_dedup_name = f"mean_deduplication_{dm_choice}"
+
+        out_rows.append({
+            "firmware": fw_map[fw_basename][1],
+            "n_experiments": n,
+            col_filter_name: round(mean_filter, 4) if mean_filter is not None else "",
+            col_dedup_name: round(mean_dedup, 4) if mean_dedup is not None else ""
+        })
+
+    csv_fields = ["firmware", "n_experiments", f"mean_filtering_{fm_choice}", f"mean_deduplication_{dm_choice}"]
+    with open(out_csv, "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=csv_fields)
+        w.writeheader()
+        for r in out_rows:
+            w.writerow({k: r.get(k, "") for k in csv_fields})
+
+    with open(out_tex, "w", encoding="utf-8") as fh:
+        fh.write("\\begin{table*}[ht]\n\\centering\n")
+        fh.write("\\renewcommand{\\arraystretch}{1.06}\n\\setlength{\\tabcolsep}{4pt}\n")
+        headers = ["Firmware", "#Exps", f"mean_filtering_{fm_choice}", f"mean_deduplication_{dm_choice}"]
+        colfmt = "|l|r|r|r|\n"
+        fh.write(f"\\begin{{tabular}}{{{colfmt}}}")
+        fh.write("\\hline\n")
+        fh.write(" & ".join("\\textbf{" + latex_escape(h) + "}" for h in headers) + " \\\\\n")
+        fh.write("\\hline\n")
+        for r in out_rows:
+            vals = [r["firmware"], r["n_experiments"], r[csv_fields[2]], r[csv_fields[3]]]
+            vals = [latex_escape(v) for v in vals]
+            fh.write(" & ".join(vals) + " \\\\\n")
+            fh.write("\\hline\n")
+        fh.write("\\end{tabular}\n")
+        fh.write(f"\\caption{{Per-firmware mean metrics (filtering/deduplication). FILTER_METRIC_CHOICE={fm_choice}, DEDUP_METRIC_CHOICE={dm_choice}.}}\n")
+        fh.write("\\end{table*}\n")
+
+    if verbose:
+        print(f"[WRITE] CSV -> {out_csv} ; LaTeX -> {out_tex} (tool_filter={tool_filter})")
+    return out_rows
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -1072,6 +1383,15 @@ if __name__ == "__main__":
         out2_csv="out2.csv", out2_tex="out2.tex",
         out3_csv="out3.csv", out3_tex="out3.tex",
         verbose=True
+    )
+
+    build_detection_efficiency_table(
+        experiments_dir=args.experiments_dir,
+        extracted_root=args.extracted_root,
+        fw_names_csv=args.crashes_csv if False else "analysis/fw_names.csv",
+        out_csv="out4.csv",
+        out_tex="out4.tex",
+        verbose=not args.quiet
     )
 
     chmod_recursive(args.extracted_root, 0o777)
