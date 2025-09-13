@@ -11,6 +11,7 @@ import textwrap
 from collections import defaultdict
 from typing import Dict, Tuple
 
+SKIP_MODULES = {}
 SKIP_MODULES = {("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
                 ("dap2310_v1.00_o772.bin", "any", "ethlink"), ("dap2310_v1.00_o772.bin", "any", "aparraymsg"),
                 ("dir300_v1.03_7c.bin", "any", "ethlink"), ("dir300_v1.03_7c.bin", "any", "aparraymsg"), 
@@ -19,9 +20,14 @@ SKIP_MODULES = {("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.0
                 ("FW_WRT320N_1.0.05.002_20110331.bin", "any", "upnp"), ("TL-WPA8630_US__V2_171011.zip", "any", "wifiSched"),
                 ("JNR3210_Firmware_Version_1.1.0.14.zip", "any", "busybox"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "any", "unknown"),
                 ("FW_RT_N53_30043763754.zip", "any", "rc"), ("FW_TV-IP651WI_V1_1.07.01.zip", "aflnet_base", "alphapd"),
-                ("FW_TV-IP651WI_V1_1.07.01.zip", "aflnet_state_aware", "alphapd"), ("JNR3210_Firmware_Version_1.1.0.14.zip", "any", "rc")}
+                ("FW_TV-IP651WI_V1_1.07.01.zip", "aflnet_state_aware", "alphapd"), ("JNR3210_Firmware_Version_1.1.0.14.zip", "any", "rc"),
+                ("dir300_v1.03_7c.bin", "triforce", "xmldb"), ("TL-WPA8630_US__V2_171011.zip", "triforce", "ledschd"), 
+                ("DGN3500-V1.1.00.30_NA.zip", "triforce", "setup.cgi"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "triforce", "setup.cgi")}
 
-DEFAULT_METHODS = ["triforce", "aflnet_state_aware", "staff_state_aware", "aflnet_base"]
+# DEFAULT_METHODS = ["triforce", "aflnet_state_aware", "aflnet_base", "staff_state_aware"]
+# COMPETITORS = ["triforce", "aflnet_state_aware", "aflnet_base"]
+DEFAULT_METHODS = ["triforce", "aflnet_state_aware", "staff_state_aware"]
+COMPETITORS = ["triforce", "aflnet_state_aware"]
 
 METHOD_ABBR = {
     "aflnet_base": "AB",
@@ -720,16 +726,27 @@ def build_agg_from_extracted(extracted_root="extracted_crashes_outputs", verbose
     return agg
 
 def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte_table=False, add_category_col=False):
-    import pandas as pd
-    from collections import defaultdict
-
     def latex_escape(s):
         if s is None:
             return ""
-        s = str(s).replace("_", "\\_")
-        s = s.replace("mean\\_", "\\(\\mu\\)")
-        s = s.replace("avg\\_", "\\(\\mu\\)")
+        s = str(s)
+        s = s.replace("\\", "\\textbackslash{}")
+        s = s.replace("&", "\\&")
+        s = s.replace("%", "\\%")
+        s = s.replace("$", "\\$")
+        s = s.replace("#", "\\#")
+        s = s.replace("{", "\\{")
+        s = s.replace("}", "\\}")
+        s = s.replace("_", "\\_")
         return s
+
+    for p in (csv_path, tex_path):
+        d = os.path.dirname(p)
+        if d and not os.path.isdir(d):
+            try:
+                os.makedirs(d, exist_ok=True)
+            except Exception:
+                pass
 
     if not rows:
         df = pd.DataFrame(columns=headers)
@@ -761,9 +778,22 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
         fh.write("\\setlength{\\tabcolsep}{4pt}\n")
 
         if not count_tte_table:
-            col_format = "|" + "|".join("l" for _ in headers) + "|"
+            ncols = len(headers)
+            if ncols <= 1:
+                col_format = "|" + "|".join("l" for _ in range(ncols)) + "|"
+            else:
+                col_format = "|l||" + "|".join("c" for _ in range(ncols - 1)) + "|"
         else:
-            col_format = "|l|l|l|l|" + "|".join("c|c" for _ in DEFAULT_METHODS)
+            left_prefix = "|l|l|l|"
+            if add_category_col:
+                left_prefix = "|l|l|l|l|"
+            method_part = "".join("c|c|" for _ in DEFAULT_METHODS)
+            col_format = left_prefix + method_part
+            if not col_format.startswith("|"):
+                col_format = "|" + col_format
+            if not col_format.endswith("|"):
+                col_format += "|"
+
         if not col_format.endswith("|"):
             col_format += "|"
 
@@ -790,10 +820,13 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
 
             grouped = defaultdict(lambda: defaultdict(list))
             for row in rows:
-                grouped[row["firmware"]][row["module"]].append(row)
+                fw = row.get("firmware", "")
+                module = row.get("module", "")
+                grouped[fw][module].append(row)
 
             total_cols = 3 + (1 if add_category_col else 0) + 2 * len(DEFAULT_METHODS)
             cline_rest_start = 2
+            cline_rest_start_func = 3
             cline_rest_end = total_cols
 
             fw_items = list(grouped.items())
@@ -806,9 +839,8 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
                     mod_rows = len(funcs)
                     first_mod_row = True
 
-                    for i, row in enumerate(funcs):
+                    for fi, row in enumerate(funcs):
                         cells = []
-
                         if first_fw_row:
                             cells.append(f"\\multirow{{{fw_rows}}}{{*}}{{{latex_escape(fw)}}}")
                             first_fw_row = False
@@ -816,32 +848,36 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
                             cells.append("")
 
                         if first_mod_row:
-                            cells.append(f"\\multirow{{{mod_rows}}}{{*}}{{{latex_escape(module)}}}")
+                            module = "\\texttt{"+latex_escape(module)+"}"
+                            cells.append(f"\\multirow{{{mod_rows}}}{{*}}{{{module}}}")
                             first_mod_row = False
                         else:
                             cells.append("")
 
-                        cells.append(latex_escape(row.get("function", "")))
-
+                        cells.append("\\texttt{"+latex_escape(row.get("function", ""))+"}")
                         if add_category_col:
                             cells.append(latex_escape(row.get("category", "")))
 
                         for m in DEFAULT_METHODS:
                             abbr = METHOD_ABBR.get(m, m)
-                            cells.append(str(row.get(f"{abbr}_cnt", "")))
-                            cells.append(str(row.get(f"{abbr}_avg_tte", "")))
+                            cnt_val = row.get(f"{abbr}_cnt", "")
+                            tte_val = row.get(f"{abbr}_avg_tte", "")
+                            cells.append("" if cnt_val is None else str(cnt_val))
+                            cells.append("" if tte_val is None else str(tte_val))
 
                         fh.write(" & ".join(cells) + " \\\\\n")
 
+                        fh.write(f"\\cline{{{cline_rest_start_func}-{cline_rest_end}}}\n")
+
                     fh.write(f"\\cline{{{cline_rest_start}-{cline_rest_end}}}\n")
 
-                    if mod_idx == len(module_items) - 1:
-                        fh.write("\\cline{1-1}\n")
+                fh.write("\\cline{1-1}\n")
 
             fh.write("\\hline\n")
 
         else:
             fh.write(" & ".join("\\textbf{" + latex_escape(h) + "}" for h in headers) + " \\\\\n")
+            fh.write("\\toprule\n")
             fh.write("\\hline\n")
             for row in rows:
                 values = [latex_escape(row.get(h, "")) for h in headers]
@@ -939,15 +975,13 @@ def build_three_tables_and_write_consistent(
                 elif prev is not None and tte is not None:
                     agg[mapped_key][method_name][exp] = min(prev, tte)
 
-    competitor_names = ["aflnet_base", "aflnet_state_aware", "triforce"]
-
     # ---------- Table1: Number of crashes ----------
     firmware_set = sorted({k[0] for k in agg.keys()})
     table1_rows = []
 
     for fw in firmware_set:
         brand, name, version = fw_map.get(fw, ("", fw, ""))
-        row = {"brand": brand, "firmware": name, "version": version}
+        row = {"firmware": name}
 
         for m in DEFAULT_METHODS:
             per_run_crashes = defaultdict(set)
@@ -970,13 +1004,13 @@ def build_three_tables_and_write_consistent(
             if f != fw:
                 continue
             staff_found = "staff_state_aware" in method_dict and len(method_dict["staff_state_aware"]) > 0
-            competitor_found = any(len(method_dict.get(c, {})) > 0 for c in competitor_names)
+            competitor_found = any(len(method_dict.get(c, {})) > 0 for c in COMPETITORS)
             if staff_found and not competitor_found:
                 rare_cnt += 1
         row["rare_crashes"] = rare_cnt
         table1_rows.append(row)
 
-    headers1 = ["brand", "firmware", "version"] + [f"{METHOD_ABBR.get(m, m)}_mean_cnt" for m in DEFAULT_METHODS] + ["rare_crashes"]
+    headers1 = ["firmware"] + [f"{METHOD_ABBR.get(m, m)}_mean_cnt" for m in DEFAULT_METHODS]
 
     # ---------- Table2 & Table3 ----------
     table2_rows = []
@@ -1001,7 +1035,7 @@ def build_three_tables_and_write_consistent(
         table2_rows.append(row)
 
         staff_found = "staff_state_aware" in method_dict and len(method_dict["staff_state_aware"]) > 0
-        competitor_found = any(len(method_dict.get(c, {})) > 0 for c in competitor_names)
+        competitor_found = any(len(method_dict.get(c, {})) > 0 for c in COMPETITORS)
         if staff_found and not competitor_found:
             rare_row = {
                 "brand": brand,
@@ -1017,7 +1051,7 @@ def build_three_tables_and_write_consistent(
     for m in DEFAULT_METHODS:
         headers2.append(f"{METHOD_ABBR.get(m, m)}_cnt")
         headers2.append(f"{METHOD_ABBR.get(m, m)}_avg_tte")
-    headers3 = ["brand", "firmware", "version", "module", "function", "category"]
+    headers3 = ["firmware", "module", "function", "category"]
 
     write_csv_and_latex(headers1, table1_rows, out1_csv, out1_tex, caption="Number of crashes")
     write_csv_and_latex(headers2, table2_rows, out2_csv, out2_tex, caption="TTE crashes", count_tte_table=True, add_category_col=True)

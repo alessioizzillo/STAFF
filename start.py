@@ -93,6 +93,7 @@ SCHEDULE_CSV_PATH_0=os.path.join(STAFF_DIR, "schedule_0.csv")
 SCHEDULE_CSV_PATH_1=os.path.join(STAFF_DIR, "schedule_1.csv")
 EXP_DONE_PATH=os.path.join(STAFF_DIR, "experiments_done")
 PRE_ANALYSIS_EXP_DIR=os.path.join(STAFF_DIR, "pre_analysis_exp5")
+CRASH_ANALYSIS_LOG=os.path.join(STAFF_DIR, "crash_analysis.log")
 
 captured_pcap_path = None
 PSQL_IP = None
@@ -1292,8 +1293,12 @@ def crash_analysis(_=None):
                         for path in [crash_file_path, crash_file_path.replace("crashes", "crash_traces")]:
                             if os.path.isdir(path):
                                 shutil.rmtree(path, ignore_errors=True)
+                                with open(CRASH_ANALYSIS_LOG, "a+") as log_file:
+                                    log_file.write(f"Removed directory: {path}\n")
                             elif os.path.isfile(path):
                                 os.remove(path)
+                                with open(CRASH_ANALYSIS_LOG, "a+") as log_file:
+                                    log_file.write(f"Removed file: {path}\n")
         finally:
             shutil.rmtree(extract_dir, ignore_errors=True)
 
