@@ -108,7 +108,7 @@ def send_signal_recursive(target_pid, signal_code):
 
 def sigint_handler(sig, frame):
     if qemu_pid:
-        send_signal_recursive(qemu_pid, signal.SIGKILL)
+        send_signal_recursive(qemu_pid, signal.SIGINT)
     exit(0)
 
 def auto_find_brand(var):

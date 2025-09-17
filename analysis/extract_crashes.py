@@ -10,6 +10,10 @@ import csv
 import textwrap
 from collections import defaultdict
 from typing import Dict, Tuple
+import subprocess
+
+STAFF_DIR = os.getcwd()
+FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 
 SKIP_MODULES = {}
 SKIP_MODULES = {("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
@@ -52,6 +56,28 @@ PC_RANGES = {
 }
 
 GROUPS = []
+
+def check(mode, firmware):
+    PSQL_IP = "0.0.0.0"
+    iid = ""
+    os.environ["NO_PSQL"] = "1"
+    subprocess.run(["sudo", "-E", "./flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    prev_dir = os.getcwd()
+    os.chdir(FIRMAE_DIR)
+
+    if not subprocess.run(["sudo", "-E", "./scripts/util.py", "check_connection", "_", PSQL_IP, mode], stdout=subprocess.PIPE).returncode == 0:
+        if not subprocess.run(["sudo", "-E", "./scripts/util.py", "check_connection", "_", PSQL_IP, mode], stdout=subprocess.PIPE).returncode == 0:
+            print("[\033[31m-\033[0m] docker container failed to connect to the hosts' postgresql!")
+            exit(1)
+
+    iid = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_iid", os.path.join("..", "firmwares", firmware), PSQL_IP, mode]).decode('utf-8').strip()
+    if iid == "":
+        assert(0)
+    
+    os.chdir(prev_dir)
+
+    return iid
 
 def _parse_num_token(tok: str):
     if tok is None:
@@ -562,6 +588,12 @@ def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crash
                 vmtime = crash_real_mtime.get(cid)
             cid_to_mtime[cid] = vmtime
 
+        iid = str(check("run", firmware_path))
+        work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+        with open(os.path.join(work_dir, "time_web"), 'r') as file:
+            sleep = file.read().strip()
+        sleep=int(float(sleep))
+
         files_map = []
         for cid, fnames in crash_entries.items():
             for fname in fnames:
@@ -571,7 +603,7 @@ def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crash
                 mtime = cid_to_mtime.get(cid)
                 if mtime is None:
                     continue
-                files_map.append((fpath, "crashes", mtime - start_time))
+                files_map.append((fpath, "crashes", mtime - start_time + sleep))
 
         traces_folder = os.path.join(target_exp_dir, "crash_traces")
         if os.path.isdir(traces_folder):
@@ -591,7 +623,7 @@ def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crash
                     except Exception:
                         tm = None
                 if tm is not None:
-                    files_map.append((tpath, "crash_traces", tm - start_time))
+                    files_map.append((tpath, "crash_traces", tm - start_time + sleep))
 
         matched_any = False
 

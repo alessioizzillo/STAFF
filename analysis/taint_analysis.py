@@ -1514,15 +1514,15 @@ def taint(firmae_dir, taint_dir, work_dir, mode, firmware, sleep, timeout, subre
                             print("\nCommand executed successfully.")
                         elif process.returncode == 1:
                             print("\nCommand finished with errors. Return Code:", process.returncode)
-                            try: send_signal_recursive(qemu_pid, signal.SIGKILL)
+                            try: send_signal_recursive(qemu_pid, signal.SIGINT)
                             except: pass
                             try: os.waitpid(qemu_pid, 0)
                             except: pass
                             exit(1)
                         break
 
-                    print("Sending SIGKILL to", qemu_pid)
-                    send_signal_recursive(qemu_pid, signal.SIGKILL)
+                    print("Sending SIGINT to", qemu_pid)
+                    send_signal_recursive(qemu_pid, signal.SIGINT)
 
                     try:
                         os.waitpid(qemu_pid, 0)
@@ -1655,7 +1655,7 @@ def compute_f1_vs_ground_truth(run_sets, ground_truth):
 
 def pre_analysis_exp(db_dir, firmae_dir, work_dir, mode, firmware, proto, include_libraries,
                      region_delimiter, sleep, timeout, taint_analysis_path,
-                     pre_analysis_id, stab_upper_runs=5, n_taint_hints_to_eval=10):
+                     pre_analysis_id, stab_upper_runs=5, n_taint_hints_to_eval=1):
 
     user_interaction_0 = "user_interaction_0.pcap"
     ui0_path = os.path.join(taint_analysis_path, firmware, proto, user_interaction_0)
@@ -1734,6 +1734,8 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, mode, firmware, proto, includ
         })
 
         json_dir = f"{work_dir}/taint/"
+        print(json_dir, region)
+        input()
         gt_run_times_ms, taint_runs = [], []
         num_runs, last_inter, first_inter_size, stabilized_gt = 0, None, None, False
 
@@ -1758,7 +1760,7 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, mode, firmware, proto, includ
                 if retcode == 0:
                     break
                 elif retcode == 2:
-                    try: send_signal_recursive(qemu_pid, signal.SIGKILL)
+                    try: send_signal_recursive(qemu_pid, signal.SIGINT)
                     except: pass
                     try: os.waitpid(qemu_pid, 0)
                     except: pass
@@ -1772,7 +1774,7 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, mode, firmware, proto, includ
                 else:
                     raise RuntimeError(f"Client exited with unexpected code {retcode}")
 
-            try: send_signal_recursive(qemu_pid, signal.SIGKILL)
+            try: send_signal_recursive(qemu_pid, signal.SIGINT)
             except: pass
             try: os.waitpid(qemu_pid, 0)
             except: pass
@@ -1783,6 +1785,8 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, mode, firmware, proto, includ
             taint_data = process_log_file(os.path.join(json_dir, "taint_mem.log"))
             current_run_set = {(entry["inode"], entry["app_tb_pc"]) for entry in taint_data}
             taint_runs.append(current_run_set)
+            print(current_run_set)
+            input()
 
             # if last_inter is None:
             #     last_inter = current_run_set
@@ -1831,7 +1835,7 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, mode, firmware, proto, includ
             if retcode == 0:
                 break
             elif retcode == 2:
-                try: send_signal_recursive(qemu_pid, signal.SIGKILL)
+                try: send_signal_recursive(qemu_pid, signal.SIGINT)
                 except: pass
                 try: os.waitpid(qemu_pid, 0)
                 except: pass
@@ -1845,7 +1849,7 @@ def pre_analysis_exp(db_dir, firmae_dir, work_dir, mode, firmware, proto, includ
             else:
                 raise RuntimeError(f"Client exited with unexpected code {retcode}")
 
-        try: send_signal_recursive(qemu_pid, signal.SIGKILL)
+        try: send_signal_recursive(qemu_pid, signal.SIGINT)
         except: pass
         try: os.waitpid(qemu_pid, 0)
         except: pass
