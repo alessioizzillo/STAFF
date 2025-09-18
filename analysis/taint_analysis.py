@@ -26,6 +26,7 @@ import random
 import argparse
 import pandas as pd
 import fnmatch
+from scipy.stats import gmean
 
 
 RESET = "\033[0m"
@@ -1951,8 +1952,30 @@ def build_latex_table(df, caption="Aggregated results", label="tab:results"):
             s = s.replace("_", r"\_")
             return s
         return s
-    headers = list(df.columns)
-    colspec = " | ".join(["l" if df[col].dtype == 'object' else "r" for col in headers])
+    
+    df_copy = df.copy()
+    
+    numeric_columns = df_copy.select_dtypes(include=[np.number]).columns
+    for col in numeric_columns:
+        df_copy[col] = df_copy[col].round(2)
+    
+    geometric_means = {}
+    for col in df_copy.columns:
+        if col in numeric_columns:
+            positive_values = df_copy[col].dropna()
+            positive_values = positive_values[positive_values > 0]
+            if len(positive_values) > 0:
+                geometric_means[col] = round(gmean(positive_values), 2)
+            else:
+                geometric_means[col] = 0.0
+        else:
+            geometric_means[col] = "Geom. Mean"
+    
+    geom_mean_row = pd.DataFrame([geometric_means])
+    df_with_geom = pd.concat([df_copy, geom_mean_row], ignore_index=True)
+    
+    headers = list(df_with_geom.columns)
+    colspec = " | ".join(["l" if df_with_geom[col].dtype == 'object' else "r" for col in headers])
     lines = []
     lines.append(r"\begin{table*}[ht!]")
     lines.append(r"\centering")
@@ -1962,7 +1985,8 @@ def build_latex_table(df, caption="Aggregated results", label="tab:results"):
     header_row = " & ".join([r"\textbf{" + esc(h) + "}" for h in headers]) + r" \\"
     lines.append(header_row)
     lines.append(r"\hline")
-    for _, row in df.iterrows():
+    
+    for i, (_, row) in enumerate(df_with_geom.iterrows()):
         formatted = []
         for col in headers:
             val = row[col]
@@ -1974,7 +1998,12 @@ def build_latex_table(df, caption="Aggregated results", label="tab:results"):
                 formatted.append(f"{val:.2f}")
             else:
                 formatted.append(esc(str(val)))
+        
         lines.append(" & ".join(formatted) + r" \\")
+        
+        if i == len(df_with_geom) - 2:
+            lines.append(r"\hline")
+    
     lines.append(r"\hline")
     lines.append(r"\end{tabular}")
     lines.append(r"\caption{" + caption + "}")
@@ -2030,26 +2059,34 @@ def aggregate_pre_analysis_metrics(db_dir, mode, metric_name, max_runs=None,
         return out
 
     def set_based_metrics_from_sets(pred_set, gt_set):
-        out = {"precision": 0.0, "recall": 0.0, "f1": 0.0, "accuracy": 0.0}
+        out = {"precision": None, "recall": None, "f1": None, "accuracy": None}
         pset = set(pred_set or [])
         gset = set(gt_set or [])
+        
+        if len(gset) == 0:
+            return out
+            
         TP = len(pset & gset)
         FP = len(pset - gset)
         FN = len(gset - pset)
+        
         denom = TP + FP
         precision = (TP / denom) if denom > 0 else None
+        
         denom = TP + FN
-        recall = (TP / denom) if denom > 0 else None
+        recall = (TP / denom) if denom > 0 else 0.0
+        
         if precision is not None and recall is not None and (precision + recall) > 0:
             f1 = 2 * precision * recall / (precision + recall)
         else:
             f1 = None
+            
         accuracy = (TP / len(gset)) if len(gset) > 0 else None
 
-        out["precision"] = precision if precision is not None else 0.0
-        out["recall"] = recall if recall is not None else 0.0
-        out["f1"] = f1 if f1 is not None else 0.0
-        out["accuracy"] = accuracy if accuracy is not None else 0.0
+        out["precision"] = precision
+        out["recall"] = recall
+        out["f1"] = f1
+        out["accuracy"] = accuracy
         return out
 
     def process_single_db(db_root):
@@ -2117,27 +2154,28 @@ def aggregate_pre_analysis_metrics(db_dir, mode, metric_name, max_runs=None,
                             speedup = None
 
                     if mode == "min_vs_orig":
-                        if min_set is not None and gt_set is not None:
+                        if min_set is not None and gt_set is not None and len(gt_set) > 0:
                             metrics_min_vs_gt = set_based_metrics_from_sets(min_set, gt_set)
                             if metric_name == "time":
                                 per_run_entry["speedup"] = speedup if speedup is not None else None
                             else:
-                                per_run_entry[f"min_{metric_name}"] = metrics_min_vs_gt.get(metric_name, 0.0)
+                                metric_val = metrics_min_vs_gt.get(metric_name)
+                                per_run_entry[f"min_{metric_name}"] = metric_val  # Keep None if undefined
                                 per_run_entry["speedup"] = speedup if speedup is not None else None
                     elif mode == "heu_vs_taint":
-                        if gt_set is not None:
+                        if gt_set is not None and len(gt_set) > 0:
                             single_run_metrics = []
                             for single_run_set in gt_run_sets:
-                                if single_run_set:
+                                if single_run_set and len(gt_set) > 0:
                                     m = set_based_metrics_from_sets(single_run_set, gt_set)
-                                    single_run_metrics.append(m.get(metric_name, 0.0))
-                                else:
-                                    single_run_metrics.append(0.0)
+                                    metric_val = m.get(metric_name)
+                                    if metric_val is not None:
+                                        single_run_metrics.append(metric_val)
                             mean_taint_metric = float(np.mean(single_run_metrics)) if single_run_metrics else None
                             heuristic_metrics = set_based_metrics_from_sets(pre_set, gt_set)
-                            heuristic_metric_val = heuristic_metrics.get(metric_name, 0.0)
-                            per_run_entry[f"taint_{metric_name}"] = mean_taint_metric if mean_taint_metric is not None else 0.0
-                            per_run_entry[f"heuristic_{metric_name}"] = heuristic_metric_val if heuristic_metric_val is not None else 0.0
+                            heuristic_metric_val = heuristic_metrics.get(metric_name)
+                            per_run_entry[f"taint_{metric_name}"] = mean_taint_metric
+                            per_run_entry[f"heuristic_{metric_name}"] = heuristic_metric_val
 
                     per_run_entry["gt_size"] = len(gt_set)
                     per_run_entry["pre_size"] = len(pre_set)
@@ -2238,7 +2276,28 @@ def aggregate_pre_analysis_metrics(db_dir, mode, metric_name, max_runs=None,
         out_cols = ["brand", "firmware", "version"] + ordered_numeric
         final_df = final_df[[c for c in out_cols if c in final_df.columns]]
 
-    final_df.to_csv(output_csv, index=False)
+    csv_df = final_df.copy()
+    
+    numeric_columns = csv_df.select_dtypes(include=[np.number]).columns
+    for col in numeric_columns:
+        csv_df[col] = csv_df[col].round(2)
+    
+    csv_geometric_means = {}
+    for col in csv_df.columns:
+        if col in numeric_columns:
+            positive_values = csv_df[col].dropna()
+            positive_values = positive_values[positive_values > 0]
+            if len(positive_values) > 0:
+                csv_geometric_means[col] = round(gmean(positive_values), 2)
+            else:
+                csv_geometric_means[col] = 0.0
+        else:
+            csv_geometric_means[col] = "Geom. Mean"
+    
+    csv_geom_mean_row = pd.DataFrame([csv_geometric_means])
+    csv_with_geom = pd.concat([csv_df, csv_geom_mean_row], ignore_index=True)
+    
+    csv_with_geom.to_csv(output_csv, index=False)
 
     mode_label = mode.replace("_", r"\_")
     try:

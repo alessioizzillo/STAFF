@@ -780,7 +780,7 @@ def build_agg_from_extracted(extracted_root="extracted_crashes_outputs", verbose
 
     return agg
 
-def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte_table=False, add_category_col=False):
+def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte_table=False, add_category_col=False, add_taint_col=False):
     def latex_escape(s):
         if s is None:
             return ""
@@ -843,7 +843,7 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
             if add_category_col:
                 left_prefix = "|l||c|c|c|"
             method_part = "".join(
-                "c|c|c|" if "staff" in m else "c|c|" 
+                "c|c|c|" if (add_taint_col and ("staff" in m)) else "c|c|" 
                 for m in DEFAULT_METHODS
             )
             col_format = left_prefix + method_part
@@ -864,7 +864,7 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
                 first_row.append("{\sc Category}")
             for m in DEFAULT_METHODS:
                 abbr = METHOD_ABBR.get(m, m)
-                if "staff" in m:
+                if add_taint_col and "staff" in m:
                     first_row.append(f"\\multicolumn{{3}}{{c|}}{{\sc {{{latex_escape(m)}}}}}")
                 else:
                     first_row.append(f"\\multicolumn{{2}}{{c|}}{{\sc {{{latex_escape(m)}}}}}")
@@ -876,7 +876,7 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
             for m in DEFAULT_METHODS:
                 second_row.append("{\sc cnt}")
                 second_row.append("{\sc TTE}")
-                if "staff" in m:
+                if add_taint_col and "staff" in m:
                     second_row.append("{\sc taint}")
             fh.write(" & ".join(second_row) + " \\\\\n")
             fh.write("\\hline\n")
@@ -887,7 +887,7 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
                 module = row.get("module", "")
                 grouped[fw][module].append(row)
 
-            total_cols = 3 + (1 if add_category_col else 0) + 2 * len(DEFAULT_METHODS) + 1 
+            total_cols = 3 + (1 if add_category_col else 0) + 2 * len(DEFAULT_METHODS) + (1 if add_taint_col else 0) 
             cline_rest_start = 2
             cline_rest_start_func = 3
             cline_rest_end = total_cols
@@ -928,7 +928,7 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
                             tte_val = row.get(f"{abbr}_avg_tte", "")
                             cells.append("" if cnt_val is None else str(cnt_val))
                             cells.append("" if tte_val is None else str(tte_val))
-                            if "staff" in m:
+                            if add_taint_col and "staff" in m:
                                 cells.append(str(row.get(f"{abbr}_avg_taint", "")))
 
                         fh.write(" & ".join(cells) + " \\\\\n")
@@ -1127,7 +1127,7 @@ def build_three_tables_and_write_consistent(
     headers3 = ["firmware", "module", "function", "category"]
 
     write_csv_and_latex(headers1, table1_rows, out1_csv, out1_tex, caption="Number of crashes")
-    write_csv_and_latex(headers2, table2_rows, out2_csv, out2_tex, caption="TTE crashes", count_tte_table=True, add_category_col=True)
+    write_csv_and_latex(headers2, table2_rows, out2_csv, out2_tex, caption="TTE crashes", count_tte_table=True, add_category_col=True, add_taint_col=True)
     write_csv_and_latex(headers3, table3_rows, out3_csv, out3_tex, caption="Rare crashes", add_category_col=True)
 
     return (table1_rows, table2_rows, table3_rows), agg

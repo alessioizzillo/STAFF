@@ -44,10 +44,12 @@ TL-WPA8630_US__V2_171011.zip,httpd,0x25f90,0x260f4,(FUN_00425f90),OIB
 TL-WPA8630_US__V2_171011.zip,ledschd,0x2320,0x236c,(FUN_00402320),MII
 dap2310_v1.00_o772.bin,atp,0x3830,0x3a14,(redirect_htm),MID
 dap2310_v1.00_o772.bin,atp,0x3a70,0x3ad0,(ExeShell),MID
+dap2310_v1.00_o772.bin,atp,0x3a18,0x3a6c,(rpsubname),MID
 dap2310_v1.00_o772.bin,neapc,0x3438,0x639c,(main),?
 dap2310_v1.00_o772.bin,neaps_array,0x2b38,0x392c,(main),?
 dap2310_v1.00_o772.bin,udhcpd,0x3448,0x37e0,(FUN_00403448),MII
 dap2310_v1.00_o772.bin,xmldb,0x8618,0x8808,(FUN_00408618),MII
+dap2310_v1.00_o772.bin,xmldb,0x8b50,0xd490,(FUN_00408b50),MII
 dir300_v1.03_7c.bin,atp,0x366c,0x417c,(do_xgi),MID
 dir300_v1.03_7c.bin,atp,0x425c,0x44c4,(redirect_htm),MID
 dir300_v1.03_7c.bin,atp,0x47e4,0x484c,(ExeShell),MID
