@@ -1,15 +1,43 @@
 
-# STAFF  
+# STAFF
 _Stateful Taint‑Assisted Full‑system Firmware Fuzzer_
+
+## Paper
+
+This work has been submitted for review to the **Computers & Security journal** (Elsevier) and is available as a preprint on arXiv:
+
+**STAFF: Stateful Taint-Assisted Full-system Firmware Fuzzing**
+Alessio Izzillo, Riccardo Lazzeretti, Emilio Coppa
+arXiv preprint cs.CR, 2025
+DOI: [10.48550/arXiv.2509.18039](https://doi.org/10.48550/arXiv.2509.18039)
+URL: https://arxiv.org/abs/2509.18039
+
+### BibTeX
+
+If you use STAFF in your research, please cite:
+
+```bibtex
+@article{izzillo2025staff,
+    title={STAFF: Stateful Taint-Assisted Full-system Firmware Fuzzing},
+    author={Izzillo, Alessio and Lazzeretti, Riccardo and Coppa, Emilio},
+    journal={arXiv preprint cs.CR},
+    year={2025},
+    doi={10.48550/arXiv.2509.18039}
+}
+```
 
 # Table of Contents
 
-- [Introduction & Motivation](#introduction--motivation)
+- [Paper](#paper)
 
-- [Overview](#overview)  
-  - [Exploration Phase](#exploration-phase)  
-  - [Taint-Assisted Pre-analysis](#taint-assisted-pre-analysis)  
-  - [Emulation/Fuzzing Phase](#emulationfuzzing-phase)
+- [Introduction & Motivation](#introduction--motivation)
+  - [Motivating Example: Multi-Request, Inter-Binary Vulnerabilities](#motivating-example-multi-request-inter-binary-vulnerabilities)
+  - [Key Contributions](#key-contributions)
+
+- [Overview](#overview)
+  - [Phase 1: User-driven Multi-Request Recording](#phase-1-user-driven-multi-request-recording)
+  - [Phase 2: Intra- and Inter-Service Dependency Analysis](#phase-2-intra--and-inter-service-dependency-analysis)
+  - [Phase 3: Protocol-Aware Taint-Guided Fuzzing](#phase-3-protocol-aware-taint-guided-fuzzing)
 
 - [Experimental Assessment](#experimental-assessment)  
   - [Methods Comparison](#methods-comparison)  
@@ -25,328 +53,220 @@ _Stateful Taint‑Assisted Full‑system Firmware Fuzzer_
   - [Start an Experiment](#start-an-experiment)  
   - [Start a Bunch of Experiments](#start-a-bunch-of-experiments)
 
-## Introduction & Motivation  
-**STAFF** is a stateful, taint‑based, full‑system firmware fuzzing tool that combines ideas from protocol fuzzers and whole-system taint analyzers to uncover deep-state bugs in embedded systems. It builds on three pillars:
+## Introduction & Motivation
 
-1. **AFLNET**: a greybox fuzzer for network protocols that uses state-feedback (e.g., HTTP response codes) alongside coverage feedback to guide mutations of message sequences.
-2. **DECAF++**: a whole-system dynamic taint analysis framework that is twice as fast as its predecessor and imposes minimal overhead when inputs are untainted.
-3. **FirmAE**: a large-scale firmware emulation framework that boosts firmware execution success from 16 % to ≈79 % through automated configuration and emulation heuristics.
+**STAFF** (_Stateful Taint-Assisted Full-system Firmware Fuzzer_) is an automated fuzzing framework designed to discover bugs in Linux-based firmware software. It addresses the challenge of finding deep-state, inter-service vulnerabilities in embedded systems that expose protocol-based services.
 
-STAFF targets firmware exposing **Protocol-based services**, applying fuzzing over sequences of protocol-level messages (called “regions”).
+### Motivating Example: Multi-Request, Inter-Binary Vulnerabilities
+
+Modern firmware devices often run multiple cooperating processes that communicate through IPC channels, shared files, and configuration databases. Vulnerabilities in such systems frequently require:
+- **Multiple coordinated requests** across different protocol endpoints
+- **Cross-process data flows** where input to one service affects execution in another
+- **Persistent state** maintained through filesystems or configuration daemons
+
+As an example, STAFF discovered a stack buffer overflow in the D-Link DAP-2310 (v1.00_o772) firmware that requires three distinct HTTP requests affecting three separate processes:
+
+1. **Authentication**: A login request establishes a session
+2. **State poisoning**: A DHCP configuration request with oversized parameters gets persisted by the `xmldb` daemon
+3. **Trigger**: A configuration commit request causes `xmldb` to unsafely copy the previously stored data, overflowing a 1024-byte stack buffer
+
+![Multi-Request Stack Buffer Overflow Example](img/case-study-new.drawio.svg)
+
+This type of vulnerability cannot be found by:
+- Single-process fuzzers (miss inter-service dependencies)
+- Stateless fuzzers (miss multi-request sequences)
+- Coverage-only guidance (miss subtle data flow dependencies)
+
+### Key Contributions
+
+**STAFF** addresses these challenges through:
+
+1. **Three-Stage Automated Fuzzing Framework**: An integrated pipeline combining user-assisted multi-request recording, whole-system dependency analysis via taint tracking, and dependency-aware protocol fuzzing—automating the entire workflow from seed generation to bug discovery.
+
+2. **Practical Optimizations for Whole-System Analysis**: Novel techniques including byte-annotation heuristics for efficient taint tracking, process-aware coverage tracking to reduce bitmap collisions, and request-sequence minimization to preserve essential dependencies while reducing overhead.
+
+3. **Implementation and Tool Release**: A complete implementation extending DECAF++ for whole-system taint analysis in firmware contexts, with optimizations addressing the performance challenges of system-mode emulation.
+
+4. **Comprehensive Evaluation**: Testing on 15 real-world firmware images (routers, range extenders, IP cameras), discovering 42 bugs with 69% involving inter-binary data flows—demonstrating significant improvements over state-of-the-art tools like TriforceAFL and AFLNet.
+
 
 ## Overview
 
-![System Architecture Diagram](img/staff_overall.svg)
+STAFF operates through three conceptual phases that automate the complete workflow from seed generation to bug discovery:
 
-### Exploration Phase
-An initial *exploration phase* where the user interact with the target firmware and all requests are captured and recorded into a pcap files which are then used as initial corpus for the subsequent testing.
+![STAFF Three-Phase Fuzzing Framework Overview](img/staff_overall.drawio.svg)
 
-### Taint-Assisted pre-analysis
+### Phase 1: User-driven Multi-Request Recording
 
-(TODO. Describe the "subsequences matching algorithm" from **“metadata map”** is obtained.)
+The first phase involves capturing representative firmware interactions through manual exploration. Unlike earlier approaches that focus solely on individual services, STAFF is designed to test **all programs** affected by network interactions.
 
-Before fuzzing begins, STAFF performs a **taint-assisted pre-analysis** of sample interactions to extract **per-byte scores** that indicate the importance of each input byte with respect to various behavioral aspects of the system, such as:
+![Phase 1: User-Driven Multi-Request Recording](img/exploration_phase.drawio.svg)
 
-- **Execution flow**: how many and which Translation Blocks (TBs) a byte can influence.
-- **Process scope**: how many and which processes are affected by data derived from that byte.
-- **Cross-region interaction**: whether that byte impacts subsequent regions in the same sequence (e.g., through control/data dependencies).
-- **Persistence and reuse**: whether the byte is stored and later accessed via the filesystem (e.g., in session tokens, credentials, or temporary files).
+**How it works:**
+1. STAFF emulates the firmware image, extracting and mounting the root filesystem with virtualized CPU, memory, peripherals, and network interfaces
+2. A user analyst interacts with the emulated firmware (e.g., via web browser) through the virtual network interface
+3. STAFF captures all HTTP interactions as network packet traces (PCAPs)
+4. Preliminary filtering excludes static content (JavaScript, images, stylesheets)
+5. The captured sessions form the initial **seed corpus** for subsequent analysis
 
-STAFF uses these metrics on the **“metadata map”** of the initial interactions, resulting into a **taint-based priority queue** of mutation targets. Each entry in the queue includes the region, offset, and length to mutate—enabling **precise and effective mutation strategies**.
+**Example:** For the D-Link DAP-2310 firmware, an analyst logs in via `/login.php`, navigates configuration pages (`/index.php`, `/home_sys.php`, `/adv_dhcpd.php`), modifies DHCP settings via POST requests, and commits changes through firmware-specific endpoints (`/cfg_valid.xgi`). All exchanges are captured with protocol order, authentication flow, and session state intact.
 
-To further improve efficiency, STAFF enforces **input sequence minimization**. When a specific region is selected for mutation at a given offset, STAFF identifies and selects only the subset of regions from the original input sequence that are **relevant to the behavior influenced by that mutation**. This includes:
+### Phase 2: Intra- and Inter-Service Dependency Analysis
 
-- **Prefix regions**: earlier regions that affect the chosen region (e.g., they initialize session state or write files later read by the target region).
-- **Suffix regions**: later regions that are affected by the mutation in the chosen region (e.g., they read or rely on modified data through shared memory or persistent storage).
+The second phase performs fine-grained runtime analysis to understand how input bytes influence firmware execution across multiple processes.
 
-This minimization is achieved by combining **taint-tracking** and a **filesystem tracking mechanism** that detects dependencies such as files involved in login sessions or inter-region communication. By replaying only the **essential subset** of the original sequence, STAFF significantly reduces execution time while preserving semantic correctness and state dependencies.
-To avoid re‑executing the same prefix for every mutation of a region, STAFF enforces a **checkpoint stragegy** by executing the unmodified prefix once, then takes a VM snapshot via a secondary forkserver. For each variant, it forks from that snapshot, applies the mutated region and reattaches the original suffix, resuming execution from the saved state. This reuse of the prefix snapshot drastically reduces redundant computation when exploring multiple mutations of the same region.
+![Phase 2: Intra- and Inter-Service Dependency Analysis](img/pre_analysis_phase.drawio.svg)
 
-#### Dataflow Metadata Extraction Heuristic
+**Key Components:**
 
-This heuristic associates traced **taint events** (tainted memory operations like load/store) with the actual sequence of memory regions to build a structure. This structure can then be further processed by another heuristic to define a priority queue of **taint hints** for use during fuzzing. The main steps are:
+#### Session-Aware HTTP Request Modeling
 
-1. Building a `MultiSequenceTrie` of all possible subsequences (optionally constrained by length) of each region in the input sequence.
-2. Parsing taint events into contiguous memory blocks.
-3. Matching each block’s subregions against the trie to identify dependencies based on data read from or written to memory.
-4. Recording dependency metadata for each byte in every region.
+STAFF parses captured interactions into structured regions (distinct HTTP requests) using protocol-aware rules:
+- Content-Length-based parsing with byte precision
+- Chunked transfer encoding reconstruction
+- Connection-close semantics for responses without explicit length
+- Logical end-tags (e.g., `</html>`) as completeness indicators
 
----
+This approach is more robust than timeout-based strategies (used by AFLNet), correctly handling partial, malformed, or delayed responses.
 
-The ultimate goal is to infer potential dataflow relationships between regions in the sequence during firmware execution inside a QEMU VM, based on taint traces and subsequence similarity.
+#### Whole-System Taint Analysis
 
----
+STAFF replays requests under emulation with dynamic taint analysis enabled, tracking how input bytes propagate through:
+- **Memory accesses**: Load/store operations with program counter, physical address, and byte value
+- **IPC channels**: Taint naturally flows through kernel memory regions used for inter-process communication
+- **Filesystem operations**: Writer-reader relationships established when one region writes a file that another region later reads
 
-```python
-Inputs:
-- `sources_hex`: List of byte arrays, one per region index in the sequence.
-- `taint_log`: Binary taint log file.
-- `fs_relations_log`: File-system relations log (not used in the subsequence-taint matching logic).
-- `subregion_divisor ∈ ℕ⁺`: Maximum divisor for subsequence subdivision.
-- `min_sub_len ∈ ℕ⁺`: Minimum length for subsequences.
-- `max_len ∈ ℤ (≥–1)`: Maximum subsequence length for trie storage (–1 → unbounded).
+**Example:** In a three-request sequence:
+- R₀ (login): Stores `LOGIN` bytes in memory and creates `/var/proc/web/session:1/user/ac_auth`
+- R₁ (DHCP config): Loads session file (depends on R₀), stores tainted `192.168.` bytes
+- R₂ (commit): Reads session file (depends on R₀), loads `192.168.` bytes from R₁
 
-Input Structures:
-1. Taint Log (`taint_log.json`)
-  The `taint_log` records taint propagation events during the execution of the instrumented firmware. Each entry provides a fine-grained trace of data dependencies and memory interactions. It is structured as a list of JSON dictionaries, where each dictionary represents a single taint-related event:
+#### Byte Annotation Heuristic
 
-  ```json
-  [
-    {
-      "type": "store" | "load",
-      "addr": <destination memory address, integer>,
-      "size": <number of bytes affected, integer>,
-      "pc": <program counter (instruction address), integer>,
-      "src": [[<input_id>, <offset_in_input>], ...]  // optional for 'store'
-    },
-    ...
-  ]
+STAFF uses a scalable single-taint-source approach combined with value-matching (inspired by REDQUEEN) to annotate each input byte with:
+- **deps**: Set of region IDs that access this byte
+- **PCs**: Set of program counters (basic blocks) that access it
 
-2.  File-System Relations Log (`fs_relations_log.json`)
+This approach avoids the exponential cost of tracking individual bytes as separate taint sources while still achieving fine-grained precision.
 
-  The `fs_relations_log` records **causal dependencies between memory regions**, inferred via shared file accesses.
+**Output:** Seeds enriched with **taint hints**—actionable metadata about which bytes influence which execution paths and processes.
 
-  {
-    "<affected_region_id>": {
-      "<affector_region_id>": [ "<file1>", "<file2>", ... ]
-    },
-    ...
-  }
-  
-  - affected_region_id: ID of the memory region that is affected or influenced.
-  - affector_region_id: ID of the memory region that affects or causes the influence.
-  - list of files: File paths accessed by both regions through which the dependency was inferred.
+### Phase 3: Protocol-Aware Taint-Guided Fuzzing
 
-Globals Populated:
-- `global_regions_dependance`: Map of region_id → list of dependent region_ids.
-- `global_regions_affections`: Map of region_id → map of other_region_id → list of matching substrings.
+The third phase delivers mutated request sequences to firmware while monitoring for crashes and collecting coverage feedback.
 
-Output:
-- `sources`: A list of length N = len(sources_hex), where each element is a tuple:
-  - `fs_relations`: List (unused in this logic).
-  - `region_info`: List of tuples for each byte:  
-    `(byte_value, [taint_sources], [app_tb_pcs], [coverages])`
+![Phase 3: Protocol-Aware Taint-Guided Fuzzing](img/fuzzing_phase.drawio.svg)
 
-Steps:
+**Key Features:**
 
-1. ─── Parse Taint Log ───
-   1.1. Let struct_fmt ← "B I I I I B B Q"
-   1.2. Read entire taint_log in record‐sized chunks:
-         for each record: unpack into fields
-           event, region_id, cov, pc, gpa, op_name, value, inode
-         append each event‐dict to `events`
+1. **Taint-Guided Mutations**: Prioritize mutations of bytes identified as influential during dependency analysis
+2. **Protocol Structure Preservation**: Maintain HTTP syntax and semantic correctness
+3. **Sequence Minimization**: Replay only essential prefix/suffix regions that affect the mutated region
+4. **Multi-Stage Forkservers**: Checkpoint VM state after prefix execution, then fork for each mutation variant—avoiding redundant prefix re-execution
 
-2. ─── Initialize Data Structures ───
-   2.1. sources ← empty list
-   2.2. previous_region_id ← –1
-   2.3. last_store_event ← null ; current_store_block ← (–1, empty list)
-   2.4. last_load_event  ← null ; current_load_block  ← (–1, empty list)
-   2.5. multi_trie ← new MultiSequenceTrie(max_len)
-   2.6. Clear global_regions_dependance, global_regions_affections
+**Coverage Tracking:** Process-aware bitmap tracking that combines program counter with process identifier (inode) to reduce collisions in multi-process execution.
 
-3. ─── Process Each Event ───
-   For event in events in chronological order:
-     
-     if event.event ∉ {0,1}:
-       continue   // ignore non‐sink events
+**Result:** Discovery of deep-state bugs requiring coordinated multi-request sequences and cross-process data flows that would be missed by traditional fuzzers.
 
-     region_id ← event.region_id
 
-     // 3A. New sink region encountered?
-     if region_id > previous_region_id:
-       previous_region_id ← region_id
-       if region_id ≥ len(sources_hex): error and abort
-       // Initialize `sources[region_id]`
-       byte_seq ← sources_hex[region_id]
-       region_info ← [ (b, [], [], []) for each b in byte_seq ]
-       append ( [], region_info ) to `sources`
+## Available Modes & Configuration
 
-       // Insert the full region into trie
-       if not multi_trie.insert(byte_seq, region_id):
-         error ← memory‐limit; abort
+STAFF's `start.py` script supports multiple operation modes controlled via the `config.ini` file. Below are the available modes and their default configuration parameters.
 
-       global_regions_dependance[region_id] ← []
-       global_regions_affections[region_id] ← {}
+### Operation Modes
 
-     // 3B. Collect consecutive store/load blocks
-     if event.event == 1 and event.op_name ∈ {0,1}:
-       mode ← (event.op_name == 1) ? "store" : "load"
-       (last_evt, current_block) ←
-         mode=="store" ? (last_store_event, current_store_block)
-                        : (last_load_event,  current_load_block)
+- **run**: Standard firmware emulation without capture
+- **run_capture**: Emulate firmware and capture network interactions to PCAP files
+- **replay**: Replay previously captured PCAP interactions
+- **check**: Verify firmware can be emulated and create FirmAE images
+- **pre_analysis**: Perform taint-assisted dependency analysis on captured interactions
+- **pre_exp**: Prepare pre-analysis experiments with taint metrics
+- **crash_analysis**: Analyze crash outputs and generate reports
+- **aflnet_base**: Run AFLNet fuzzer in base mode (stateless)
+- **aflnet_state_aware**: Run AFLNet fuzzer with state-aware protocol modeling
+- **triforce**: Run TriforceAFL system-mode fuzzer
+- **staff_base**: Run STAFF fuzzer in base mode (with taint hints, stateless)
+- **staff_state_aware**: Run STAFF fuzzer with state-aware protocol modeling and taint hints
 
-       if last_evt ≠ null and event.gpa == last_evt.gpa + 1:
-         append (gpa, value, (inode, pc), cov) to current_block.entries
-       else:
-         if last_evt ≠ null:
-           ProcessBlock(current_block, mode)
-         current_block ← (region_id, [ (gpa, value, (inode, pc), cov) ])
+### Default Configuration Parameters
 
-       if mode == "store":
-         last_store_event ← event; current_store_block ← current_block
-       else:
-         last_load_event  ← event; current_load_block  ← current_block
+The `config.ini` file organizes parameters into sections:
 
-4. ─── Final Block Flush ───
-   if last_store_event  ≠ null: ProcessBlock(current_store_block, "store")
-   if last_load_event   ≠ null: ProcessBlock(current_load_block,  "load")
+#### [GENERAL]
+- **mode**: Operation mode (default: `run`)
+- **firmware**: Firmware path (default: `dlink/dap2310_v1.00_o772.bin`)
 
-5. ─── Return `sources` ───
-   if len(sources) ≠ len(sources_hex): error and abort
-   return sources
+#### [CAPTURE]
+- **whitelist_keywords**: Include only requests matching these patterns (default: `POST/PUT/.php/.cgi/.xml`)
+- **blacklist_keywords**: Exclude requests matching these patterns (default: `.gif/.jpg/.png/.css/.js/.ico/.htm/.html`)
 
-────────────────────────────────────────────────────────────────────────────────
+#### [PRE-ANALYSIS]
+- **pre_analysis_id**: Pre-analysis experiment identifier (default: `0`)
+- **subregion_divisor**: Maximum divisor for subsequence subdivision (default: `10`)
+- **min_subregion_len**: Minimum length for subsequences (default: `3`)
+- **delta_threshold**: Tolerance for approximate matching (default: `0.15`)
 
-Subroutine: ProcessBlock(block, mode)
-Inputs:
-  - block = ( region_id, entries )
-      where entries = list of tuples (gpa, value, (inode,pc), cov)
-  - mode ∈ {"store","load"}
+#### [EMULATION_TRACING]
+- **include_libraries**: Include library code in coverage tracking (default: `1`)
 
-Steps:
+#### [GENERAL_FUZZING]
+- **map_size_pow2**: AFL bitmap size as power of 2 (default: `25` = 32MB)
+- **fuzz_tmout**: Total fuzzing timeout in seconds (default: `86400` = 24 hours)
+- **timeout**: Per-input execution timeout in milliseconds (default: `120`)
+- **afl_no_arith**: Disable arithmetic mutations (default: `1`)
+- **afl_no_bitflip**: Disable bitflip mutations (default: `0`)
+- **afl_no_interest**: Disable interest heuristic (default: `1`)
+- **afl_no_user_extras**: Disable user-supplied extras (default: `1`)
+- **afl_no_extras**: Disable all extra tokens (default: `1`)
+- **afl_calibration**: Enable calibration stage (default: `1`)
+- **afl_shuffle_queue**: Randomize queue order (default: `1`)
 
-1. Extract byte_sequence:
-   byte_seq ← [ value for each (_, value, _, _) in entries ]
-   L ← length(byte_seq)
+#### [AFLNET_FUZZING]
+- **region_delimiter**: Delimiter between protocol regions (default: `\x1A\x1A\x1A\x1A`)
+- **proto**: Protocol name (default: `http`)
+- **region_level_mutation**: Enable region-level mutations (default: `1`)
 
-2. Enumerate candidate subsequence lengths:
-   for sub_len from L down to 1:
-     if sub_len < L/subregion_divisor AND sub_len ≥ min_sub_len:
-       break   // too small relative to divisor
+#### [STAFF_FUZZING]
+- **taint_hints_all_at_once**: Apply all taint hints simultaneously (default: `0`)
+- **sequence_minimization**: Enable sequence minimization (default: `1`)
+- **taint_metrics**: Priority metrics for mutation (default: `rarest_app_tb_pc/number_of_app_tb_pcs/rarest_process/number_of_processes`)
+- **checkpoint_strategy**: Enable VM snapshot checkpointing (default: `1`)
 
-     // Slide window of size sub_len
-     for start_pos in 0 … (L – sub_len):
-       subseq ← byte_seq[start_pos : start_pos + sub_len]
-       positions ← multi_trie.find_subsequence(subseq)
-       if positions is null:
-         continue
-       if positions.size == 1:
-         (other_id, other_start) ← positions[0]
-         // Verify monotonic and exact match
-         if region_id ≥ other_id AND
-            sources_hex[other_id][other_start : other_start+sub_len] == subseq:
-           
-           RecordDependencyAndAffection(
-             from_id=region_id,
-             to_id=other_id,
-             subseq=subseq,
-             start_offset=other_start,
-             entries=entries
-           )
-       goto EndOfBlock  // stop after first successful match
+#### [EXTRA_FUZZING]
+- **coverage_tracing**: Coverage tracking mode (default: `taint_block`)
+- **stage_max**: Maximum mutations per stage (default: `1`)
 
-EndOfBlock:
+### Command-Line Options
 
-────────────────────────────────────────────────────────────────────────────────
+`start.py` accepts the following arguments:
 
-Subroutine: RecordDependencyAndAffection(from_id, to_id, subseq, start_offset, entries)
+```bash
+python3 start.py [OPTIONS]
 
-1. // Dependency
-   if to_id not in global_regions_dependance[from_id]:
-     append to_id
-
-2. // Affection
-   substr_str ← make_printable(subseq)
-   A ← global_regions_affections[to_id]
-   if from_id not in A: A[from_id] ← [substr_str]
-   else if substr_str not in A[from_id]: append substr_str
-
-3. // Annotate `sources[to_id].region_info`
-   for j in 0 … length(subseq)-1:
-     (_, taint_list, pc_list, cov_list) ← sources[to_id][1][start_offset + j]
-     append from_id       to taint_list
-     append entries[j].(inode,pc) to pc_list
-     append entries[j].cov to cov_list
-
-────────────────────────────────────────────────────────────────────────────────
-
-Class MultiSequenceTrie
-  Fields:
-    root      ← new TrieNode()
-    max_len   ← maximum sequence length per subsequence (−1 if unbounded)
-
-  Method insert(sequence, seq_id)
-    for i from 0 to length(sequence) − 1 do
-      node ← root
-      for j from i to min(i + max_len, length(sequence)) do
-        byte ← sequence[j]
-        if byte not in node.children:
-          node.children[byte] ← new TrieNode()
-        node ← node.children[byte]
-        append (seq_id, i) to node.positions
-
-  Method find_subsequence(subseq)
-    node ← root
-    for byte in subseq do
-      if byte not in node.children:
-        return null
-      node ← node.children[byte]
-    return node.positions
-
-Class TrieNode
-  Fields:
-    children  ← map from byte to TrieNode
-    positions ← list of (seq_id, start_offset)
+Options:
+  --keep_config INT        Keep existing config.ini (default: 1)
+  --reset_firmware_images INT  Reset firmware images (default: 0)
+  --replay_exp INT         Replay an experiment (default: 0)
+  --output STR             Output directory path
+  --container_name STR     Container name for the experiment
+  --crash_dir STR          Directory containing crash outputs for crash_analysis mode
 ```
 
-Below is a summary of the **time** and **space complexities** of the entire subsequence‐extraction and matching algorithm, expressed in terms of:
+### Output Directories
 
-**S** = number of sink regions (≈ len(sources_hex))
+STAFF organizes outputs in the following directories:
 
-**L** = average length of each region’s byte sequence
+- **extracted_crash_out/**: Extracted and deduplicated crash reports
+- **FirmAE/scratch/<mode>/<iid>/outputs/**: Per-experiment fuzzing outputs
+  - `crashes/`: Raw crash inputs
+  - `crash_traces/`: Stack traces and taint information
+  - `fuzzer_stats`: Fuzzing statistics
+  - `plot_data`: Time-series coverage and crash data
+  - `config.ini`: Experiment configuration
+- **pre_analysis_db/**: Taint analysis results from pre-analysis phase
+- **experiments_done/**: Completed experiment metadata
+- **analysis/**: Analysis scripts and crash databases
 
-**M** = max_len (if set ≥ 0, otherwise M ≈ L)
-
-**E** = total number of taint events (≈ total memory operations logged)
-
-Breakdown of the **time complexity** for each major phase of the algorithm:
-
-1. **Trie construction (O(S · L · M))**  
-   We insert all length-bounded subsequences of each sink region (S regions, each of length L, up to maximum subsequence length M) into the `MultiSequenceTrie`. Each start position (L) can extend up to M steps, yielding O(L·M) per region, and O(S·L·M) overall.
-
-2. **Event grouping (O(E) or O(E log E))**  
-   We scan and optionally sort the total E taint events by physical address (`gpa`) to form contiguous blocks. If events arrive pre-sorted, this is O(E); otherwise sorting adds an O(E log E) factor.
-
-3. **Subsequence matching (O(S · L² · M))**  
-   For each sink region block (at most S blocks of average length ≤ L), we try sliding windows of all lengths from L down to a lower bound. Each window (≈L of them) calls `find_subsequence()` which traverses up to M trie levels. That yields O(L × L × M) = O(L²·M) per region, or O(S·L²·M) total.
-
-4. **Recording metadata (O(S · M))**  
-   On each successful match (one per block, ≤S matches), we update per-byte lists of length up to M. This is O(M) per region, or O(S·M) overall.
-
-| Step                    | Complexity             |
-|------------------------|------------------------|
-| Trie construction      | O(S · L · M)           |
-| Event grouping         | O(E) (or O(E log E))   |
-| Subsequence matching   | O(S · L² · M)          |
-| Recording metadata     | O(S · M)               |
-| **Overall**            | **O(S · L² · M)**      |
-
----
-
-Below is a breakdown of the **space requirements** of the data structures used:
-
-1. **Trie nodes & positions (O(S · L · M))**  
-   Each inserted subsequence prefix creates or reuses a trie node. In the worst case (no shared prefixes), there are O(L·M) nodes per region, each holding a list of positions—total O(S·L·M).
-
-2. **Sources per-byte info (O(S · L))**  
-   We maintain for each byte of each sink region (S regions, L bytes each) lists of taint origins, PCs, and coverage hashes. This requires O(S·L) space.
-
-3. **Dependency map (O(S²))**  
-   In the worst case, every sink region might depend on every other, yielding an O(S²) sized map for `global_regions_dependance`.
-
-| Component                 | Complexity              |
-|--------------------------|-------------------------|
-| Trie nodes & positions   | O(S · L · M)            |
-| Sources per-byte info    | O(S · L)                |
-| Dependency map           | O(S²)                   |
-| **Total**                | **O(S · L · M + S²)**   |
-
-#### Subsequences Extraction and Prioritization Heuristic 
-
-TODO
-
-### Emulation/Fuzzing Phase
-TODO (coverage tracing strategy, execution trace instability/variability, VM snapshot/forking strategy, crash deduplication strategy, ...)
 
 ## Experimental Assessment
 
@@ -782,152 +702,45 @@ To generate the FirmAE image for your firmware:
    python3 start.py --keep_config 1
    ```
 
-3. You will find the results under `STAFF/FirmAE/scratch/<image_id>/outputs`
+3. Results will be available in:
+   - **Fuzzing outputs**: `FirmAE/scratch/<mode>/<image_id>/outputs/`
+     - `crashes/`: Crash-inducing inputs
+     - `crash_traces/`: Stack traces with taint information
+     - `fuzzer_stats`: Real-time fuzzing statistics
+     - `plot_data`: Coverage and crash time-series data
+   - **Extracted crashes** (after running `extract_crashes.py`): `extracted_crash_out/`
 
 ---
 
 ### Start a bunch of experiments
 
-You can use `schedule.csv` to start one or more experiments parallely on different docker container. The structure is the following:
+You can use `schedule_0.csv` or `schedule_1.csv` to run multiple experiments in parallel across different Docker containers. The CSV structure matches the configuration parameters from `config.ini`:
 
-<table style="border-collapse: collapse; width: 100%; color: inherit; border-color: inherit;">
-  <tr>
-    <th colspan="4"></th>
-    <th colspan="2" style="border-left: 1px solid currentColor; border-right: 1px solid currentColor;">GENERAL</th>
-    <th colspan="2" style="border-right: 1px solid currentColor;">PRE-ANALYSIS</th>
-    <th style="border-right: 1px solid currentColor;">EMULATION_TRACING</th>
-    <th style="border-right: 1px solid currentColor;">GENERAL_FUZZING</th>
-    <th colspan="6"></th>
-    <th colspan="2" style="border-left: 1px solid currentColor; border-right: 1px solid currentColor;">AFLNET_FUZZING</th>
-    <th colspan="2" style="border-right: 1px solid currentColor;">STAFF_FUZZING</th>
-    <th style="border-right: 1px solid currentColor;">EXTRA_FUZZING</th>
-    <th colspan="6"></th>
-  </tr>
-  <tr>
-    <th style="border-left: 1px solid currentColor; border-right: 1px solid currentColor;">status</th>
-    <th style="border-right: 1px solid currentColor;">exp_name</th>
-    <th style="border-right: 1px solid currentColor;">container_name</th>
-    <th style="border-right: 1px solid currentColor;">num_cores</th>
-    <th style="border-right: 1px solid currentColor;">mode (M)</th>
-    <th style="border-right: 1px solid currentColor;">firmware (F)</th>
-    <th style="border-right: 1px solid currentColor;">subregion_divisor (SD)</th>
-    <th style="border-right: 1px solid currentColor;">min_subregion_len (MSL)</th>
-    <th style="border-right: 1px solid currentColor;">delta_threshold (DT)</th>
-    <th style="border-right: 1px solid currentColor;">include_libraries (IL)</th>
-    <th style="border-right: 1px solid currentColor;">fuzz_tmout (FT)</th>
-    <th style="border-right: 1px solid currentColor;">timeout (T)</th>
-    <th style="border-right: 1px solid currentColor;">afl_no_arith (ANA)</th>
-    <th style="border-right: 1px solid currentColor;">afl_no_bitflip (ANB)</th>
-    <th style="border-right: 1px solid currentColor;">afl_no_interest (ANI)</th>
-    <th style="border-right: 1px solid currentColor;">afl_no_user_extras (ANU)</th>
-    <th style="border-right: 1px solid currentColor;">afl_no_extras (ANE)</th>
-    <th style="border-right: 1px solid currentColor;">afl_calibration (AC)</th>
-    <th style="border-right: 1px solid currentColor;">afl_shuffle_queue (ASQ)</th>
-    <th style="border-right: 1px solid currentColor;">region_delimiter (RD)</th>
-    <th style="border-right: 1px solid currentColor;">proto (P)</th>
-    <th style="border-right: 1px solid currentColor;">region_level_mutation (RLM)</th>
-    <th style="border-right: 1px solid currentColor;">sequence_minimization (SM)</th>
-    <th style="border-right: 1px solid currentColor;">taint_metrics (TM)</th>
-    <th style="border-right: 1px solid currentColor;">checkpoint_strategy (CS)</th>
-    <th style="border-right: 1px solid currentColor;">coverage_tracing (CT)</th>
-    <th style="border-right: 1px solid currentColor;">stage_max (SMA)</th>
-  </tr>
-  <!-- Data Row 1 -->
-  <tr>
-    <td style="border-left: 1px solid currentColor; border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">staff_base</td>
-    <td style="border-right: 1px solid currentColor;">dlink/dap2310_v1.00_o772.bin</td>
-    <td style="border-right: 1px solid currentColor;">10</td>
-    <td style="border-right: 1px solid currentColor;">3</td>
-    <td style="border-right: 1px solid currentColor;">1.0</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">14400</td>
-    <td style="border-right: 1px solid currentColor;">120</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">0</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">\x1A\x1A\x1A\x1A</td>
-    <td style="border-right: 1px solid currentColor;">http</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">rarest_app_tb_pc/number_of_app_tb_pcs/rarest_process/number_of_processes</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">taint_block</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-  </tr>
-  <!-- Data Row 2 -->
-  <tr>
-    <td style="border-left: 1px solid currentColor; border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">staff_state_aware</td>
-    <td style="border-right: 1px solid currentColor;">dlink/dap2310_v1.00_o772.bin</td>
-    <td style="border-right: 1px solid currentColor;">10</td>
-    <td style="border-right: 1px solid currentColor;">3</td>
-    <td style="border-right: 1px solid currentColor;">1.0</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">14400</td>
-    <td style="border-right: 1px solid currentColor;">120</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">0</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">\x1A\x1A\x1A\x1A</td>
-    <td style="border-right: 1px solid currentColor;">http</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">rarest_app_tb_pc/number_of_app_tb_pcs/rarest_process/number_of_processes</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-    <td style="border-right: 1px solid currentColor;">taint_block</td>
-    <td style="border-right: 1px solid currentColor;">1</td>
-  </tr>
-  <!-- Data Row 3 -->
-  <tr>
-    <td style="border-left: 1px solid currentColor; border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;"></td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-    <td style="border-right: 1px solid currentColor;">...</td>
-  </tr>
-  <tr>
-    <td colspan="27" style="border-top: 1px solid currentColor;"></td>
-  </tr>
-</table>
+**CSV Header Structure:**
 
-The first three lines must be left empty because they will be automatically filled. They stand respectively for the status of the experiment (running/stopped/succeeded/failed), the experiment name and the name of the docker container where the experiment is running.
+Row 1 (Category headers):
+```
+,,,,GENERAL,,PRE-ANALYSIS,,,,EMULATION_TRACING,GENERAL_FUZZING,...
+```
+
+Row 2 (Column headers):
+```
+status,exp_name,container_name,num_cores,mode (M),firmware (F),pre_analysis_id (PAI),subregion_divisor (SD),min_subregion_len (MSL),delta_threshold (DT),include_libraries (IL),map_size_pow2 (MSP),fuzz_tmout (FT),timeout (T),afl_no_arith (ANA),afl_no_bitflip (ANB),afl_no_interest (ANI),afl_no_user_extras (ANU),afl_no_extras (ANE),afl_calibration (AC),afl_shuffle_queue (ASQ),region_delimiter (RD),proto (P),region_level_mutation (RLM),taint_hints_all_at_once (THA),sequence_minimization (SM),taint_metrics (TM),checkpoint_strategy (CS),coverage_tracing (CT),stage_max (SMA)
+```
+
+**Column Details:**
+- **status**: Automatically filled (empty/running/succeeded/failed)
+- **exp_name**: Automatically generated experiment name
+- **container_name**: Automatically assigned Docker container name
+- **num_cores**: Number of CPU cores to assign (e.g., `1`)
+- Remaining columns correspond to parameters from [GENERAL], [PRE-ANALYSIS], [EMULATION_TRACING], [GENERAL_FUZZING], [AFLNET_FUZZING], [STAFF_FUZZING], and [EXTRA_FUZZING] sections
+
+**Example row:**
+```csv
+,,,1,staff_state_aware,dlink/dap2310_v1.00_o772.bin,0,10,3,1.0,0,25,86400,150,1,0,1,1,1,0,0,,http,1,0,1,number_of_app_tb_pcs,1,block,3
+```
+
+To run the experiments in `schedule_0.csv` or `schedule_1.csv`:
 
 To run the experiments into `schedule.csv`:
 
