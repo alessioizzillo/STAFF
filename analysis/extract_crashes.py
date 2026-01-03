@@ -964,7 +964,10 @@ def build_three_tables_and_write_consistent(
         out2_csv="out2.csv", out2_tex="out2.tex",
         out3_csv="out3.csv", out3_tex="out3.tex",
         firmwares_csv="analysis/fw_names.csv",
-        verbose=True):
+        verbose=True,
+        show_exp_count=False,
+        experiments_dir=None,
+        include_zero_crashes=False):
 
     def load_firmware_map_triplet(path):
         mapping = {}
@@ -979,6 +982,30 @@ def build_three_tables_and_write_consistent(
         return mapping
 
     fw_map = load_firmware_map_triplet(firmwares_csv)
+
+    total_experiments = defaultdict(lambda: defaultdict(int))
+    all_firmwares_from_experiments = set()
+    if (show_exp_count or include_zero_crashes) and experiments_dir and os.path.isdir(experiments_dir):
+        import configparser
+        for sub_exp in sorted(os.listdir(experiments_dir)):
+            sub_path = os.path.join(experiments_dir, sub_exp)
+            if not os.path.isdir(sub_path) or not sub_exp.startswith("exp_"):
+                continue
+
+            config_path = os.path.join(sub_path, "outputs", "config.ini")
+            if not os.path.isfile(config_path):
+                continue
+
+            config = configparser.ConfigParser()
+            try:
+                config.read(config_path)
+                mode = config.get("GENERAL", "mode")
+                firmware_path = config.get("GENERAL", "firmware")
+                firmware_basename = os.path.basename(firmware_path)
+                total_experiments[firmware_basename][mode] += 1
+                all_firmwares_from_experiments.add(firmware_basename)
+            except Exception:
+                continue
 
     agg_raw = build_agg_from_extracted(extracted_root=extracted_root, verbose=verbose)
 
@@ -1046,6 +1073,10 @@ def build_three_tables_and_write_consistent(
 
     # ---------- Table1: Number of crashes ----------
     firmware_set = sorted({k[0] for k in agg.keys()})
+
+    if include_zero_crashes and all_firmwares_from_experiments:
+        firmware_set = sorted(set(firmware_set) | all_firmwares_from_experiments)
+
     table1_rows = []
 
     for fw in firmware_set:
@@ -1066,6 +1097,13 @@ def build_three_tables_and_write_consistent(
             )
             col_name = f"{METHOD_ABBR.get(m, m)}_mean_cnt"
             row[col_name] = round(mean_crashes, 3)
+  
+            if show_exp_count:
+                exp_count_col = f"{METHOD_ABBR.get(m, m)}_exp_cnt"
+                if total_experiments:
+                    row[exp_count_col] = total_experiments.get(fw, {}).get(m, 0)
+                else:
+                    row[exp_count_col] = len(per_run_crashes)
 
         # rare crashes
         rare_cnt = 0
@@ -1079,7 +1117,11 @@ def build_three_tables_and_write_consistent(
         row["rare_crashes"] = rare_cnt
         table1_rows.append(row)
 
-    headers1 = ["firmware"] + [f"{METHOD_ABBR.get(m, m)}_mean_cnt" for m in DEFAULT_METHODS]
+    headers1 = ["firmware"]
+    for m in DEFAULT_METHODS:
+        headers1.append(f"{METHOD_ABBR.get(m, m)}_mean_cnt")
+        if show_exp_count:
+            headers1.append(f"{METHOD_ABBR.get(m, m)}_exp_cnt")
 
     # ---------- Table2 & Table3 ----------
     table2_rows = []
@@ -1438,6 +1480,202 @@ def build_detection_efficiency_table(
     return out_rows
 
 
+def export_one_exp_per_bug(extracted_root="extracted_crashes_outputs",
+                            output_dir="one_exp_per_bug",
+                            selection_mode="fastest_tte",
+                            verbose=True):
+
+    if not os.path.isdir(extracted_root):
+        if verbose:
+            print(f"[ERROR] extracted_root does not exist: {extracted_root}")
+        return
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    def pc_to_int(pc_str):
+        if pc_str is None:
+            return None
+        s = str(pc_str).strip()
+        try:
+            return int(s, 0)
+        except:
+            m = re.search(r"(0x[0-9a-fA-F]+)", s)
+            if m:
+                return int(m.group(1), 16)
+        return None
+
+    def map_key_by_range_and_groups(fw, module, pc_str):
+        raw = (fw, module, pc_str, None)
+        pc_int = pc_to_int(pc_str)
+        for fw_key, modmap in PC_RANGES.items():
+            if fw_key.lower() != fw.lower() and fw_key not in fw and fw not in fw_key:
+                continue
+            ranges = modmap.get(module) or modmap.get(module.lower())
+            if not ranges:
+                continue
+            if pc_int is None:
+                pc_int = pc_to_int(pc_str)
+                if pc_int is None:
+                    continue
+            for fun_name, tpl in ranges.items():
+                if len(tpl) == 3:
+                    start, end, category = tpl
+                else:
+                    start, end = tpl
+                    category = None
+                try:
+                    s = int(start)
+                    e = int(end)
+                except:
+                    continue
+                if s <= pc_int <= e:
+                    return (fw, module, fun_name, category)
+        return raw
+
+    agg_raw = build_agg_from_extracted(extracted_root=extracted_root, verbose=False)
+
+    def should_skip(fw, method, module):
+        return (fw, method, module) in SKIP_MODULES or (fw, "any", module) in SKIP_MODULES
+
+    agg = defaultdict(lambda: defaultdict(dict))
+    for (fw, module, pc_key), method_dict in agg_raw.items():
+        mapped_key = map_key_by_range_and_groups(fw, module, pc_key)
+        for method_name, exp_map in method_dict.items():
+            if should_skip(fw, method_name, module):
+                continue
+            for exp, d in exp_map.items():
+                tte = d["tte"]
+                taint = d["taint"]
+                prev = agg[mapped_key][method_name].get(exp)
+                if prev is None:
+                    agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint}
+                elif prev is not None and tte is not None:
+                    if (tte < prev["tte"]):
+                        agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint}
+
+    bug_instances = defaultdict(list)
+
+    for bug_key, method_dict in agg.items():
+        fw, module, func_or_pc, category = bug_key
+
+        for method_name, exp_dict in method_dict.items():
+            for exp, data in exp_dict.items():
+                tte = data.get("tte")
+                taint = data.get("taint")
+
+                exp_path = os.path.join(extracted_root, fw, method_name, exp)
+                if not os.path.isdir(exp_path):
+                    continue
+
+                traces_dir = os.path.join(exp_path, "crash_traces")
+                if not os.path.isdir(traces_dir):
+                    continue
+
+                best_trace = None
+                best_tte_match = None
+                for trace_file in os.listdir(traces_dir):
+                    trace_path = os.path.join(traces_dir, trace_file)
+                    if not os.path.isfile(trace_path):
+                        continue
+
+                    pc, trace_module = _parse_first_frame_pc_module(trace_path)
+                    if pc is None or trace_module is None:
+                        continue
+                    if trace_module != module:
+                        continue
+
+                    trace_mapped_key = map_key_by_range_and_groups(fw, trace_module, pc)
+                    if trace_mapped_key != bug_key:
+                        continue
+
+                    trace_tte = None
+                    if "$" in trace_file:
+                        try:
+                            tte_str = trace_file.split("$")[-1]
+                            trace_tte = int(tte_str)
+                        except:
+                            pass
+
+                    if tte is not None and trace_tte is not None:
+                        if best_trace is None or abs(trace_tte - tte) < abs(best_tte_match - tte):
+                            best_trace = trace_path
+                            best_tte_match = trace_tte
+
+                if best_trace is None:
+                    continue
+
+                bug_instances[bug_key].append({
+                    "firmware": fw,
+                    "module": module,
+                    "function": func_or_pc,
+                    "category": category,
+                    "mode": method_name,
+                    "exp": exp,
+                    "exp_path": exp_path,
+                    "trace_file": os.path.basename(best_trace),
+                    "trace_path": best_trace,
+                    "tte": tte,
+                    "taint": taint,
+                })
+
+    if verbose:
+        print(f"[INFO] Found {len(bug_instances)} unique bugs (matching out2.csv)")
+
+    selected_count = 0
+    for bug_key, instances in sorted(bug_instances.items()):
+        firmware, module, func, category = bug_key
+
+        selected = None
+        if selection_mode == "fastest_tte":
+            instances_with_tte = [i for i in instances if i["tte"] is not None]
+            if instances_with_tte:
+                selected = min(instances_with_tte, key=lambda x: x["tte"])
+            else:
+                selected = instances[0]
+        elif selection_mode == "first":
+            selected = sorted(instances, key=lambda x: (x["mode"], x["exp"], x["trace_file"]))[0]
+        elif selection_mode == "best_taint":
+            instances_with_taint = [i for i in instances if i["taint"] is not None]
+            if instances_with_taint:
+                selected = max(instances_with_taint, key=lambda x: x["taint"])
+            else:
+                selected = instances[0]
+        else:
+            selected = instances[0]
+
+        bug_output_dir = os.path.join(output_dir, firmware, module)
+        os.makedirs(bug_output_dir, exist_ok=True)
+
+        safe_func_name = str(func).replace("/", "_").replace(":", "_")
+        dest_trace = os.path.join(bug_output_dir, f"{safe_func_name}_{selected['mode']}_{selected['exp']}")
+
+        shutil.copy2(selected["trace_path"], dest_trace)
+
+        crashes_dir = os.path.join(selected["exp_path"], "crashes")
+        if os.path.isdir(crashes_dir):
+            crash_id = extract_crash_id(selected["trace_file"])
+            if crash_id:
+                for crash_file in os.listdir(crashes_dir):
+                    if extract_crash_id(crash_file) == crash_id:
+                        crash_path = os.path.join(crashes_dir, crash_file)
+                        dest_crash_dir = os.path.join(bug_output_dir, "crashes")
+                        os.makedirs(dest_crash_dir, exist_ok=True)
+                        dest_crash = os.path.join(dest_crash_dir, f"{safe_func_name}_{selected['mode']}_{selected['exp']}")
+                        shutil.copy2(crash_path, dest_crash)
+                        break
+
+        selected_count += 1
+
+        if verbose:
+            tte_str = f"{selected['tte']:.1f}s" if selected['tte'] else "N/A"
+            taint_str = f"{selected['taint']:.3f}" if selected['taint'] else "N/A"
+            print(f"[{firmware}/{module}/{func}] Selected {selected['mode']}/{selected['exp']} "
+                  f"(TTE={tte_str}, taint={taint_str}) from {len(instances)} instances")
+
+    if verbose:
+        print(f"\n[DONE] Exported {selected_count} unique bugs to: {output_dir}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Copy crashes from experiments_dir to extracted_root, then annotate files with $<tte> based on plot_data/fuzzer_stats."
@@ -1454,6 +1692,15 @@ if __name__ == "__main__":
                         help="CSV file containing PC ranges / function mapping (default: crashes.csv)")
     parser.add_argument("--pc-ranges-py", default="pc_ranges_generated.py",
                         help="Output Python file to write PC_RANGES literal to (default: pc_ranges_generated.py)")
+    parser.add_argument("--export-one-per-bug", action="store_true",
+                        help="Export one representative instance per unique bug")
+    parser.add_argument("--export-selection", default="fastest_tte",
+                        choices=["fastest_tte", "first", "best_taint"],
+                        help="How to select representative instance for each bug (default: fastest_tte)")
+    parser.add_argument("--show-exp-count", action="store_true",
+                        help="Add columns showing the number of experiments per (firmware, tool) pair in Table 1")
+    parser.add_argument("--include-zero-crashes", action="store_true",
+                        help="Include (firmware, tool) pairs in Table 1 even when no bugs were found")
 
     args = parser.parse_args()
     verbose = not args.quiet
@@ -1489,7 +1736,10 @@ if __name__ == "__main__":
         out1_csv="out1.csv", out1_tex="out1.tex",
         out2_csv="out2.csv", out2_tex="out2.tex",
         out3_csv="out3.csv", out3_tex="out3.tex",
-        verbose=True
+        verbose=True,
+        show_exp_count=args.show_exp_count,
+        experiments_dir=args.experiments_dir,
+        include_zero_crashes=args.include_zero_crashes
     )
 
     build_detection_efficiency_table(
@@ -1500,5 +1750,13 @@ if __name__ == "__main__":
         out_tex="out4.tex",
         verbose=not args.quiet
     )
+
+    if args.export_one_per_bug:
+        export_one_exp_per_bug(
+            extracted_root=args.extracted_root,
+            output_dir="one_exp_per_bug",
+            selection_mode=args.export_selection,
+            verbose=verbose
+        )
 
     chmod_recursive(args.extracted_root, 0o777)

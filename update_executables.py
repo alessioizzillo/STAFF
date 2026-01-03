@@ -32,6 +32,8 @@ def process_mode(current_mode):
         with open(arch_file, "r") as file:
             firm_architecture = file.readline().strip()
 
+        # print(f"arch: {arch_file} {firm_architecture}")
+
         target_dir = os.path.join(firm_dir, name)
 
         afl_fuzz_path = "aflnet/afl-fuzz" if "aflnet" in current_mode or "staff" in current_mode else "AFL/afl-fuzz"

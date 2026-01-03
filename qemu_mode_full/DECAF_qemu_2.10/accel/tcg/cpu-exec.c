@@ -2327,8 +2327,8 @@ target_ulong ori_a3;
 //#define SHOW_SYSCALL
 
 void taint_sigint_handler_parent(int signum) {
-    if ((debug || debug_taint || debug_fuzz) && target_region != -1 && target_offset != -1 && target_len != -1) {
-        FILE *fp = fopen("debug/mem_ops_count.log", "a+");
+    if (mem_ops_count_enable) {
+        FILE *fp = fopen("mem_ops_count.log", "a+");
         fprintf(fp, "%d,%d\n", mem_ops_count, taint_mem_ops_count);
         fclose(fp);
     }

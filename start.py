@@ -20,7 +20,21 @@ import tarfile
 from FirmAE.sources.extractor.extractor import Extractor
 from typing import Dict, Optional, Tuple, List
 import bisect
+import sys
+from itertools import groupby
+from datetime import datetime
 
+SKIP_MODULES = {("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
+                ("dap2310_v1.00_o772.bin", "any", "ethlink"), ("dap2310_v1.00_o772.bin", "any", "aparraymsg"),
+                ("dir300_v1.03_7c.bin", "any", "ethlink"), ("dir300_v1.03_7c.bin", "any", "aparraymsg"), 
+                ("FW_RT_N10U_B1_30043763754.zip", "any", "u2ec"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "any", "potcounter"),
+                ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "any", "busybox"), ("FW_RE1000_1.0.02.001_US_20120214_SHIPPING.bin", "any", "upnp"),
+                ("FW_WRT320N_1.0.05.002_20110331.bin", "any", "upnp"), ("TL-WPA8630_US__V2_171011.zip", "any", "wifiSched"),
+                ("JNR3210_Firmware_Version_1.1.0.14.zip", "any", "busybox"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "any", "unknown"),
+                ("FW_RT_N53_30043763754.zip", "any", "rc"), ("FW_TV-IP651WI_V1_1.07.01.zip", "aflnet_base", "alphapd"),
+                ("FW_TV-IP651WI_V1_1.07.01.zip", "aflnet_state_aware", "alphapd"), ("JNR3210_Firmware_Version_1.1.0.14.zip", "any", "rc"),
+                ("dir300_v1.03_7c.bin", "triforce", "xmldb"), ("TL-WPA8630_US__V2_171011.zip", "triforce", "ledschd"), 
+                ("DGN3500-V1.1.00.30_NA.zip", "triforce", "setup.cgi"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "triforce", "setup.cgi")}
 
 patterns = [
     "FirmAE/scratch/staff*",
@@ -84,6 +98,12 @@ DEFAULT_CONFIG = {
     "EXTRA_FUZZING": {
         "coverage_tracing": ("taint_block", str),
         "stage_max": (1, int)
+    },
+    "TEST": {
+        "seed_input": ("", str),
+        "port": (80, int),
+        "timeout": (2000, int),
+        "process_name": ("", str)
     }
 }
 
@@ -98,12 +118,40 @@ CONFIG_INI_PATH=os.path.join(STAFF_DIR, "config.ini")
 SCHEDULE_CSV_PATH_0=os.path.join(STAFF_DIR, "schedule_0.csv")
 SCHEDULE_CSV_PATH_1=os.path.join(STAFF_DIR, "schedule_1.csv")
 EXP_DONE_PATH=os.path.join(STAFF_DIR, "experiments_done")
-PRE_ANALYSIS_EXP_DIR=os.path.join(STAFF_DIR, "pre_analysis_exp")
+PRE_ANALYSIS_EXP_DIR=os.path.join(STAFF_DIR, "pre_analysis_exp5_new")
 CRASH_ANALYSIS_LOG=os.path.join(STAFF_DIR, "crash_analysis.log")
 
 captured_pcap_path = None
 PSQL_IP = None
 config = None
+
+def find_firmware_with_brand(firmware_name):
+    """
+    Find the full path of a firmware including its brand subdirectory.
+    If firmware_name already contains a subdirectory (e.g., "netgear/firmware.zip"), return as-is.
+    Otherwise, search in all brand subdirectories.
+
+    Args:
+        firmware_name: Either "firmware.zip" or "brand/firmware.zip"
+
+    Returns:
+        Full path like "brand/firmware.zip", or None if not found
+    """
+    # If firmware_name already has a directory component, return it
+    if os.path.dirname(firmware_name):
+        return firmware_name
+
+    # Search for firmware in all brand subdirectories
+    for brand in os.listdir(FIRMWARE_DIR):
+        brand_path = os.path.join(FIRMWARE_DIR, brand)
+        if not os.path.isdir(brand_path):
+            continue
+
+        firmware_path = os.path.join(brand_path, firmware_name)
+        if os.path.exists(firmware_path):
+            return os.path.join(brand, firmware_name)
+
+    return None
 
 def set_permissions_recursive(dir_path):
     for root, dirs, files in os.walk(dir_path):
@@ -358,25 +406,131 @@ def copy_image(dst_mode, firmware):
 
     return True
 
-def check_firmware(firmware, mode):
+def check_firmware(firmware, mode, log_to_csv=False, csv_path=None):
+    result = {
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'firmware': os.path.basename(firmware),
+        'firmware_path': firmware,
+        'mode': mode,
+        'status': 'success',
+        'iid': '',
+        'error': ''
+    }
+
     iid = ""
-    subprocess.run(["sudo", "-E", "./flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    if not subprocess.run(["sudo", "-E", "./scripts/util.py", "check_connection", "_", PSQL_IP, mode], stdout=subprocess.PIPE).returncode == 0:
+    try:
+        subprocess.run(["sudo", "-E", "./flush_interface.sh"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
         if not subprocess.run(["sudo", "-E", "./scripts/util.py", "check_connection", "_", PSQL_IP, mode], stdout=subprocess.PIPE).returncode == 0:
-            print("[\033[31m-\033[0m] docker container failed to connect to the hosts' postgresql!")
-            exit(1)
+            if not subprocess.run(["sudo", "-E", "./scripts/util.py", "check_connection", "_", PSQL_IP, mode], stdout=subprocess.PIPE).returncode == 0:
+                error_msg = "Docker container failed to connect to PostgreSQL"
+                print(f"[\033[31m-\033[0m] {error_msg}")
+                result['status'] = 'failed'
+                result['error'] = error_msg
 
-    iid = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_iid", firmware, PSQL_IP, mode]).decode('utf-8').strip()
+                if log_to_csv and csv_path:
+                    _write_check_result_to_csv(csv_path, result)
+                if log_to_csv:
+                    return result
+                else:
+                    exit(1)
 
-    if iid == "" or not os.path.exists(os.path.join(FIRMAE_DIR, "scratch", mode, iid)):
-        copy_image(mode, firmware)
+        try:
+            iid = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_iid", firmware, PSQL_IP, mode]).decode('utf-8').strip()
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Failed to get image ID: {e}"
+            result['status'] = 'failed'
+            result['error'] = error_msg
+            if log_to_csv and csv_path:
+                _write_check_result_to_csv(csv_path, result)
+            if log_to_csv:
+                return result
+            else:
+                raise
 
-    print("\033[32m[+]\033[0m\033[32m[+]\033[0m FirmAE: Creating Firmware Scratch Image")
-    subprocess.run(["sudo", "-E", "./run.sh", "-c", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), mode, PSQL_IP])
-    iid = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_iid", firmware, PSQL_IP, mode]).decode('utf-8').strip()
+        if iid == "" or not os.path.exists(os.path.join(FIRMAE_DIR, "scratch", mode, iid)):
+            try:
+                copy_image(mode, firmware)
+            except Exception as e:
+                error_msg = f"Failed to copy image: {e}"
+                result['status'] = 'failed'
+                result['error'] = error_msg
+                if log_to_csv and csv_path:
+                    _write_check_result_to_csv(csv_path, result)
+                if log_to_csv:
+                    return result
+                else:
+                    raise
 
-    return iid
+        print("\033[32m[+]\033[0m\033[32m[+]\033[0m FirmAE: Creating Firmware Scratch Image")
+        try:
+            ret = subprocess.run(["sudo", "-E", "./run.sh", "-c", os.path.basename(os.path.dirname(firmware)),
+                                 os.path.join(FIRMWARE_DIR, firmware), mode, PSQL_IP],
+                                capture_output=True, text=True)
+
+            if ret.returncode != 0:
+                error_msg = f"Image creation failed with return code {ret.returncode}"
+                if ret.stderr:
+                    error_msg += f": {ret.stderr[:200]}"
+                result['status'] = 'failed'
+                result['error'] = error_msg
+                if log_to_csv and csv_path:
+                    _write_check_result_to_csv(csv_path, result)
+                if log_to_csv:
+                    return result
+
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Image creation subprocess failed: {e}"
+            result['status'] = 'failed'
+            result['error'] = error_msg
+            if log_to_csv and csv_path:
+                _write_check_result_to_csv(csv_path, result)
+            if log_to_csv:
+                return result
+            else:
+                raise
+
+        try:
+            iid = subprocess.check_output(["sudo", "-E", "./scripts/util.py", "get_iid", firmware, PSQL_IP, mode]).decode('utf-8').strip()
+            result['iid'] = iid
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Failed to get final image ID: {e}"
+            result['status'] = 'failed'
+            result['error'] = error_msg
+            if log_to_csv and csv_path:
+                _write_check_result_to_csv(csv_path, result)
+            if log_to_csv:
+                return result
+            else:
+                raise
+
+        if log_to_csv and csv_path:
+            _write_check_result_to_csv(csv_path, result)
+
+    except Exception as e:
+        error_msg = f"Unexpected error: {str(e)}"
+        result['status'] = 'failed'
+        result['error'] = error_msg
+        if log_to_csv and csv_path:
+            _write_check_result_to_csv(csv_path, result)
+        if log_to_csv:
+            return result
+        else:
+            raise
+
+    if log_to_csv:
+        return result
+    else:
+        return iid
+
+def _write_check_result_to_csv(csv_path, result):
+    fieldnames = ['timestamp', 'firmware', 'firmware_path', 'mode', 'status', 'iid', 'error']
+
+    with open(csv_path, 'a', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writerow(result)
+        csvfile.flush()
 
 def search_recursive(directory):
     for root, _, files in os.walk(directory):
@@ -384,11 +538,24 @@ def search_recursive(directory):
             if any(filename.endswith(extension) for extension in ('.zip', '.tar.gz', '.ZIP')):
                 yield os.path.abspath(os.path.join(root, filename))
 
-def check(mode):
+def check(mode, enable_csv_logging=True):
     global config
 
+    csv_path = None
+    if enable_csv_logging:
+        csv_path = os.path.join(STAFF_DIR, "check_mode_results.csv")
+        fieldnames = ['timestamp', 'firmware', 'firmware_path', 'mode', 'status', 'iid', 'error']
+
+        if not os.path.exists(csv_path):
+            with open(csv_path, 'w', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+            print(f"[\033[32m✓\033[0m] CSV logging initialized (new file): {csv_path}\n")
+        else:
+            print(f"[\033[32m✓\033[0m] CSV logging enabled (append mode): {csv_path}\n")
+
     if config["GENERAL"]["firmware"] != "all":
-        return check_firmware(config["GENERAL"]["firmware"], mode)
+        return check_firmware(config["GENERAL"]["firmware"], mode, log_to_csv=enable_csv_logging, csv_path=csv_path)
     else:
         main_files = []
         subdir_files = []
@@ -414,12 +581,38 @@ def check(mode):
 
         max_files = max(len(files) for files in subdir_groups.values())
 
+        total_checked = 0
+        total_success = 0
+        total_failed = 0
+
         for i in range(max_files):
             for subdir in subdirs:
                 if i < len(subdir_groups[subdir]):
                     file = subdir_groups[subdir][i]
                     print("Checking %s" % file)
-                    check_firmware(file, mode)
+                    total_checked += 1
+
+                    result = check_firmware(file, mode, log_to_csv=enable_csv_logging, csv_path=csv_path)
+
+                    if enable_csv_logging and isinstance(result, dict):
+                        if result['status'] == 'success':
+                            total_success += 1
+                            print(f"  [\033[32m✓\033[0m] Success - IID: {result['iid']}")
+                        else:
+                            total_failed += 1
+                            print(f"  [\033[31m✗\033[0m] Failed: {result['error']}")
+                    else:
+                        total_success += 1
+
+        if enable_csv_logging:
+            print(f"\n{'='*60}")
+            print(f"[\033[32m+\033[0m] CHECK MODE SUMMARY")
+            print(f"{'='*60}")
+            print(f"Total firmwares checked: {total_checked}")
+            print(f"Successful: {total_success}")
+            print(f"Failed: {total_failed}")
+            print(f"Results appended to: {csv_path}")
+            print(f"{'='*60}\n")
 
         return 0
 
@@ -467,11 +660,43 @@ def load_config(file_path="config.ini"):
 
     return final_config
 
+def send_seed_to_firmware(firmware_name, seed_path, port=80, timeout=2000, work_dir=None):
+    global config
+
+    if work_dir is None:
+        iid = str(check("run"))
+        work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+
+    with open(os.path.join(work_dir, "time_web"), 'r') as file:
+        sleep_time = file.read().strip()
+    sleep_time = int(float(sleep_time))
+
+    process = subprocess.Popen(
+        ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware_name)),
+         os.path.join(FIRMWARE_DIR, firmware_name), "run", PSQL_IP],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+    qemu_pid = process.pid
+
+    print(f"Booting firmware, wait {sleep_time} seconds...")
+    time.sleep(sleep_time)
+
+    with open(os.path.join(work_dir, "ip"), 'r') as f:
+        target_ip = f.read().strip()
+
+    command = ["sudo", "-E", os.path.join(STAFF_DIR, "aflnet", "client"),
+               seed_path, target_ip, str(port), str(timeout), "50"]
+    print(" ".join(command))
+    subprocess.run(command)
+
+    return qemu_pid
+
 def replay_firmware(firmware, work_dir, crash_analysis=False, crash_seed=None, target_procname=None):
     global config
 
     os.environ["EXEC_MODE"] = "RUN"
-    os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')    
+    os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')
     os.environ["INCLUDE_LIBRARIES"] = str(config["EMULATION_TRACING"]["include_libraries"])
 
     if crash_analysis:
@@ -493,20 +718,9 @@ def replay_firmware(firmware, work_dir, crash_analysis=False, crash_seed=None, t
     if (crash_analysis):
         print(f"\n[\033[32m+\033[0m] Crash mode (seed: {crash_seed})")
 
-        seed_path = crash_seed
-        process = subprocess.Popen(
-            ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware)), os.path.join(FIRMWARE_DIR, firmware), "run", PSQL_IP],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-        qemu_pid = process.pid
-        print("Booting firmware, wait %d seconds..."%(sleep))
-        time.sleep(sleep)
-
-        port = 80
-        command = ["sudo", "-E", os.path.join(STAFF_DIR, "aflnet", "client"), seed_path, open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(config["GENERAL_FUZZING"]["timeout"]), "50"]    
-        print(" ".join(command))
-        subprocess.run(command)
+        qemu_pid = send_seed_to_firmware(firmware, crash_seed, port=80,
+                                         timeout=config["GENERAL_FUZZING"]["timeout"],
+                                         work_dir=work_dir)
 
         send_signal_recursive(qemu_pid, signal.SIGINT)
     else:
@@ -590,6 +804,914 @@ def replay():
 
                 if "true" in open(os.path.join(work_dir, "web_check")).read():
                     replay_firmware(os.path.join(os.path.basename(brand), os.path.basename(device)), work_dir)
+
+def replay_with_mem_counting(output_csv="mem_ops_replay_results.csv", firmware_filter=None):
+    global config
+
+    if not os.path.isabs(output_csv):
+        output_csv = os.path.join(STAFF_DIR, output_csv)
+
+    results = []
+    total_firmwares = 0
+    total_pcaps = 0
+
+    os.environ["EXEC_MODE"] = "RUN"
+    os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')
+    os.environ["INCLUDE_LIBRARIES"] = str(config["EMULATION_TRACING"]["include_libraries"])
+    os.environ["MEM_OPS"] = "1"
+    os.environ["TAINT"] = "1"
+
+    print(f"\n[\033[32m+\033[0m] Replay mode with memory operations counting")
+    print(f"Output CSV: {output_csv}")
+    print("="*60)
+
+    csv_fieldnames = ['firmware', 'protocol', 'pcap', 'total_requests',
+                     'total_mem_ops', 'total_taint_mem_ops',
+                     'total_reduction_pct', 'avg_reduction_pct', 'median_reduction_pct',
+                     'min_reduction_pct', 'max_reduction_pct', 'stddev_reduction_pct', 'error']
+
+    with open(output_csv, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=csv_fieldnames)
+        writer.writeheader()
+
+    print(f"[\033[32m✓\033[0m] CSV file initialized: {output_csv}\n")
+
+    if firmware_filter and firmware_filter != "all":
+        firmware_list = [firmware_filter]
+    else:
+        firmware_list = []
+        for brand in os.listdir(PCAP_DIR):
+            brand_path = os.path.join(PCAP_DIR, brand)
+            if os.path.isdir(brand_path):
+                for device in os.listdir(brand_path):
+                    device_path = os.path.join(brand_path, device)
+                    if os.path.isdir(device_path):
+                        firmware_list.append(os.path.join(brand, device))
+
+    for firmware in sorted(firmware_list):
+        print(f"\n{'='*60}")
+        print(f"[\033[33m*\033[0m] Processing firmware: {firmware}")
+        print(f"{'='*60}")
+
+        try:
+            iid = str(check_firmware(firmware, "run"))
+        except Exception as e:
+            print(f"[\033[31mERROR\033[0m] Failed to check firmware {firmware}: {e}")
+            continue
+
+        work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+
+        web_check_file = os.path.join(work_dir, "web_check")
+        if not os.path.exists(web_check_file):
+            print(f"[\033[31m!\033[0m] Skipping {firmware}: web_check file not found")
+            continue
+
+        with open(web_check_file, 'r') as f:
+            if "true" not in f.read():
+                print(f"[\033[31m!\033[0m] Skipping {firmware}: web service not enabled")
+                continue
+
+        total_firmwares += 1
+        pcap_dir = os.path.join(PCAP_DIR, firmware)
+
+        if not os.path.isdir(pcap_dir):
+            print(f"[\033[31m!\033[0m] PCAP directory not found: {pcap_dir}")
+            continue
+
+        with open(os.path.join(work_dir, "time_web"), 'r') as f:
+            sleep_time = int(float(f.read().strip()))
+
+        for proto in sorted(os.listdir(pcap_dir)):
+            proto_path = os.path.join(pcap_dir, proto)
+            if not os.path.isdir(proto_path):
+                continue
+
+            print(f"\n[\033[34m→\033[0m] Protocol: {proto}")
+
+            for pcap_file in sorted(os.listdir(proto_path)):
+                pcap_path = os.path.join(proto_path, pcap_file)
+                if not os.path.isfile(pcap_path):
+                    continue
+
+                print(f"  [\033[36m•\033[0m] PCAP: {pcap_file}")
+                total_pcaps += 1
+
+                seed_path = os.path.join(work_dir, "inputs", f"{pcap_file}.seed")
+                try:
+                    convert_pcap_into_single_seed_file(pcap_path, seed_path,
+                                                       config["AFLNET_FUZZING"]["region_delimiter"])
+                except Exception as e:
+                    print(f"    [\033[31m✗\033[0m] Failed to convert PCAP: {e}")
+                    error_row = {
+                        'firmware': firmware,
+                        'protocol': proto,
+                        'pcap': pcap_file,
+                        'total_requests': 'ERROR',
+                        'total_mem_ops': 'ERROR',
+                        'total_taint_mem_ops': 'ERROR',
+                        'total_reduction_pct': 'ERROR',
+                        'avg_reduction_pct': 'ERROR',
+                        'median_reduction_pct': 'ERROR',
+                        'min_reduction_pct': 'ERROR',
+                        'max_reduction_pct': 'ERROR',
+                        'stddev_reduction_pct': 'ERROR',
+                        'error': str(e)
+                    }
+                    results.append(error_row)
+
+                    with open(output_csv, 'a', newline='') as csvfile:
+                        writer = csv.DictWriter(csvfile, fieldnames=csv_fieldnames)
+                        writer.writerow(error_row)
+                        csvfile.flush()
+
+                    print(f"    [\033[36m→\033[0m] Error written to CSV")
+                    continue
+
+                mem_ops_log = os.path.join(work_dir, "mem_ops_count.log")
+                if os.path.exists(mem_ops_log):
+                    os.remove(mem_ops_log)
+
+                process = subprocess.Popen(
+                    ["sudo", "-E", "./run.sh", "-r",
+                     os.path.basename(os.path.dirname(firmware)),
+                     os.path.join(FIRMWARE_DIR, firmware), "run", PSQL_IP],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                qemu_pid = process.pid
+
+                print(f"    Booting firmware, waiting {sleep_time} seconds...")
+                time.sleep(sleep_time)
+
+                port = None
+                try:
+                    port = socket.getservbyname(proto)
+                    print(f"The port for {proto.upper()} is {port}.")
+                except OSError:
+                    print(f"Protocol {proto.upper()} not found.")
+                command = ["sudo", "-E", os.path.join(STAFF_DIR, "aflnet", "client"), seed_path, open(os.path.join(work_dir, "ip")).read().strip(), str(port), str(config["GENERAL_FUZZING"]["timeout"])]    
+                print(" ".join(command))
+                subprocess.run(command)
+
+                send_signal_recursive(qemu_pid, signal.SIGINT)
+                try:
+                    os.waitpid(qemu_pid, 0)
+                except:
+                    pass
+                time.sleep(2)
+
+                total_mem_ops = 0
+                total_taint_mem_ops = 0
+                total_requests = 0
+                reduction_percentages = []
+                error_msg = None
+
+                print(f"{mem_ops_log}")
+                if os.path.exists(mem_ops_log):
+                    try:
+                        with open(mem_ops_log, 'r') as f:
+                            lines = f.readlines()
+                            if lines:
+                                for line in lines:
+                                    line = line.strip()
+                                    if not line:
+                                        continue
+                                    parts = line.split(',')
+                                    if len(parts) >= 2:
+                                        try:
+                                            mem_ops = int(parts[0])
+                                            taint_mem_ops = int(parts[1])
+                                            total_mem_ops += mem_ops
+                                            total_taint_mem_ops += taint_mem_ops
+                                            total_requests += 1
+
+                                            if mem_ops > 0:
+                                                reduction_pct = ((mem_ops - taint_mem_ops) / mem_ops) * 100
+                                                reduction_percentages.append(reduction_pct)
+                                        except (ValueError, ZeroDivisionError):
+                                            continue
+
+                                if total_requests > 0 and total_mem_ops > 0:
+                                    total_reduction_pct = ((total_mem_ops - total_taint_mem_ops) / total_mem_ops) * 100
+                                    avg_reduction_pct = sum(reduction_percentages) / len(reduction_percentages) if reduction_percentages else 0
+
+                                    sorted_reductions = sorted(reduction_percentages)
+                                    n = len(sorted_reductions)
+                                    if n > 0:
+                                        if n % 2 == 0:
+                                            median_reduction_pct = (sorted_reductions[n//2-1] + sorted_reductions[n//2]) / 2
+                                        else:
+                                            median_reduction_pct = sorted_reductions[n//2]
+                                    else:
+                                        median_reduction_pct = 0
+
+                                    min_reduction_pct = min(reduction_percentages) if reduction_percentages else 0
+                                    max_reduction_pct = max(reduction_percentages) if reduction_percentages else 0
+
+                                    if len(reduction_percentages) > 1:
+                                        mean = avg_reduction_pct
+                                        variance = sum((x - mean) ** 2 for x in reduction_percentages) / len(reduction_percentages)
+                                        stddev_reduction_pct = variance ** 0.5
+                                    else:
+                                        stddev_reduction_pct = 0
+
+                                    print(f"    [\033[32m✓\033[0m] Requests: {total_requests}, Total mem_ops: {total_mem_ops}, taint: {total_taint_mem_ops}")
+                                    print(f"    [\033[32m→\033[0m] Total reduction: {total_reduction_pct:.2f}%, Avg: {avg_reduction_pct:.2f}%, Median: {median_reduction_pct:.2f}%")
+                                else:
+                                    error_msg = "No valid data in log"
+                                    print(f"    [\033[31m✗\033[0m] No valid data")
+                            else:
+                                error_msg = "Empty log file"
+                                print(f"    [\033[31m✗\033[0m] Empty log file")
+                    except Exception as e:
+                        error_msg = f"Failed to read log: {e}"
+                        print(f"    [\033[31m✗\033[0m] {error_msg}")
+                else:
+                    error_msg = "mem_ops_count.log not created"
+                    print(f"    [\033[31m✗\033[0m] Log file not created")
+
+                result_row = {
+                    'firmware': firmware,
+                    'protocol': proto,
+                    'pcap': pcap_file,
+                    'total_requests': total_requests if not error_msg else 'ERROR',
+                    'total_mem_ops': total_mem_ops if not error_msg else 'ERROR',
+                    'total_taint_mem_ops': total_taint_mem_ops if not error_msg else 'ERROR',
+                    'total_reduction_pct': f"{total_reduction_pct:.2f}" if not error_msg and total_requests > 0 else 'ERROR',
+                    'avg_reduction_pct': f"{avg_reduction_pct:.2f}" if not error_msg and total_requests > 0 else 'ERROR',
+                    'median_reduction_pct': f"{median_reduction_pct:.2f}" if not error_msg and total_requests > 0 else 'ERROR',
+                    'min_reduction_pct': f"{min_reduction_pct:.2f}" if not error_msg and total_requests > 0 else 'ERROR',
+                    'max_reduction_pct': f"{max_reduction_pct:.2f}" if not error_msg and total_requests > 0 else 'ERROR',
+                    'stddev_reduction_pct': f"{stddev_reduction_pct:.2f}" if not error_msg and total_requests > 0 else 'ERROR',
+                    'error': error_msg or ''
+                }
+
+                results.append(result_row)
+
+                with open(output_csv, 'a', newline='') as csvfile:
+                    writer = csv.DictWriter(csvfile, fieldnames=csv_fieldnames)
+                    writer.writerow(result_row)
+                    csvfile.flush()
+
+                print(f"    [\033[36m→\033[0m] Result written to CSV")
+
+    print(f"\n\n{'='*60}")
+    print(f"[\033[32m+\033[0m] REPLAY WITH MEMORY COUNTING COMPLETE")
+    print(f"{'='*60}")
+
+    print(f"\nTotal firmwares processed: {total_firmwares}")
+    print(f"Total PCAPs processed: {total_pcaps}")
+
+    valid_results = [r for r in results if r.get('error') == '']
+    if valid_results:
+        total_all_mem_ops = sum(int(r['total_mem_ops']) for r in valid_results if r['total_mem_ops'] != 'ERROR')
+        total_all_taint_mem_ops = sum(int(r['total_taint_mem_ops']) for r in valid_results if r['total_taint_mem_ops'] != 'ERROR')
+
+        if total_all_mem_ops > 0:
+            overall_reduction_pct = ((total_all_mem_ops - total_all_taint_mem_ops) / total_all_mem_ops) * 100
+            print(f"\n[\033[32m+\033[0m] Overall Taint Analysis Effectiveness:")
+            print(f"  Total memory operations: {total_all_mem_ops:,}")
+            print(f"  Tainted memory operations: {total_all_taint_mem_ops:,}")
+            print(f"  Overall reduction: {overall_reduction_pct:.2f}%")
+
+            pcap_reductions = [float(r['total_reduction_pct']) for r in valid_results if r['total_reduction_pct'] != 'ERROR']
+            if pcap_reductions:
+                avg_pcap_reduction = sum(pcap_reductions) / len(pcap_reductions)
+                print(f"  Average per-PCAP reduction: {avg_pcap_reduction:.2f}%")
+
+    print(f"\nResults written to: {output_csv}")
+    print(f"{'='*60}\n")
+
+def check_crash_in_log(work_dir, process_name=None, crash_patterns=None):
+    if crash_patterns is None:
+        crash_patterns = [
+            "sending SIGSEGV to",
+        ]
+
+    log_file = os.path.join(work_dir, "qemu.final.serial.log")
+
+    if not os.path.exists(log_file):
+        return False, None
+
+    for pattern in crash_patterns:
+        if process_name:
+            full_pattern = f"{pattern} {process_name}"
+        else:
+            full_pattern = pattern
+
+        result = subprocess.run(
+            ["grep", "-q", full_pattern, log_file],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        if result.returncode == 0:
+            return True, full_pattern
+
+    return False, None
+
+def send_seed_region_by_region(firmware_name, seed_path, port=80, timeout=2000,
+                                work_dir=None, check_crashes=True,
+                                output_minimized=None, process_name=None):
+    global config
+
+    if work_dir is None:
+        iid = str(check("run"))
+        work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
+
+    # Check if firmware has web service enabled
+    web_check_file = os.path.join(work_dir, "web_check")
+    if not os.path.exists(web_check_file):
+        raise RuntimeError(f"Firmware analysis incomplete: web_check file not found. The firmware may have failed during FirmAE extraction/analysis.")
+
+    with open(web_check_file, 'r') as f:
+        web_check_content = f.read().strip()
+
+    if "true" not in web_check_content:
+        raise RuntimeError(f"Firmware {firmware_name} does not have web service enabled (web_check is FALSE). This firmware cannot be tested via network interface.")
+
+    delimiter = config["AFLNET_FUZZING"]["region_delimiter"]
+    with open(seed_path, 'rb') as f:
+        seed_data = f.read()
+
+    regions = [r for r in seed_data.split(delimiter) if r]
+
+    print(f"[INFO] Parsed {len(regions)} request(s) from seed")
+
+    with open(os.path.join(work_dir, "time_web"), 'r') as file:
+        sleep_time = file.read().strip()
+    sleep_time = int(float(sleep_time))
+
+    process = subprocess.Popen(
+        ["sudo", "-E", "./run.sh", "-r", os.path.basename(os.path.dirname(firmware_name)),
+         os.path.join(FIRMWARE_DIR, firmware_name), "run", PSQL_IP],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+    qemu_pid = process.pid
+
+    print(f"Booting firmware, wait {sleep_time} seconds...")
+    time.sleep(sleep_time)
+
+    with open(os.path.join(work_dir, "ip"), 'r') as f:
+        target_ip = f.read().strip()
+
+    crash_detected = False
+    crash_pattern = None
+    crash_at_request = -1
+
+    for i, region in enumerate(regions):
+        print(f"\n[\033[34m*\033[0m] Sending request {i+1}/{len(regions)}")
+
+        temp_seed = os.path.join(work_dir, f"temp_region_{i}.seed")
+        with open(temp_seed, 'wb') as f:
+            f.write(region)
+
+        command = ["sudo", "-E", os.path.join(STAFF_DIR, "aflnet", "client"),
+                   temp_seed, target_ip, str(port), str(timeout), "50"]
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        if check_crashes:
+            time.sleep(0.5)
+            crash_detected, crash_pattern = check_crash_in_log(work_dir, process_name=process_name)
+
+            if crash_detected:
+                crash_at_request = i
+                print(f"\n[\033[31m!\033[0m] CRASH DETECTED after request {i+1}")
+                print(f"[\033[31m!\033[0m] Pattern matched: {crash_pattern}")
+
+                if output_minimized:
+                    minimized_regions = regions[:i+1]
+                    with open(output_minimized, 'wb') as f:
+                        f.write(delimiter.join(minimized_regions))
+                    print(f"[\033[32m+\033[0m] Seed file overwritten with minimized version")
+                    print(f"[\033[32m+\033[0m] Kept {i+1} request(s), pruned {len(regions) - (i+1)} request(s) after crash")
+
+                break
+
+        if os.path.exists(temp_seed):
+            os.remove(temp_seed)
+
+    if not crash_detected:
+        print(f"\n[\033[32m+\033[0m] No crash detected after {len(regions)} request(s)")
+
+    return {
+        "qemu_pid": qemu_pid,
+        "work_dir": work_dir,
+        "crash_detected": crash_detected,
+        "crash_pattern": crash_pattern,
+        "crash_at_request": crash_at_request,
+        "total_requests": len(regions)
+    }
+
+def minimize_crash_seed(firmware_name, seed_path, port=80, timeout=2000, process_name=None):
+    global config
+
+    print(f"\n[\033[36m*\033[0m] Starting crash seed minimization...")
+
+    delimiter = config["AFLNET_FUZZING"]["region_delimiter"]
+    with open(seed_path, 'rb') as f:
+        seed_data = f.read()
+
+    original_requests = [r for r in seed_data.split(delimiter) if r]
+    original_size = len(seed_data)
+    original_count = len(original_requests)
+
+    if original_count <= 1:
+        print(f"[\033[33m!\033[0m] Seed has only {original_count} request(s), cannot minimize further")
+        return {
+            "original_count": original_count,
+            "minimized_count": original_count,
+            "original_size": original_size,
+            "minimized_size": original_size,
+            "iterations": 0,
+            "removed_requests": []
+        }
+
+    print(f"[\033[90m→\033[0m] Original seed: {original_count} requests, {original_size} bytes")
+
+    current_requests = list(original_requests)
+    removed_indices = []
+    iterations = 0
+
+    i = len(current_requests) - 1
+    while i >= 0:
+        iterations += 1
+
+        test_requests = current_requests[:i] + current_requests[i+1:]
+
+        if len(test_requests) == 0:
+            print(f"[\033[90m→\033[0m] Cannot remove request {i+1}/{len(current_requests)} (would leave empty seed)")
+            i -= 1
+            continue
+
+        print(f"[\033[90m→\033[0m] Testing without request {i+1}/{len(current_requests)}...", end=" ")
+
+        temp_seed_path = seed_path + ".minimize_test"
+        with open(temp_seed_path, 'wb') as f:
+            f.write(delimiter.join(test_requests))
+
+        try:
+            result = send_seed_region_by_region(
+                firmware_name,
+                temp_seed_path,
+                port=port,
+                timeout=timeout,
+                check_crashes=True,
+                output_minimized=None,
+                process_name=process_name
+            )
+
+            send_signal_recursive(result["qemu_pid"], signal.SIGINT)
+            try:
+                os.waitpid(result["qemu_pid"], 0)
+            except:
+                pass
+
+            if result['crash_detected']:
+                print(f"[\033[32m✓\033[0m] Still crashes, removing request {i+1}")
+                current_requests = test_requests
+                removed_indices.append(i)
+            else:
+                print(f"[\033[31m✗\033[0m] No crash, keeping request {i+1}")
+                i -= 1
+
+        except Exception as e:
+            print(f"[\033[31m!\033[0m] Error during test: {e}")
+            i -= 1
+        finally:
+            if os.path.exists(temp_seed_path):
+                os.remove(temp_seed_path)
+
+    minimized_data = delimiter.join(current_requests)
+    minimized_size = len(minimized_data)
+    minimized_count = len(current_requests)
+
+    with open(seed_path, 'wb') as f:
+        f.write(minimized_data)
+
+    reduction_pct = ((original_size - minimized_size) / original_size * 100) if original_size > 0 else 0
+
+    print(f"\n[\033[32m+\033[0m] Minimization complete!")
+    print(f"[\033[90m→\033[0m] Original: {original_count} requests, {original_size} bytes")
+    print(f"[\033[90m→\033[0m] Minimized: {minimized_count} requests, {minimized_size} bytes")
+    print(f"[\033[90m→\033[0m] Reduction: {reduction_pct:.1f}% ({original_count - minimized_count} requests removed)")
+    print(f"[\033[90m→\033[0m] Test iterations: {iterations}")
+
+    return {
+        "original_count": original_count,
+        "minimized_count": minimized_count,
+        "original_size": original_size,
+        "minimized_size": minimized_size,
+        "iterations": iterations,
+        "removed_requests": sorted(removed_indices, reverse=True)
+    }
+
+def test_mode():
+    global config
+
+    firmware = config["GENERAL"]["firmware"]
+    seed_input = config["TEST"]["seed_input"]
+    port = config["TEST"]["port"]
+    timeout = config["TEST"]["timeout"]
+    process_name = config["TEST"]["process_name"] if config["TEST"]["process_name"] else None
+
+    if not seed_input or not os.path.exists(seed_input):
+        print(f"[ERROR] Seed input path not found: {seed_input}")
+        return
+
+    os.environ["EXEC_MODE"] = "RUN"
+    os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')
+    os.environ["INCLUDE_LIBRARIES"] = str(config["EMULATION_TRACING"]["include_libraries"])
+
+    if firmware == "all" and os.path.isdir(seed_input):
+        print(f"\n[\033[32m+\033[0m] Test mode with crash detection (BATCH MODE)")
+        print(f"Directory: {seed_input}")
+        print(f"Port: {port}")
+        print(f"Timeout: {timeout}ms")
+        print(f"Process name: {process_name}")
+        print("="*60)
+
+        test_batch_mode(seed_input, port, timeout, process_name)
+    else:
+        if os.path.isdir(seed_input):
+            print(f"[ERROR] seed_input is a directory but firmware is not 'all'")
+            return
+
+        test_single_seed(firmware, seed_input, port, timeout, process_name)
+
+def test_single_seed(firmware, seed_input, port, timeout, process_name):
+    global config
+
+    firmware_with_brand = find_firmware_with_brand(firmware)
+    if not firmware_with_brand:
+        print(f"\n[\033[31mERROR\033[0m] Could not find firmware {firmware} in any brand subdirectory")
+        print(f"Please specify firmware as 'brand/firmware.zip' or ensure it exists in firmwares directory")
+        return
+
+    print(f"\n[\033[32m+\033[0m] Test mode with crash detection")
+    print(f"Firmware: {firmware}")
+    if firmware != firmware_with_brand:
+        print(f"Full path: {firmware_with_brand}")
+    print(f"Seed: {seed_input}")
+    print(f"Port: {port}")
+    print(f"Timeout: {timeout}ms")
+    if process_name:
+        print(f"Process name: {process_name}")
+
+    original_firmware = config["GENERAL"]["firmware"]
+    config["GENERAL"]["firmware"] = firmware_with_brand
+
+    result = None
+    try:
+        result = send_seed_region_by_region(
+            firmware_with_brand,
+            seed_input,
+            port=port,
+            timeout=timeout,
+            check_crashes=True,
+            output_minimized=seed_input,
+            process_name=process_name
+        )
+    except Exception as e:
+        config["GENERAL"]["firmware"] = original_firmware
+        print(f"\n[\033[31mERROR\033[0m] Failed to test seed: {e}")
+        return
+    finally:
+        config["GENERAL"]["firmware"] = original_firmware
+
+    if result:
+        send_signal_recursive(result["qemu_pid"], signal.SIGINT)
+        try:
+            os.waitpid(result["qemu_pid"], 0)
+        except:
+            pass
+
+        minimization_result = None
+        if result['crash_detected']:
+            config["GENERAL"]["firmware"] = firmware_with_brand
+            try:
+                minimization_result = minimize_crash_seed(
+                    firmware_with_brand,
+                    seed_input,
+                    port=port,
+                    timeout=timeout,
+                    process_name=process_name
+                )
+            finally:
+                config["GENERAL"]["firmware"] = original_firmware
+
+        print("\n" + "="*60)
+        print("[\033[32m+\033[0m] Test Summary")
+        print("="*60)
+        print(f"Total requests in seed: {result['total_requests']}")
+        print(f"Crash detected: {'Yes' if result['crash_detected'] else 'No'}")
+        if result['crash_detected']:
+            print(f"Crash pattern: {result['crash_pattern']}")
+            print(f"Crash at request: {result['crash_at_request'] + 1}")
+            if minimization_result:
+                print(f"Final minimized seed: {minimization_result['minimized_count']} request(s), {minimization_result['minimized_size']} bytes")
+                print(f"Reduction: {minimization_result['original_count'] - minimization_result['minimized_count']} requests removed via delta debugging")
+            print(f"Minimized seed saved to: {seed_input}")
+
+            csv_file_path = os.path.join(os.path.dirname(seed_input), "test_mode_minimization_result.csv")
+            import csv
+            with open(csv_file_path, 'w', newline='') as csvfile:
+                fieldnames = ['firmware', 'seed', 'original_requests', 'crash_at_request',
+                             'minimized_requests', 'reduction', 'minimized_size_bytes']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+                writer.writeheader()
+                writer.writerow({
+                    'firmware': firmware,
+                    'seed': os.path.basename(seed_input),
+                    'original_requests': result['total_requests'],
+                    'crash_at_request': result['crash_at_request'] + 1,
+                    'minimized_requests': minimization_result['minimized_count'] if minimization_result else result['crash_at_request'] + 1,
+                    'reduction': (minimization_result['original_count'] - minimization_result['minimized_count']) if minimization_result else 0,
+                    'minimized_size_bytes': minimization_result['minimized_size'] if minimization_result else 0
+                })
+            print(f"Minimization CSV written to: {csv_file_path}")
+        print("="*60)
+
+def test_batch_mode(base_dir, port, timeout, process_name):
+    sys.path.insert(0, os.path.join(STAFF_DIR, "analysis"))
+    try:
+        from extract_crashes import SKIP_MODULES
+    except ImportError:
+        SKIP_MODULES = set()
+        print("[WARN] Could not import SKIP_MODULES, proceeding without filtering")
+
+    def extract_process_from_crash_pattern(pattern):
+        if not pattern:
+            return None
+        parts = pattern.split("sending SIGSEGV to")
+        if len(parts) > 1:
+            return parts[1].strip()
+        return None
+
+    def should_skip_crash(firmware, crashed_process):
+        return (firmware, "any", crashed_process) in SKIP_MODULES
+
+    total_tested = 0
+    total_crashes_detected = 0
+    total_crashes_valid = 0
+    total_crashes_skipped = 0
+    total_renamed = 0
+
+    results = []
+
+    for firmware_name in sorted(os.listdir(base_dir)):
+        firmware_path = os.path.join(base_dir, firmware_name)
+        if not os.path.isdir(firmware_path):
+            continue
+
+        firmware_with_brand = find_firmware_with_brand(firmware_name)
+        if not firmware_with_brand:
+            print(f"\n[\033[31m!\033[0m] Could not find firmware {firmware_name} in any brand subdirectory")
+            continue
+
+        print(f"\n{'='*60}")
+        print(f"[\033[33m*\033[0m] Processing firmware: {firmware_name}")
+        print(f"[\033[90m→\033[0m] Full path: {firmware_with_brand}")
+        print(f"{'='*60}")
+
+        for module_name in sorted(os.listdir(firmware_path)):
+            module_path = os.path.join(firmware_path, module_name)
+            if not os.path.isdir(module_path):
+                continue
+
+            crashes_dir = os.path.join(module_path, "crashes")
+            if not os.path.isdir(crashes_dir):
+                continue
+
+            print(f"\n[\033[34m*\033[0m] Module: {module_name}")
+
+            for seed_file in sorted(os.listdir(crashes_dir)):
+                seed_path = os.path.join(crashes_dir, seed_file)
+
+                if not os.path.isfile(seed_path):
+                    continue
+                if ".minimized" in seed_file or seed_file.endswith(".txt"):
+                    continue
+
+                print(f"\n  [\033[36m→\033[0m] Testing seed: {seed_file}")
+                total_tested += 1
+
+                original_firmware = config["GENERAL"]["firmware"]
+                config["GENERAL"]["firmware"] = firmware_with_brand
+
+                try:
+                    result = send_seed_region_by_region(
+                        firmware_with_brand,
+                        seed_path,
+                        port=port,
+                        timeout=timeout,
+                        check_crashes=True,
+                        output_minimized=None,
+                        process_name=process_name
+                    )
+
+                    config["GENERAL"]["firmware"] = original_firmware
+
+                    send_signal_recursive(result["qemu_pid"], signal.SIGINT)
+                    try:
+                        os.waitpid(result["qemu_pid"], 0)
+                    except:
+                        pass
+                except Exception as e:
+                    config["GENERAL"]["firmware"] = original_firmware
+                    print(f"  [\033[31m✗\033[0m] Error testing seed: {e}")
+                    results.append({
+                        "firmware": firmware_name,
+                        "module": module_name,
+                        "seed": seed_file,
+                        "crash": False,
+                        "error": str(e),
+                        "total": 0
+                    })
+                    continue
+
+                if result['crash_detected']:
+                    total_crashes_detected += 1
+
+                    crashed_process = extract_process_from_crash_pattern(result['crash_pattern'])
+
+                    if crashed_process and should_skip_crash(firmware_name, crashed_process):
+                        total_crashes_skipped += 1
+                        results.append({
+                            "firmware": firmware_name,
+                            "module": module_name,
+                            "seed": seed_file,
+                            "crash": True,
+                            "skipped": True,
+                            "pattern": result['crash_pattern'],
+                            "crashed_process": crashed_process,
+                            "request": result['crash_at_request'] + 1,
+                            "total": result['total_requests']
+                        })
+                        print(f"  [\033[90m⊗\033[0m] Crash detected but SKIPPED (process '{crashed_process}' in SKIP_MODULES)")
+                    else:
+                        total_crashes_valid += 1
+
+                        delimiter = config["AFLNET_FUZZING"]["region_delimiter"]
+                        with open(seed_path, 'rb') as f:
+                            seed_data = f.read()
+                        regions = [r for r in seed_data.split(delimiter) if r]
+                        minimized_regions = regions[:result['crash_at_request'] + 1]
+
+                        with open(seed_path, 'wb') as f:
+                            f.write(delimiter.join(minimized_regions))
+
+                        config["GENERAL"]["firmware"] = firmware_with_brand
+                        try:
+                            minimization_result = minimize_crash_seed(
+                                firmware_with_brand,
+                                seed_path,
+                                port=port,
+                                timeout=timeout,
+                                process_name=process_name
+                            )
+                        finally:
+                            config["GENERAL"]["firmware"] = original_firmware
+
+                        results.append({
+                            "firmware": firmware_name,
+                            "module": module_name,
+                            "seed": seed_file,
+                            "crash": True,
+                            "skipped": False,
+                            "pattern": result['crash_pattern'],
+                            "crashed_process": crashed_process,
+                            "request": result['crash_at_request'] + 1,
+                            "total": result['total_requests'],
+                            "minimized_count": minimization_result.get('minimized_count', result['crash_at_request'] + 1),
+                            "minimized_size": minimization_result.get('minimized_size', 0)
+                        })
+                        print(f"  [\033[32m✓\033[0m] Crash detected and minimized (process: {crashed_process})")
+                        if minimization_result:
+                            print(f"  [\033[90m→\033[0m] Delta debugging: {minimization_result['original_count']} → {minimization_result['minimized_count']} requests")
+
+                        if crashed_process and crashed_process != module_name:
+                            new_module_path = os.path.join(firmware_path, crashed_process)
+                            if not os.path.exists(new_module_path):
+                                print(f"  [\033[36m↻\033[0m] Renaming module: {module_name} → {crashed_process}")
+                                os.rename(module_path, new_module_path)
+                                module_path = new_module_path
+                                crashes_dir = os.path.join(module_path, "crashes")
+                                module_name = crashed_process
+                                total_renamed += 1
+                else:
+                    results.append({
+                        "firmware": firmware_name,
+                        "module": module_name,
+                        "seed": seed_file,
+                        "crash": False,
+                        "total": result['total_requests']
+                    })
+                    print(f"  [\033[33m○\033[0m] No crash detected")
+
+    total_errors = sum(1 for r in results if r.get('error'))
+
+    log_file_path = os.path.join(base_dir, "test_mode_results.log")
+    with open(log_file_path, 'w') as log_file:
+        log_file.write("="*60 + "\n")
+        log_file.write("BATCH TEST MODE RESULTS\n")
+        log_file.write("="*60 + "\n\n")
+        log_file.write(f"Total seeds evaluated: {total_tested}\n\n")
+
+        results_sorted = sorted(results, key=lambda x: (x['firmware'], x['module'], x['seed']))
+
+        for firmware_name, firmware_results in groupby(results_sorted, key=lambda x: x['firmware']):
+            log_file.write(f"\nFirmware: {firmware_name}\n")
+            firmware_results_list = list(firmware_results)
+
+            for module_name, module_results in groupby(firmware_results_list, key=lambda x: x['module']):
+                log_file.write(f"  Module: {module_name}\n")
+
+                for result in module_results:
+                    log_file.write(f"    Seed: {result['seed']}\n")
+
+                    if result.get('error'):
+                        log_file.write(f"      → Error: {result['error']}\n")
+                    elif result.get('crash'):
+                        if result.get('skipped'):
+                            log_file.write(f"      → Crash detected but SKIPPED (process '{result.get('crashed_process')}' in SKIP_MODULES)\n")
+                        else:
+                            minimized_count = result.get('minimized_count', result.get('request', 'unknown'))
+                            log_file.write(f"      → Crash detected: minimized to {minimized_count} requests\n")
+                    else:
+                        log_file.write(f"      → No crash detected\n")
+
+    csv_file_path = os.path.join(base_dir, "test_mode_minimization_results.csv")
+    with open(csv_file_path, 'w', newline='') as csvfile:
+        fieldnames = ['firmware', 'module', 'seed', 'crashed_process', 'original_requests',
+                     'crash_at_request', 'minimized_requests', 'reduction', 'minimized_size_bytes', 'status']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for result in results:
+            if result.get('crash'):
+                original_requests = result.get('total', 0)
+                crash_at_request = result.get('request', 0)
+                minimized_requests = result.get('minimized_count', crash_at_request)
+                reduction = original_requests - minimized_requests if minimized_requests else 0
+                status = 'skipped' if result.get('skipped') else 'valid'
+
+                writer.writerow({
+                    'firmware': result['firmware'],
+                    'module': result['module'],
+                    'seed': result['seed'],
+                    'crashed_process': result.get('crashed_process', 'unknown'),
+                    'original_requests': original_requests,
+                    'crash_at_request': crash_at_request,
+                    'minimized_requests': minimized_requests,
+                    'reduction': reduction,
+                    'minimized_size_bytes': result.get('minimized_size', 0),
+                    'status': status
+                })
+
+    print(f"\n\n{'='*60}")
+    print(f"[\033[32m+\033[0m] BATCH TEST SUMMARY")
+    print(f"{'='*60}")
+    print(f"Total seeds tested: {total_tested}")
+    print(f"Crashes detected: {total_crashes_detected}")
+    print(f"  - Valid crashes (minimized): {total_crashes_valid}")
+    print(f"  - Skipped crashes (SKIP_MODULES): {total_crashes_skipped}")
+    print(f"No crash detected: {total_tested - total_crashes_detected - total_errors}")
+    print(f"Errors encountered: {total_errors}")
+    print(f"Directories renamed: {total_renamed}")
+    print(f"Results written to: {log_file_path}")
+    print(f"Minimization CSV written to: {csv_file_path}")
+    print(f"{'='*60}")
+
+    if total_crashes_valid > 0:
+        print(f"\n[\033[32m+\033[0m] Valid Crash Details:")
+        for r in results:
+            if r.get('crash') and not r.get('skipped'):
+                print(f"  • {r['firmware']}/{r['module']}/{r['seed']}")
+                print(f"    Process: {r.get('crashed_process', 'unknown')}")
+                print(f"    Pattern: {r['pattern']}")
+                print(f"    Crash at request {r['request']}/{r['total']}")
+                if r.get('minimized_count'):
+                    print(f"    Minimized to: {r['minimized_count']} requests, {r.get('minimized_size', 0)} bytes")
+
+    if total_crashes_skipped > 0:
+        print(f"\n[\033[90m+\033[0m] Skipped Crash Details (SKIP_MODULES):")
+        for r in results:
+            if r.get('crash') and r.get('skipped'):
+                print(f"  • {r['firmware']}/{r['module']}/{r['seed']}")
+                print(f"    Process: {r.get('crashed_process', 'unknown')}")
+                print(f"    Pattern: {r['pattern']}")
+                print(f"    Reason: ({r['firmware']}, 'any', '{r.get('crashed_process')}') in SKIP_MODULES")
+
+    if total_errors > 0:
+        print(f"\n[\033[31m+\033[0m] Error Details:")
+        for r in results:
+            if r.get('error'):
+                print(f"  • {r['firmware']}/{r['module']}/{r['seed']}")
+                print(f"    Error: {r['error']}")
+
+    print(f"\n{'='*60}\n")
 
 def run(capture, crash_analysis, crash_dir=None):
     global config
@@ -1355,6 +2477,19 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
         replay()
         if out_dir:
             update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
+    elif mode == "test":
+        if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
+            os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
+        test_mode()
+        if out_dir:
+            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
+    elif mode == "replay_mem_count":
+        if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
+            os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
+        firmware_filter = config["GENERAL"]["firmware"]
+        replay_with_mem_counting(firmware_filter=firmware_filter)
+        if out_dir:
+            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif mode == "crash_analysis":
         if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
             os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
@@ -1362,9 +2497,22 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
         if out_dir:
             update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif mode == "check":
-        check("run")
-        if out_dir:
-            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
+        wait_file = os.path.join(STAFF_DIR, "wait_for_container_init")
+        pid = os.fork()
+        if pid == 0:
+            try:
+                time.sleep(10)
+                if os.path.exists(wait_file):
+                    os.remove(wait_file)
+                    print(f"[\033[32m✓\033[0m] Removed {wait_file} after 5 seconds")
+            except Exception as e:
+                print(f"[\033[31m!\033[0m] Failed to remove {wait_file}: {e}")
+            finally:
+                os._exit(0)
+        else:
+            check("run")
+            if out_dir:
+                update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif "pre_analysis" in mode:
         if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
             os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
@@ -1409,10 +2557,96 @@ if __name__ == "__main__":
     parser.add_argument("--container_name", type=str, help="Container name", default=None)
     parser.add_argument("--crash_dir", type=str, help="Directory of crash outputs for crash_analysis mode", default=None)
 
+    parser.add_argument("--test", action="store_true", help="Enable test mode: send seed to firmware")
+    parser.add_argument("--firmware", type=str, help="Firmware path for test mode (e.g., dlink/dap2310_v1.00_o772.bin)", default=None)
+    parser.add_argument("--seed_input", type=str, help="Seed input file path for test mode", default=None)
+    parser.add_argument("--port", type=int, help="Target port for test mode (default: 80)", default=80)
+    parser.add_argument("--timeout", type=int, help="Request timeout in ms for test mode (default: 2000)", default=2000)
+    parser.add_argument("--process_name", type=str, help="Process name to monitor for crashes (e.g., mini_httpd) - REQUIRED for test mode", default=None)
+
+    parser.add_argument("--replay-mem-count", action="store_true", help="Enable replay mode with memory operations counting")
+    parser.add_argument("--mem-count-log", type=str, help="Output CSV file for memory operations counting results (stored in STAFF main directory, default: mem_ops_replay_results.csv)", default="mem_ops_replay_results.csv")
+
     args = parser.parse_args()
 
+    if args.test:
+        if not args.firmware or not args.seed_input:
+            print("[ERROR] Test mode requires --firmware, --seed_input, and --process_name arguments")
+            exit(1)
+
+        import configparser
+        config_tmp = configparser.ConfigParser()
+        config_tmp["GENERAL"] = {
+            "mode": "test",
+            "firmware": args.firmware
+        }
+        config_tmp["AFLNET_FUZZING"] = {
+            "region_delimiter": "\\x1A\\x1A\\x1A\\x1A",
+            "proto": "http",
+            "region_level_mutation": "1"
+        }
+        config_tmp["EMULATION_TRACING"] = {
+            "include_libraries": "1"
+        }
+        config_tmp["GENERAL_FUZZING"] = {
+            "timeout": str(args.timeout)
+        }
+        config_tmp["TEST"] = {
+            "seed_input": os.path.abspath(args.seed_input),
+            "port": str(args.port),
+            "timeout": str(args.timeout),
+            "process_name": args.process_name if args.process_name else ""
+        }
+
+        with open(CONFIG_INI_PATH, "w") as f:
+            config_tmp.write(f)
+
+        print(f"[INFO] Test mode configuration created")
+        print(f"  Firmware: {args.firmware}")
+        print(f"  Seed: {os.path.abspath(args.seed_input)}")
+        print(f"  Port: {args.port}")
+        print(f"  Timeout: {args.timeout}ms")
+        if args.process_name:
+            print(f"  Process name: {args.process_name}")
+
+    if args.replay_mem_count:
+        import configparser
+        config_tmp = configparser.ConfigParser()
+        config_tmp["GENERAL"] = {
+            "mode": "replay_mem_count",
+            "firmware": args.firmware if args.firmware else "all"
+        }
+        config_tmp["AFLNET_FUZZING"] = {
+            "region_delimiter": "\\x1A\\x1A\\x1A\\x1A",
+            "proto": "http",
+            "region_level_mutation": "1"
+        }
+        config_tmp["EMULATION_TRACING"] = {
+            "include_libraries": "1"
+        }
+        config_tmp["GENERAL_FUZZING"] = {
+            "timeout": "2000"
+        }
+
+        mem_count_csv_path = args.mem_count_log
+        if not os.path.isabs(mem_count_csv_path):
+            mem_count_csv_path = os.path.join(STAFF_DIR, mem_count_csv_path)
+        else:
+            mem_count_csv_path = os.path.abspath(mem_count_csv_path)
+
+        config_tmp["MEM_COUNT"] = {
+            "output_csv": mem_count_csv_path
+        }
+
+        with open(CONFIG_INI_PATH, "w") as f:
+            config_tmp.write(f)
+
+        print(f"[INFO] Replay with memory counting mode configuration created")
+        print(f"  Firmware: {args.firmware if args.firmware else 'all'}")
+        print(f"  Output CSV: {mem_count_csv_path}")
+
     start(
-        args.keep_config,
+        args.keep_config if not (args.test or args.replay_mem_count) else 0,
         args.reset_firmware_images,
         args.replay_exp,
         os.path.abspath(args.output) if args.output else None,

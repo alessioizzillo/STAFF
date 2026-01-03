@@ -3031,9 +3031,17 @@ static MemTxResult address_space_write_continue(AddressSpace *as, hwaddr addr,
                                 taint_mem_log(0, 0, 0, addr1, 0, buf[i]);
                         }
                         if (mem_ops_count_enable) {
-                            FILE *fp = fopen("debug/mem_ops_count.log", "a+");
-                            fprintf(fp, "%lld,%lld\n", mem_ops_count, taint_mem_ops_count);
-                            fclose(fp);
+                            if (sink_id == 0) {
+                                mem_ops_count = 0;
+                                taint_mem_ops_count = 0;
+                                FILE *fp = fopen("mem_ops_count.log", "w+");
+                                fclose(fp);
+                            }
+                            else {
+                                FILE *fp = fopen("mem_ops_count.log", "a+");
+                                fprintf(fp, "%lld,%lld\n", mem_ops_count, taint_mem_ops_count);
+                                fclose(fp);
+                            }
                         }
                     }
                     else {
