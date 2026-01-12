@@ -278,15 +278,11 @@ def get_next_available_exp_name(out_dir):
             return f"exp_{n}"
         n += 1
 
-def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat", done_dir="experiments_done"):
+def ensure_experiment_consistency(csv_file, exp_dir, affinity_file="affinity.dat"):
     lock = open(SCRIPT_DIR + '/schedule.lock', 'w')
     fcntl.lockf(lock, fcntl.LOCK_EX)
 
-    os.makedirs(done_dir, exist_ok=True)
-
     existing_experiments = set(os.listdir(exp_dir)) if os.path.exists(exp_dir) else set()
-    done_experiments = set(os.listdir(done_dir)) if os.path.exists(done_dir) else set()
-
     mode_map, used_numbers = parse_affinity(affinity_file, None)
 
     rows_to_keep = []

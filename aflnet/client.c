@@ -20,6 +20,12 @@ char *debug_dir = NULL;
 int *allowed_ids = NULL;
 int allowed_count = 0;
 
+static void report_crash_and_exit(int request_id) {
+    printf("CRASH_REQUEST_ID=%d\n", request_id);
+    fflush(stdout);
+    exit(10);
+}
+
 int is_allowed_request(int req_id) {
     if (allowed_count == 0) return 1;
     for (int i = 0; i < allowed_count; i++) {
@@ -119,9 +125,95 @@ void print_request(const char *data, size_t len) {
     printf("\n======= REQUEST END   =======\n\n");
 }
 
+int check_crash_in_log(const char *work_dir, const char *process_names) {
+    if (!work_dir) return 0;
+
+    char *monitor_crashes_env = getenv("MONITOR_CRASHES");
+    char log_path[512];
+
+    if (monitor_crashes_env && atoi(monitor_crashes_env) == 1) {
+        snprintf(log_path, sizeof(log_path), "%s/crash_monitor.log", work_dir);
+    } else {
+        snprintf(log_path, sizeof(log_path), "%s/qemu.final.serial.log", work_dir);
+    }
+
+    FILE *log_file = fopen(log_path, "r");
+    if (!log_file) return 0;
+
+    char line[1024];
+    int crash_detected = 0;
+
+    char *process_list[64];
+    int process_count = 0;
+
+    if (process_names && strlen(process_names) > 0) {
+        char *proc_copy = strdup(process_names);
+        char *token = strtok(proc_copy, ",");
+        while (token && process_count < 64) {
+            while (*token == ' ') token++;
+            char *end = token + strlen(token) - 1;
+            while (end > token && *end == ' ') end--;
+            *(end + 1) = '\0';
+
+            if (strlen(token) > 0) {
+                process_list[process_count++] = strdup(token);
+            }
+            token = strtok(NULL, ",");
+        }
+        free(proc_copy);
+    }
+
+    while (fgets(line, sizeof(line), log_file)) {
+        char *newline = strchr(line, '\n');
+        if (newline) *newline = '\0';
+
+        if (monitor_crashes_env) {
+            if (strlen(line) == 0) continue;
+
+            if (process_count == 0) {
+                crash_detected = 1;
+                break;
+            } else {
+                for (int i = 0; i < process_count; i++) {
+                    if (!strcmp(line, process_list[i])) {
+                        crash_detected = 1;
+                        break;
+                    }
+                }
+                if (crash_detected) break;
+            }
+        } else {
+            if (strstr(line, "sending SIGSEGV to")) {
+                if (process_count == 0) {
+                    crash_detected = 1;
+                    break;
+                } else {
+                    for (int i = 0; i < process_count; i++) {
+                        if (strstr(line, process_list[i])) {
+                            crash_detected = 1;
+                            break;
+                        }
+                    }
+                    if (crash_detected) break;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < process_count; i++) {
+        free(process_list[i]);
+    }
+
+    fclose(log_file);
+    return crash_detected;
+}
+
 int main(int argc, char *argv[]) {
     int debug_mode = 0, manual_mode = 0, num_attempts = -1;
     char *send_next_region;
+    char *work_dir = NULL;
+    char *process_name = NULL;
+    int monitor_crashes = 0;
 
     char *region_delimiter = getenv("REGION_DELIMITER");
     if (!region_delimiter) {
@@ -159,6 +251,11 @@ int main(int argc, char *argv[]) {
                 allowed_ids[allowed_count++] = atoi(token);
                 token = strtok(NULL, ",");
             }
+        } else if (strncmp(argv[i], "--work-dir=", 11) == 0) {
+            work_dir = argv[i] + 11;
+            monitor_crashes = 1;
+        } else if (strncmp(argv[i], "--process=", 10) == 0) {
+            process_name = argv[i] + 10;
         }
     }
 
@@ -168,7 +265,7 @@ int main(int argc, char *argv[]) {
         mkdir("debug", 0777);
 
     if (argc < 5) {
-        fprintf(stderr, "Usage: %s <requests_file> <server_ip> <server_port> <timeout_sec> [num_attempts] [--manual] [--ids=list]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <requests_file> <server_ip> <server_port> <timeout_sec> [num_attempts] [--manual] [--ids=list] [--work-dir=path] [--process=name1,name2,...]\n", argv[0]);
         exit(2);
     }
 
@@ -181,6 +278,29 @@ int main(int argc, char *argv[]) {
         if (num_attempts <= 0) num_attempts = -1;
     }
     if (debug_mode) create_debug_dir();
+
+    if (monitor_crashes && work_dir) {
+        printf("Crash monitoring ENABLED: work_dir=%s, process=%s\n",
+               work_dir, process_name ? process_name : "any");
+
+        char *monitor_crashes_env = getenv("MONITOR_CRASHES");
+        if (monitor_crashes_env && atoi(monitor_crashes_env) == 1) {
+            char crash_monitor_path[512];
+            snprintf(crash_monitor_path, sizeof(crash_monitor_path), "%s/crash_monitor.log", work_dir);
+
+            if (access(crash_monitor_path, F_OK) == 0) {
+                remove(crash_monitor_path);
+            }
+            FILE *fd = fopen(crash_monitor_path, "w");
+            if (fd) {
+                fclose(fd);
+                printf("Created crash monitor file: %s\n", crash_monitor_path);
+            } else {
+                perror("Error creating crash monitor file");
+                exit(2);
+            }
+        }
+    }
 
     FILE *file = fopen(requests_file, "rb");
     if (!file) {
@@ -322,6 +442,23 @@ retry:
             fprintf(stderr, "Timeout!\n");
         }
 
+        if (monitor_crashes) {
+            usleep(500000);
+
+            if (check_crash_in_log(work_dir, process_name)) {
+                fprintf(stderr, "\n[CRASH DETECTED] After request %d (attempt %d)\n", request_id, retry_times + 1);
+                if (process_name) {
+                    fprintf(stderr, "[CRASH] Process: %s\n", process_name);
+                }
+
+                close(sockfd);
+                free(requests);
+                if (allowed_ids) free(allowed_ids);
+
+                report_crash_and_exit(request_id);
+            }
+        }
+
         if ((res == 1 || res == 3) && retry_times < 2) {
             retry_times++;
             sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -375,5 +512,23 @@ retry:
     close(sockfd);
     free(requests);
     if (allowed_ids) free(allowed_ids);
+
+    if (monitor_crashes) {
+        usleep(3000000);
+
+        if (check_crash_in_log(work_dir, process_name)) {
+            fprintf(stderr, "\n[CRASH DETECTED] After request %d\n", request_id);
+            if (process_name) {
+                fprintf(stderr, "[CRASH] Process: %s\n", process_name);
+            }
+
+            close(sockfd);
+            free(requests);
+            if (allowed_ids) free(allowed_ids);
+
+            report_crash_and_exit(request_id);
+        }
+    }
+
     return 0;
 }

@@ -98,6 +98,7 @@ extern int kernel_base;
 extern int crash_analysis;
 extern int crash_analysis_TRACE_LEN;
 extern char *crash_analysis_target_procname;
+extern int monitor_crashes;
 
 void remove_directory(const char *path);
 

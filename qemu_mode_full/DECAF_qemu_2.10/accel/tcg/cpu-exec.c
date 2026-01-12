@@ -133,6 +133,30 @@ uint32_t update_cov_sha1(uint32_t pid, target_ulong cur_loc) {
     return cur_loc_tmp ^ prev_loc;
 }
 
+static int match_process_name(const char *procname, const char *process_list) {
+    if (!process_list || !procname) return 0;
+
+    char *list_copy = strdup(process_list);
+    char *token = strtok(list_copy, ",");
+    int match = 0;
+
+    while (token) {
+        while (*token == ' ') token++;
+        char *end = token + strlen(token) - 1;
+        while (end > token && *end == ' ') end--;
+        *(end + 1) = '\0';
+
+        if (strlen(token) > 0 && !strcmp(procname, token)) {
+            match = 1;
+            break;
+        }
+        token = strtok(NULL, ",");
+    }
+
+    free(list_copy);
+    return match;
+}
+
 
 // uint32_t update_cov_sha1_buffer(uint32_t pid, target_ulong cur_loc) {
 //     static target_ulong prev_loc[MAX_PID];
@@ -3287,7 +3311,7 @@ skip_to_pos:
 
             if(pc == do_coredump_addr)
             {
-                if ((taint_tracking_enabled && !fuzz) || (taint_tracking_enabled && fuzz && afl_user_fork)) {
+                if ((taint_tracking_enabled && !fuzz) || (taint_tracking_enabled && fuzz && afl_user_fork) || debug || monitor_crashes) {
                     uint32_t pid;
                     uint32_t par_pid;
                     char procname[MAX_PROCESS_NAME_LENGTH] = {0};
@@ -3302,7 +3326,15 @@ skip_to_pos:
                             FILE *fd;
                             fd = fopen("debug/processes.log","a+");
                             fprintf(fd, "CRASHED pid %d (par_pid: %d, pgd: %d, name: %s)\n", pid, par_pid, pgd, procname);
-                            fclose(fd);        
+                            fclose(fd);
+                        }
+
+                        if (monitor_crashes) {
+                            FILE *fd = fopen("crash_monitor.log", "a");
+                            if (fd) {
+                                fprintf(fd, "%s\n", procname);
+                                fclose(fd);
+                            }
                         }
                     }
                 }
@@ -3322,7 +3354,7 @@ skip_to_pos:
                         if (debug_fuzz) {
                             FILE *fd = fopen("debug/fuzzing.log","a+");
                             fprintf(fd, "do_coredump_addr: %s\n", procname);
-                            fclose(fd);              
+                            fclose(fd);
                         }
 
                         if (pgd && !status) {
@@ -3331,19 +3363,35 @@ skip_to_pos:
                                 *child_retval = 1;
                                 copy_inode_trace_to_shmem_wrapper(pid, procname);
                             }
+
+                            if (monitor_crashes) {
+                                FILE *fd = fopen("crash_monitor.log", "a");
+                                if (fd) {
+                                    fprintf(fd, "%s\n", procname);
+                                    fclose(fd);
+                                }
+                            }
                         }
                     }
 
-                    if (crash_analysis && crash_analysis_target_procname && !strcmp(procname, crash_analysis_target_procname)) {
+                    if (crash_analysis && crash_analysis_target_procname && match_process_name(procname, crash_analysis_target_procname)) {
                         if (pgd && !status) {
                             if (debug){
                                 FILE *fd;
                                 fd = fopen("debug/processes.log","a+");
                                 fprintf(fd, "CRASHED pid %d (par_pid: %d, pgd: %d, name: %s)\n", pid, par_pid, pgd, procname);
-                                fclose(fd);        
+                                fclose(fd);
                             }
                             dump_pid_trace_to_file_wrapper(pid);
-                        }                     
+
+                            if (monitor_crashes) {
+                                FILE *fd = fopen("crash_monitor.log", "a");
+                                if (fd) {
+                                    fprintf(fd, "%s\n", procname);
+                                    fclose(fd);
+                                }
+                            }
+                        }
                     }
                 } 
             }

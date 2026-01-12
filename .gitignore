@@ -19,7 +19,7 @@ schedule.csv
 config.ini
 plot_params.ini
 extracted
-extracted_crash_out
+extracted_crashes
 cpu_ids.csv
 evaluation_precision.csv
 schedule.csv
@@ -35,6 +35,6 @@ out2.csv
 out2.tex
 out3.csv
 out3.tex
-extracted_crashes_out*
-extracted_crash_out*
+extracted_crashes*
+extracted_crashes*
 pc_ranges_generated.py

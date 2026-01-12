@@ -105,6 +105,7 @@ int target_len = -1;
 extern int crash_analysis = 0;
 extern int crash_analysis_TRACE_LEN = TRACE_LEN;
 extern char *crash_analysis_target_procname = NULL;
+extern int monitor_crashes = 0;
 
 int afl_user_fork = 0;
 enum COVERAGE_TRACING coverage_tracing = EDGE;
@@ -3329,6 +3330,11 @@ int main(int argc, char **argv, char **envp)
     env_var = getenv("TARGET_PROCNAME");
     if (env_var) {
         crash_analysis_target_procname = env_var;
+    }
+
+    env_var = getenv("MONITOR_CRASHES");
+    if (env_var) {
+        monitor_crashes = atoi(env_var);
     }
 
     if (fuzz) {

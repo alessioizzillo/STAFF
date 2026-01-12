@@ -16,7 +16,7 @@ STAFF_DIR = os.getcwd()
 FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 
 SKIP_MODULES = {}
-SKIP_MODULES = {("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
+SKIP_MODULES = {("any", "aflnet_base", "any"), ("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
                 ("dap2310_v1.00_o772.bin", "any", "ethlink"), ("dap2310_v1.00_o772.bin", "any", "aparraymsg"),
                 ("dir300_v1.03_7c.bin", "any", "ethlink"), ("dir300_v1.03_7c.bin", "any", "aparraymsg"), 
                 ("FW_RT_N10U_B1_30043763754.zip", "any", "u2ec"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "any", "potcounter"),
@@ -45,6 +45,19 @@ ALLOWED_TOOLS = set(DEFAULT_METHODS) | {"all"}
 
 FILTER_METRIC_CHOICE = "recall"
 DEDUP_METRIC_CHOICE = "recall"
+
+MAX_EXP_NUM = None
+
+def should_include_experiment(exp_name: str) -> bool:
+    if MAX_EXP_NUM is None:
+        return True
+
+    match = re.match(r'exp[_-]?(\d+)', exp_name, re.IGNORECASE)
+    if match:
+        exp_num = int(match.group(1))
+        return exp_num <= MAX_EXP_NUM
+
+    return True
 
 PC_RANGES = {
     # "DGN3500-V1.1.00.30_NA.zip": {
@@ -100,7 +113,7 @@ def _parse_num_token(tok: str):
 
 def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
                             output_py: str = "pc_ranges_generated.py",
-                            verbose: bool = True) -> Dict[str, Dict[str, Dict[str, Tuple[int,int,str]]]]:
+                            verbose: bool = True) -> Dict[str, Dict[str, Dict[str, Tuple[int,int,str,str]]]]:
     pc_ranges = defaultdict(lambda: defaultdict(dict))
 
     if not os.path.isfile(csv_path):
@@ -144,6 +157,12 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
             if len(cols) >= 6:
                 category = cols[5].strip()
 
+            cve_id = None
+            if len(cols) >= 7:
+                cve_id = cols[6].strip()
+                if cve_id == "":
+                    cve_id = None
+
             func_name = None
             if func_tok is not None:
                 fn = str(func_tok).strip()
@@ -174,9 +193,9 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
                 if verbose:
                     old = pc_ranges[firmware][module][func_name]
                     print(f"[WARN] row {row_no}: duplicate function '{func_name}' for {firmware}/{module}; "
-                          f"old={old} -> new={(s_int,e_int,category)} (overwriting)")
+                          f"old={old} -> new={(s_int,e_int,category,cve_id)} (overwriting)")
 
-            pc_ranges[firmware][module][func_name] = (s_int, e_int, category)
+            pc_ranges[firmware][module][func_name] = (s_int, e_int, category, cve_id)
             if verbose:
                 print(f"[ROW {row_no}] {firmware} / {module} -> {func_name}: "
                       f"0x{s_int:08x}-0x{e_int:08x} [{category}]")
@@ -190,9 +209,10 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
         lines.append(f"    {fw!r}: {{")
         for mod, funcs in sorted(mods.items()):
             lines.append(f"        {mod!r}: {{")
-            for fname, (s, e, cat) in sorted(funcs.items()):
+            for fname, (s, e, cat, cve_id) in sorted(funcs.items()):
                 cat_repr = repr(cat) if cat is not None else "None"
-                lines.append(f"            {fname!r}: (0x{s:08x}, 0x{e:08x}, {cat_repr}),")
+                cve_repr = repr(cve_id) if cve_id is not None else "None"
+                lines.append(f"            {fname!r}: (0x{s:08x}, 0x{e:08x}, {cat_repr}, {cve_repr}),")
             lines.append("        },")
         lines.append("    },")
     lines.append("}")
@@ -285,31 +305,47 @@ def make_tte_suffix(filename: str, tte: int) -> str:
     else:
         return filename + f'${tte}'
 
-def unify_crash_and_trace_filenames(extracted_root="extracted_crashes_outputs", verbose=True):
+def unify_crash_and_trace_filenames(extracted_root="extracted_crashes", verbose=True):
     if not os.path.isdir(extracted_root):
         if verbose:
             print(f"[ERROR] extracted_root does not exist: {extracted_root}")
         return
 
-    for firmware in sorted(os.listdir(extracted_root)):
-        firmware_path = os.path.join(extracted_root, firmware)
-        if not os.path.isdir(firmware_path):
+    for entry in sorted(os.listdir(extracted_root)):
+        entry_path = os.path.join(extracted_root, entry)
+        if not os.path.isdir(entry_path):
             continue
 
-        for mode in sorted(os.listdir(firmware_path)):
-            mode_path = os.path.join(firmware_path, mode)
-            if not os.path.isdir(mode_path):
-                continue
+        has_methods = any(method in DEFAULT_METHODS for method in os.listdir(entry_path) if os.path.isdir(os.path.join(entry_path, method)))
 
-            for sub_exp in sorted(os.listdir(mode_path)):
-                exp_path = os.path.join(mode_path, sub_exp)
-                if not os.path.isdir(exp_path):
+        firmware_paths = []
+        if has_methods:
+            firmware_paths.append(entry_path)
+        else:
+            for fw in sorted(os.listdir(entry_path)):
+                fw_path = os.path.join(entry_path, fw)
+                if os.path.isdir(fw_path):
+                    firmware_paths.append(fw_path)
+
+        for firmware_path in firmware_paths:
+            for mode in sorted(os.listdir(firmware_path)):
+                mode_path = os.path.join(firmware_path, mode)
+                if not os.path.isdir(mode_path):
                     continue
 
-                crashes_dir = os.path.join(exp_path, "crashes")
-                traces_dir = os.path.join(exp_path, "crash_traces")
-                if not (os.path.isdir(crashes_dir) and os.path.isdir(traces_dir)):
-                    continue
+                for sub_exp in sorted(os.listdir(mode_path)):
+                    exp_path = os.path.join(mode_path, sub_exp)
+                    if not os.path.isdir(exp_path):
+                        continue
+
+                    # Filter by MAX_EXP_NUM if set
+                    if not should_include_experiment(sub_exp):
+                        continue
+
+                    crashes_dir = os.path.join(exp_path, "crashes")
+                    traces_dir = os.path.join(exp_path, "crash_traces")
+                    if not (os.path.isdir(crashes_dir) and os.path.isdir(traces_dir)):
+                        continue
 
                 crash_map = {}
 
@@ -378,7 +414,7 @@ def unify_crash_and_trace_filenames(extracted_root="extracted_crashes_outputs", 
                                 print(f"[RENAME] crash: {cfile} -> {new_path}")
                             os.rename(cfile, new_path)
 
-def update_extracted_root_from_experiments(experiments_dir, extracted_root="extracted_crashes_outputs", verbose=True):
+def update_extracted_root_from_experiments(experiments_dir, extracted_root="extracted_crashes", verbose=True):
     def extract_ts_from_name(filename):
         if "$" not in filename:
             return None
@@ -399,6 +435,9 @@ def update_extracted_root_from_experiments(experiments_dir, extracted_root="extr
         if not os.path.isdir(sub_path) or not sub_exp.startswith("exp_"):
             continue
 
+        if not should_include_experiment(sub_exp):
+            continue
+
         config_path = os.path.join(sub_path, "outputs", "config.ini")
         if not os.path.isfile(config_path):
             if verbose:
@@ -415,13 +454,16 @@ def update_extracted_root_from_experiments(experiments_dir, extracted_root="extr
                 print(f"[WARN] couldn't read mode/firmware in {config_path}: {e}")
             continue
 
-        firmware_basename = os.path.basename(firmware_path)
+        if os.path.dirname(firmware_path):
+            firmware_with_brand = firmware_path
+        else:
+            firmware_with_brand = os.path.basename(firmware_path)
 
         if (os.path.isdir(os.path.join(sub_path, "outputs", "crash_traces")) and not os.listdir(os.path.join(sub_path, "outputs", "crash_traces"))
             and os.path.isdir(os.path.join(sub_path, "outputs", "crashes")) and not os.listdir(os.path.join(sub_path, "outputs", "crashes"))):
             continue
 
-        target_exp_dir = os.path.join(extracted_root, firmware_basename, mode, sub_exp)
+        target_exp_dir = os.path.join(extracted_root, firmware_with_brand, mode, sub_exp)
 
         for ftype in ("crashes", "crash_traces"):
             os.makedirs(os.path.join(target_exp_dir, ftype), exist_ok=True)
@@ -448,12 +490,51 @@ def update_extracted_root_from_experiments(experiments_dir, extracted_root="extr
                         print(f"[WARN] cannot extract crash id from '{file}', skipping")
                     continue
 
+                skip_this_file = False
+                if ftype == "crashes":
+                    trace_folder = os.path.join(sub_path, "outputs", "crash_traces")
+                    trace_file = os.path.join(trace_folder, file)
+                    if not os.path.isfile(trace_file):
+                        for t in os.listdir(trace_folder) if os.path.isdir(trace_folder) else []:
+                            if crash_id == extract_crash_id(t):
+                                trace_file = os.path.join(trace_folder, t)
+                                break
+                    if os.path.isfile(trace_file):
+                        try:
+                            pc, module = _parse_first_frame_pc_module(trace_file)
+                        except Exception:
+                            pc, module = None, None
+                    else:
+                        module = None
+                else:
+                    try:
+                        pc, module = _parse_first_frame_pc_module(src_file)
+                    except Exception:
+                        pc, module = None, None
+
+                module_norm = module or "(unknown)"
+                fw_name_only = os.path.basename(firmware_with_brand)
+                if (fw_name_only, mode, module_norm) in SKIP_MODULES or \
+                (fw_name_only, "any", module_norm) in SKIP_MODULES or \
+                ("any", mode, "any") in SKIP_MODULES:
+                    skip_this_file = True
+
+                if skip_this_file:
+                    if verbose:
+                        print(f"[SKIP_MODULE] skipping {ftype} file due to SKIP_MODULES: {src_file}")
+                    continue
+
                 already_exists = False
+                is_done_file = False
                 for existing_file in os.listdir(dst_folder):
                     existing_path = os.path.join(dst_folder, existing_file)
                     if not os.path.isfile(existing_path):
                         continue
                     if extract_crash_id(existing_file) == crash_id:
+                        if existing_file.endswith(".succ"):
+                            is_done_file = True
+                            if verbose:
+                                print(f"[SKIP] .succ file exists, will not overwrite: {existing_file}")
                         already_exists = True
                         break
 
@@ -477,9 +558,330 @@ def update_extracted_root_from_experiments(experiments_dir, extracted_root="extr
                 copied_counts[ftype] += 1
 
         if verbose:
-            print(f"[RESULT] {sub_exp} -> firmware='{firmware_basename}', mode='{mode}': "
+            print(f"[RESULT] {sub_exp} -> firmware='{firmware_with_brand}', mode='{mode}': "
                   f"crashes_copied={copied_counts['crashes']}, "
                   f"traces_copied={copied_counts['crash_traces']}")
+
+def count_and_log_crash_seeds(extracted_root="extracted_crashes", log_file="crash_seed_count.log", verbose=True):
+    if not os.path.isdir(extracted_root):
+        if verbose:
+            print(f"[INFO] extracted_root does not exist yet: {extracted_root}")
+        return 0
+
+    count = 0
+    filtered_files = []
+
+    for root, dirs, files in os.walk(extracted_root):
+        if not root.endswith("/crashes") and "/crashes/" not in root and not root.endswith("crashes"):
+            continue
+
+        if "/aflnet_base/" in root or root.endswith("/aflnet_base"):
+            continue
+
+        for file in files:
+            if file.endswith(".lock") or file.endswith(".succ") or file.endswith(".fail") or file.endswith(".minimize_test"):
+                continue
+
+            full_path = os.path.join(root, file)
+            if os.path.isfile(full_path):
+                count += 1
+                filtered_files.append(full_path)
+
+    log_path = os.path.join(STAFF_DIR, log_file)
+    try:
+        with open(log_path, "w") as f:
+            f.write(f"Crash seed count (filtered): {count}\n")
+            f.write(f"Timestamp: {pd.Timestamp.now()}\n")
+            f.write(f"\nFilter criteria:\n")
+            f.write(f"  - Path contains: */extracted_crashes/*/crashes/*\n")
+            f.write(f"  - Path excludes: */aflnet_base/*\n")
+            f.write(f"  - File excludes: *.lock, *.succ, *.fail, *.minimize_test\n")
+            f.write(f"\n")
+
+            if verbose and len(filtered_files) <= 100:
+                f.write(f"Files counted ({len(filtered_files)}):\n")
+                for fpath in sorted(filtered_files):
+                    relative_path = os.path.relpath(fpath, STAFF_DIR)
+                    f.write(f"  {relative_path}\n")
+            elif len(filtered_files) > 100:
+                f.write(f"Files counted: {len(filtered_files)} (too many to list)\n")
+
+        if verbose:
+            print(f"[INFO] Logged crash seed count to: {log_path}")
+            print(f"[INFO] Total crash seeds (filtered): {count}")
+    except Exception as e:
+        print(f"[ERROR] Failed to write crash seed count log: {e}")
+
+    return count
+
+def print_seed_status_statistics(extracted_root="extracted_crashes", verbose=True):
+    if not os.path.isdir(extracted_root):
+        if verbose:
+            print(f"[INFO] extracted_root does not exist yet: {extracted_root}")
+        return
+
+    succ_count = 0
+    fail_count = 0
+    unprocessed_count = 0
+
+    seen_base_names = set()
+
+    for root, dirs, files in os.walk(extracted_root):
+        if not root.endswith("/crashes") and "/crashes/" not in root and not root.endswith("crashes"):
+            continue
+
+        if "/aflnet_base/" in root or root.endswith("/aflnet_base"):
+            continue
+
+        for file in files:
+            if file.endswith(".lock") or file.endswith(".minimize_test"):
+                continue
+
+            full_path = os.path.join(root, file)
+            if not os.path.isfile(full_path):
+                continue
+
+            if file.endswith(".succ"):
+                base_name = file[:-5]
+                status = "succ"
+            elif file.endswith(".fail"):
+                base_name = file[:-5]
+                status = "fail"
+            else:
+                base_name = file
+                status = "unprocessed"
+
+            unique_key = os.path.join(root, base_name)
+
+            if unique_key in seen_base_names:
+                continue
+
+            seen_base_names.add(unique_key)
+
+            if status == "succ":
+                succ_count += 1
+            elif status == "fail":
+                fail_count += 1
+            else:
+                unprocessed_count += 1
+
+    total = succ_count + fail_count + unprocessed_count
+
+    print("\n" + "="*60)
+    print("SEED FILE STATUS STATISTICS")
+    print("="*60)
+    print(f"  Seeds with .succ (succeeded):    {succ_count:6d}")
+    print(f"  Seeds with .fail (failed):       {fail_count:6d}")
+    print(f"  Seeds unprocessed (no suffix):   {unprocessed_count:6d}")
+    print(f"  {'-'*58}")
+    print(f"  Total seeds:                     {total:6d}")
+    print("="*60 + "\n")
+
+def print_unprocessed_seed_paths(extracted_root="extracted_crashes"):
+    if not os.path.isdir(extracted_root):
+        print(f"[INFO] extracted_root does not exist yet: {extracted_root}")
+        return
+
+    unprocessed_paths = []
+
+    for root, dirs, files in os.walk(extracted_root):
+        if not root.endswith("/crashes") and "/crashes/" not in root and not root.endswith("crashes"):
+            continue
+
+        if "/aflnet_base/" in root or root.endswith("/aflnet_base"):
+            continue
+
+        for file in files:
+            if file.endswith(".lock") or file.endswith(".minimize_test"):
+                continue
+
+            if file.endswith(".succ") or file.endswith(".fail"):
+                continue
+
+            full_path = os.path.join(root, file)
+            if os.path.isfile(full_path):
+                succ_path = full_path + ".succ"
+                fail_path = full_path + ".fail"
+
+                if not os.path.exists(succ_path) and not os.path.exists(fail_path):
+                    unprocessed_paths.append(full_path)
+
+    print("\n" + "="*60)
+    print(f"UNPROCESSED SEEDS (no .succ or .fail suffix): {len(unprocessed_paths)}")
+    print("="*60)
+    for path in sorted(unprocessed_paths):
+        print(path)
+    print("="*60 + "\n")
+
+def map_key_by_range_and_groups_standalone(fw, module, pc_str, pc_ranges):
+    def pc_to_int(pc_str):
+        if pc_str is None:
+            return None
+        s = str(pc_str).strip()
+        try:
+            return int(s, 0)
+        except:
+            m = re.search(r"(0x[0-9a-fA-F]+)", s)
+            if m:
+                return int(m.group(1), 16)
+            m2 = re.search(r"(\d+)", s)
+            if m2:
+                return int(m2.group(1))
+            return None
+
+    raw = (fw, module, pc_str, None, None)
+    pc_int = pc_to_int(pc_str)
+
+    for fw_key, modmap in pc_ranges.items():
+        if fw_key.lower() != fw.lower() and fw_key not in fw and fw not in fw_key:
+            continue
+        ranges = modmap.get(module) or modmap.get(module.lower())
+        if not ranges:
+            continue
+        if pc_int is None:
+            continue
+        for fun_name, tpl in ranges.items():
+            if len(tpl) == 4:
+                start, end, category, cve_id = tpl
+            elif len(tpl) == 3:
+                start, end, category = tpl
+                cve_id = None
+            else:
+                start, end = tpl
+                category = None
+                cve_id = None
+            try:
+                s = int(start)
+                e = int(end)
+            except:
+                continue
+            if s <= pc_int <= e:
+                return (fw, module, fun_name, category, cve_id)
+    return raw
+
+def extract_unique_crashes_per_function(extracted_root="extracted_crashes", output_dir="unique_crashes", verbose=True):
+    if not os.path.isdir(extracted_root):
+        if verbose:
+            print(f"[ERROR] extracted_root does not exist: {extracted_root}")
+        return
+
+    unique_crashes = {}
+
+    print(f"\n[INFO] Scanning {extracted_root} for unique crashes...")
+
+    for root, dirs, files in os.walk(extracted_root):
+        if not (root.endswith("/crashes") or "/crashes/" in root or root.endswith("crashes")):
+            continue
+
+        if "/aflnet_base/" in root or root.endswith("/aflnet_base"):
+            continue
+
+        parts = root.split(os.sep)
+        try:
+            extracted_idx = parts.index("extracted_crashes")
+            if extracted_idx + 2 < len(parts):
+                firmware = parts[extracted_idx + 2]
+            else:
+                firmware = "unknown"
+        except (ValueError, IndexError):
+            firmware = "unknown"
+
+        for file in files:
+            if file.endswith(".lock") or file.endswith(".minimize_test"):
+                continue
+
+            if file.endswith(".succ"):
+                base_name = file[:-5]
+                status = "succ"
+                seed_path = os.path.join(root, file)
+            elif file.endswith(".fail"):
+                base_name = file[:-5]
+                status = "fail"
+                seed_path = os.path.join(root, file)
+            else:
+                base_name = file
+                status = "unprocessed"
+                seed_path = os.path.join(root, file)
+
+            trace_root = root.replace("/crashes", "/crash_traces")
+            trace_path = os.path.join(trace_root, base_name)
+
+            if not os.path.isfile(trace_path):
+                if verbose:
+                    print(f"[WARN] No trace file found for {base_name}: {trace_path}")
+                continue
+
+            try:
+                pc_str, module = _parse_first_frame_pc_module(trace_path)
+
+                if not module:
+                    module = "unknown"
+
+                if not pc_str:
+                    function = "unknown"
+                else:
+                    mapped = map_key_by_range_and_groups_standalone(firmware, module, pc_str, PC_RANGES)
+                    if mapped and len(mapped) >= 3 and mapped[2]:
+                        function = mapped[2]
+                    else:
+                        function = pc_str
+
+            except Exception as e:
+                if verbose:
+                    print(f"[WARN] Failed to parse trace file {trace_path}: {e}")
+                module = "unknown"
+                function = "unknown"
+
+            unique_key = (firmware, module, function)
+
+            status_priority = {"succ": 3, "fail": 2, "unprocessed": 1}
+
+            if unique_key not in unique_crashes:
+                unique_crashes[unique_key] = {
+                    'seed_path': seed_path,
+                    'trace_path': trace_path,
+                    'status': status,
+                    'priority': status_priority[status]
+                }
+            else:
+                if status_priority[status] > unique_crashes[unique_key]['priority']:
+                    unique_crashes[unique_key] = {
+                        'seed_path': seed_path,
+                        'trace_path': trace_path,
+                        'status': status,
+                        'priority': status_priority[status]
+                    }
+
+    if os.path.exists(output_dir):
+        if verbose:
+            print(f"[INFO] Output directory exists, will add/overwrite files: {output_dir}")
+    else:
+        os.makedirs(output_dir, exist_ok=True)
+        if verbose:
+            print(f"[INFO] Created output directory: {output_dir}")
+
+    copied_count = 0
+    for (firmware, module, function), info in sorted(unique_crashes.items()):
+        fw_dir = os.path.join(output_dir, firmware)
+        module_dir = os.path.join(fw_dir, module)
+        os.makedirs(module_dir, exist_ok=True)
+
+        safe_function = function.replace('/', '_').replace('\\', '_')
+
+        seed_basename = os.path.basename(info['seed_path'])
+        dest_seed = os.path.join(module_dir, f"{safe_function}__{seed_basename}")
+        shutil.copy2(info['seed_path'], dest_seed)
+
+        trace_basename = os.path.basename(info['trace_path'])
+        dest_trace = os.path.join(module_dir, f"{safe_function}__{trace_basename}")
+        shutil.copy2(info['trace_path'], dest_trace)
+
+        copied_count += 1
+        if verbose:
+            print(f"[COPY] {firmware}/{module}/{function} ({info['status']}) -> {dest_seed}")
+
+    print(f"\n[SUCCESS] Extracted {copied_count} unique crashes to: {output_dir}")
+    print(f"           Organized by: firmware/module/function\n")
 
 def events_to_crash_times(events: List[Tuple[int, int, int]]) -> Dict[int, int]:
     crash_times = {}
@@ -488,7 +890,7 @@ def events_to_crash_times(events: List[Tuple[int, int, int]]) -> Dict[int, int]:
             crash_times[k] = unix_time
     return crash_times
 
-def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crashes_outputs", verbose=True):
+def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crashes", verbose=True):
     if not os.path.isdir(experiments_dir):
         if verbose:
             print(f"[ERROR] experiments_dir does not exist: {experiments_dir}")
@@ -497,6 +899,9 @@ def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crash
     for sub_exp in sorted(os.listdir(experiments_dir)):
         sub_path = os.path.join(experiments_dir, sub_exp)
         if not os.path.isdir(sub_path) or not sub_exp.startswith("exp_"):
+            continue
+
+        if not should_include_experiment(sub_exp):
             continue
 
         config_path = os.path.join(sub_path, "outputs", "config.ini")
@@ -515,8 +920,11 @@ def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crash
                 print(f"[WARN] couldn't read mode/firmware in {config_path}: {e}")
             continue
 
-        firmware_basename = os.path.basename(firmware_path)
-        target_exp_dir = os.path.join(extracted_root, firmware_basename, mode, sub_exp)
+        if os.path.dirname(firmware_path):
+            firmware_with_brand = firmware_path
+        else:
+            firmware_with_brand = os.path.basename(firmware_path)
+        target_exp_dir = os.path.join(extracted_root, firmware_with_brand, mode, sub_exp)
 
         if not os.path.isdir(target_exp_dir):
             if verbose:
@@ -679,7 +1087,24 @@ def format_time_hm(seconds: float) -> str:
     m = (seconds % 3600) // 60
     return f"{h}h{m}m"
 
-def build_agg_from_extracted(extracted_root="extracted_crashes_outputs", verbose=False):
+def count_requests_in_seed(seed_path: str) -> int:
+    if not os.path.isfile(seed_path):
+        return 0
+
+    try:
+        with open(seed_path, "rb") as f:
+            content = f.read()
+
+        delimiter = b'\x1A\x1A\x1A\x1A'
+        delimiter_count = content.count(delimiter)
+
+        if len(content) == 0:
+            return 0
+        return delimiter_count + 1
+    except Exception:
+        return 0
+
+def build_agg_from_extracted(extracted_root="extracted_crashes", verbose=False):
     agg = defaultdict(lambda: defaultdict(dict))
 
     def collect_trace_files(traces_dir):
@@ -718,65 +1143,112 @@ def build_agg_from_extracted(extracted_root="extracted_crashes_outputs", verbose
                 taint = None
         return tte, taint
 
-    for firmware in sorted(os.listdir(extracted_root)):
-        fw_path = os.path.join(extracted_root, firmware)
-        if not os.path.isdir(fw_path):
+    for entry in sorted(os.listdir(extracted_root)):
+        entry_path = os.path.join(extracted_root, entry)
+        if not os.path.isdir(entry_path):
             continue
 
-        for method in DEFAULT_METHODS:
-            method_path = os.path.join(fw_path, method)
-            if not os.path.isdir(method_path):
-                continue
+        has_methods = any(method in os.listdir(entry_path) for method in DEFAULT_METHODS if os.path.isdir(os.path.join(entry_path, method)))
 
-            for exp in sorted(os.listdir(method_path)):
-                exp_path = os.path.join(method_path, exp)
-                if not os.path.isdir(exp_path):
+        firmware_entries = []
+        if has_methods:
+            firmware_entries.append((entry, entry_path))
+        else:
+            for fw in sorted(os.listdir(entry_path)):
+                fw_path = os.path.join(entry_path, fw)
+                if os.path.isdir(fw_path):
+                    firmware_entries.append((os.path.join(entry, fw), fw_path))
+
+        for firmware, fw_path in firmware_entries:
+            for method in DEFAULT_METHODS:
+                method_path = os.path.join(fw_path, method)
+                if not os.path.isdir(method_path):
                     continue
 
-                traces_dir = os.path.join(exp_path, "crash_traces")
-                if not os.path.isdir(traces_dir):
-                    continue
-
-                files = collect_trace_files(traces_dir)
-                if not files:
-                    continue
-
-                per_exp_info = {}
-                for tf in files:
-                    pc, module = _parse_first_frame_pc_module(tf)
-                    if pc is None and module is None:
-                        if verbose:
-                            print(f"[SKIP] cannot parse first frame from {tf}")
+                for exp in sorted(os.listdir(method_path)):
+                    exp_path = os.path.join(method_path, exp)
+                    if not os.path.isdir(exp_path):
                         continue
 
-                    module_norm = (module or "(unknown_module)")
-                    pc_norm = pc or "(unknown_pc)"
-                    raw_key = (firmware, module_norm, pc_norm)
+                    if not should_include_experiment(exp):
+                        continue
 
-                    bname = os.path.basename(tf)
-                    tte_val, taint_val = parse_suffixes(bname)
+                    traces_dir = os.path.join(exp_path, "crash_traces")
+                    crashes_dir = os.path.join(exp_path, "crashes")
+                    if not os.path.isdir(traces_dir):
+                        continue
 
-                    prev = per_exp_info.get(raw_key)
-                    if prev is None:
-                        per_exp_info[raw_key] = {"tte": tte_val, "taints": ([taint_val] if taint_val is not None else [])}
-                    else:
-                        prev_tte = prev.get("tte")
-                        if prev_tte is None:
-                            prev["tte"] = tte_val
-                        elif tte_val is not None:
-                            prev["tte"] = min(prev_tte, tte_val)
-                        if taint_val is not None:
-                            prev["taints"].append(taint_val)
+                    files = collect_trace_files(traces_dir)
+                    if not files:
+                        continue
 
-                for key, info in per_exp_info.items():
-                    taints = info.get("taints", []) or []
-                    taint_avg = None
-                    if taints:
-                        try:
-                            taint_avg = int(sum(taints) / len(taints)) if all(float(t).is_integer() for t in taints) else (sum(taints) / len(taints))
-                        except Exception:
-                            taint_avg = sum(taints) / len(taints)
-                    agg[key][method][exp] = {"tte": info.get("tte"), "taint": taint_avg}
+                    per_exp_info = {}
+                    for tf in files:
+                        bname = os.path.basename(tf)
+                        seed_name = bname.replace("_traces", "")
+                        succ_file_path = os.path.join(crashes_dir, seed_name + ".succ")
+
+                        if REQUIRE_SUCC_FLAG:
+                            if not os.path.isfile(succ_file_path):
+                                if verbose:
+                                    print(f"[SKIP] No .succ file for {bname}, skipping (expected: {succ_file_path})")
+                                continue
+                            crash_seed_path = succ_file_path
+                        else:
+                            if os.path.isfile(succ_file_path):
+                                crash_seed_path = succ_file_path
+                            else:
+                                regular_seed_path = os.path.join(crashes_dir, seed_name)
+                                if os.path.isfile(regular_seed_path):
+                                    crash_seed_path = regular_seed_path
+                                else:
+                                    if verbose:
+                                        print(f"[SKIP] No seed file found for {bname}")
+                                    continue
+
+                        pc, module = _parse_first_frame_pc_module(tf)
+                        if pc is None and module is None:
+                            if verbose:
+                                print(f"[SKIP] cannot parse first frame from {tf}")
+                            continue
+
+                        module_norm = (module or "(unknown_module)")
+                        pc_norm = pc or "(unknown_pc)"
+                        raw_key = (firmware, module_norm, pc_norm)
+
+                        tte_val, taint_val = parse_suffixes(bname)
+
+                        prev = per_exp_info.get(raw_key)
+                        if prev is None:
+                            per_exp_info[raw_key] = {
+                                "tte": tte_val,
+                                "taints": ([taint_val] if taint_val is not None else []),
+                                "crash_seed_path": crash_seed_path
+                            }
+                        else:
+                            prev_tte = prev.get("tte")
+                            if prev_tte is None:
+                                prev["tte"] = tte_val
+                            elif tte_val is not None:
+                                prev["tte"] = min(prev_tte, tte_val)
+                            if taint_val is not None:
+                                prev["taints"].append(taint_val)
+                            if "crash_seed_path" not in prev:
+                                prev["crash_seed_path"] = crash_seed_path
+
+                    for key, info in per_exp_info.items():
+                        taints = info.get("taints", []) or []
+                        taint_avg = None
+                        if taints:
+                            try:
+                                taint_avg = int(sum(taints) / len(taints)) if all(float(t).is_integer() for t in taints) else (sum(taints) / len(taints))
+                            except Exception:
+                                taint_avg = sum(taints) / len(taints)
+                        agg[key][method][exp] = {
+                            "tte": info.get("tte"),
+                            "taint": taint_avg,
+                            "crash_seed_path": info.get("crash_seed_path")
+                        }
 
     return agg
 
@@ -959,7 +1431,7 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
 
 
 def build_three_tables_and_write_consistent(
-        extracted_root="extracted_crashes_outputs",
+        extracted_root="extracted_crashes",
         out1_csv="out1.csv", out1_tex="out1.tex",
         out2_csv="out2.csv", out2_tex="out2.tex",
         out3_csv="out3.csv", out3_tex="out3.tex",
@@ -992,6 +1464,9 @@ def build_three_tables_and_write_consistent(
             if not os.path.isdir(sub_path) or not sub_exp.startswith("exp_"):
                 continue
 
+            if not should_include_experiment(sub_exp):
+                continue
+
             config_path = os.path.join(sub_path, "outputs", "config.ini")
             if not os.path.isfile(config_path):
                 continue
@@ -1001,9 +1476,12 @@ def build_three_tables_and_write_consistent(
                 config.read(config_path)
                 mode = config.get("GENERAL", "mode")
                 firmware_path = config.get("GENERAL", "firmware")
-                firmware_basename = os.path.basename(firmware_path)
-                total_experiments[firmware_basename][mode] += 1
-                all_firmwares_from_experiments.add(firmware_basename)
+                if os.path.dirname(firmware_path):
+                    firmware_with_brand = firmware_path
+                else:
+                    firmware_with_brand = os.path.basename(firmware_path)
+                total_experiments[firmware_with_brand][mode] += 1
+                all_firmwares_from_experiments.add(firmware_with_brand)
             except Exception:
                 continue
 
@@ -1025,7 +1503,7 @@ def build_three_tables_and_write_consistent(
         return None
 
     def map_key_by_range_and_groups(fw, module, pc_str):
-        raw = (fw, module, pc_str, None)
+        raw = (fw, module, pc_str, None, None)
         pc_int = pc_to_int(pc_str)
         for fw_key, modmap in PC_RANGES.items():
             if fw_key.lower() != fw.lower() and fw_key not in fw and fw not in fw_key:
@@ -1038,22 +1516,27 @@ def build_three_tables_and_write_consistent(
                 if pc_int is None:
                     continue
             for fun_name, tpl in ranges.items():
-                if len(tpl) == 3:
+                if len(tpl) == 4:
+                    start, end, category, cve_id = tpl
+                elif len(tpl) == 3:
                     start, end, category = tpl
+                    cve_id = None
                 else:
                     start, end = tpl
                     category = None
+                    cve_id = None
                 try:
                     s = int(start)
                     e = int(end)
                 except:
                     continue
                 if s <= pc_int <= e:
-                    return (fw, module, fun_name, category)
+                    return (fw, module, fun_name, category, cve_id)
         return raw
 
     def should_skip(fw, method, module):
-        return (fw, method, module) in SKIP_MODULES or (fw, "any", module) in SKIP_MODULES
+        fw_name_only = os.path.basename(fw)
+        return (fw_name_only, method, module) in SKIP_MODULES or (fw_name_only, "any", module) in SKIP_MODULES or ("any", method, "any") in SKIP_MODULES
 
     agg = defaultdict(lambda: defaultdict(dict))
     for (fw, module, pc_key), method_dict in agg_raw.items():
@@ -1064,12 +1547,13 @@ def build_three_tables_and_write_consistent(
             for exp, d in exp_map.items():
                 tte = d["tte"]
                 taint = d["taint"]
+                crash_seed_path = d.get("crash_seed_path")
                 prev = agg[mapped_key][method_name].get(exp)
                 if prev is None:
-                    agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint}
+                    agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint, "crash_seed_path": crash_seed_path}
                 elif prev is not None and tte is not None:
                     if (tte < prev["tte"]):
-                        agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint}
+                        agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint, "crash_seed_path": crash_seed_path}
 
     # ---------- Table1: Number of crashes ----------
     firmware_set = sorted({k[0] for k in agg.keys()})
@@ -1080,12 +1564,21 @@ def build_three_tables_and_write_consistent(
     table1_rows = []
 
     for fw in firmware_set:
-        brand, name, version = fw_map.get(fw, ("", fw, ""))
+        fw_name_only = os.path.basename(fw)
+        brand, name, version = fw_map.get(fw_name_only, ("", fw_name_only, ""))
         row = {"firmware": name}
 
         for m in DEFAULT_METHODS:
             per_run_crashes = defaultdict(set)
-            for (f, module, pc, category), method_dict in agg.items():
+            for key, method_dict in agg.items():
+                # Unpack key with backward compatibility
+                if len(key) == 5:
+                    f, module, pc, category, cve_id = key
+                elif len(key) == 4:
+                    f, module, pc, category = key
+                else:
+                    f, module, pc = key
+
                 if f != fw:
                     continue
                 for exp, tte in method_dict.get(m, {}).items():
@@ -1107,7 +1600,14 @@ def build_three_tables_and_write_consistent(
 
         # rare crashes
         rare_cnt = 0
-        for (f, module, pc, category), method_dict in agg.items():
+        for key, method_dict in agg.items():
+            if len(key) == 5:
+                f, module, pc, category, cve_id = key
+            elif len(key) == 4:
+                f, module, pc, category = key
+            else:
+                f, module, pc = key
+
             if f != fw:
                 continue
             staff_found = "staff_state_aware" in method_dict and len(method_dict["staff_state_aware"]) > 0
@@ -1127,26 +1627,55 @@ def build_three_tables_and_write_consistent(
     table2_rows = []
     table3_rows = []
 
-    for (fw, module, func_or_pc, category), method_dict in sorted(
+    for key, method_dict in sorted(
         agg.items(), key=lambda x: (x[0][0], x[0][1], str(x[0][2]))
     ):
-        brand, name, version = fw_map.get(fw, ("", fw, ""))
+        if len(key) == 5:
+            fw, module, func_or_pc, category, cve_id = key
+        elif len(key) == 4:
+            fw, module, func_or_pc, category = key
+            cve_id = None
+        else:
+            fw, module, func_or_pc = key
+            category = None
+            cve_id = None
+
+        fw_name_only = os.path.basename(fw)
+        brand, name, version = fw_map.get(fw_name_only, ("", fw_name_only, ""))
         row = {
             "firmware": name,
             "module": module,
             "function": func_or_pc,
             "category": category or "",
+            "cve_id": cve_id or "",
         }
+
+        all_crash_seed_paths = []
         for m in DEFAULT_METHODS:
             entries = method_dict.get(m, {})
             cnt = len(entries)
             row[f"{METHOD_ABBR.get(m, m)}_cnt"] = cnt
             ttes = [v.get("tte") for v in entries.values() if v and v.get("tte") is not None]
             taints = [v.get("taint") for v in entries.values() if v and v.get("taint") is not None]
+            crash_paths = [v.get("crash_seed_path") for v in entries.values() if v and v.get("crash_seed_path")]
+            all_crash_seed_paths.extend(crash_paths)
+            if verbose and crash_paths:
+                print(f"[DEBUG] Found {len(crash_paths)} crash paths for {fw}/{module}/{func_or_pc} in method {m}")
+
             avg_tte = (sum(ttes) / len(ttes)) if ttes else None
             avg_taint = (sum(taints) / len(taints)) if taints else None
             row[f"{METHOD_ABBR.get(m, m)}_avg_tte"] = format_time_hm(avg_tte) if avg_tte is not None else ""
             row[f"{METHOD_ABBR.get(m, m)}_avg_taint"] = (round(avg_taint, 3) if avg_taint is not None else "")
+
+        num_requests = 0
+        if all_crash_seed_paths:
+            first_seed = all_crash_seed_paths[0]
+            if first_seed:
+                num_requests = count_requests_in_seed(first_seed)
+                if verbose and num_requests == 0:
+                    print(f"[DEBUG] No requests counted for {first_seed} (file exists: {os.path.isfile(first_seed)})")
+        row["num_requests"] = num_requests if num_requests > 0 else ""
+
         table2_rows.append(row)
 
         staff_found = "staff_state_aware" in method_dict and len(method_dict["staff_state_aware"]) > 0
@@ -1162,7 +1691,7 @@ def build_three_tables_and_write_consistent(
             }
             table3_rows.append(rare_row)
 
-    headers2 = ["firmware", "module", "function", "category"]
+    headers2 = ["firmware", "module", "function", "category", "cve_id", "num_requests"]
     for m in DEFAULT_METHODS:
         headers2.append(f"{METHOD_ABBR.get(m, m)}_cnt")
         headers2.append(f"{METHOD_ABBR.get(m, m)}_avg_tte")
@@ -1173,6 +1702,135 @@ def build_three_tables_and_write_consistent(
     write_csv_and_latex(headers3, table3_rows, out3_csv, out3_tex, caption="Rare crashes", add_category_col=True)
 
     return (table1_rows, table2_rows, table3_rows), agg
+
+def build_taint_causality_table(
+        agg,
+        out_csv: str = "out_taint_causality.csv",
+        out_tex: str = "out_taint_causality.tex",
+        verbose: bool = True):
+
+    staff_method = "staff_state_aware"
+
+    bug_causality = {}
+
+    for key, method_dict in agg.items():
+        if len(key) == 5:
+            fw, module, func_or_pc, category, cve_id = key
+        elif len(key) == 4:
+            fw, module, func_or_pc, category = key
+        else:
+            fw, module, func_or_pc = key
+            category = None
+
+        if not category:
+            category = "Unknown"
+
+        if staff_method not in method_dict:
+            continue
+
+        entries = method_dict[staff_method]
+        if not entries:
+            continue
+
+        causality_scores = []
+        for exp, data in entries.items():
+            taint = data.get("taint")
+            if taint is not None and taint > 0:
+                causality_scores.append(1.0)
+            else:
+                causality_scores.append(0.0)
+
+        if causality_scores:
+            avg_causality = sum(causality_scores) / len(causality_scores)
+            bug_key = (fw, module, func_or_pc, category)
+            bug_causality[bug_key] = avg_causality
+
+    category_stats = defaultdict(lambda: {"bugs": [], "causality_scores": [], "full_causality_count": 0})
+
+    for (fw, module, func_or_pc, category), causality in bug_causality.items():
+        category_stats[category]["bugs"].append((fw, module, func_or_pc))
+        category_stats[category]["causality_scores"].append(causality)
+
+        if causality == 1.0:
+            category_stats[category]["full_causality_count"] += 1
+
+    rows = []
+    total_bugs = 0
+    total_causality_weighted = 0.0
+    total_full_causality = 0
+
+    for category in sorted(category_stats.keys()):
+        stats = category_stats[category]
+        num_bugs = len(stats["bugs"])
+        avg_causality = sum(stats["causality_scores"]) / len(stats["causality_scores"]) if stats["causality_scores"] else 0.0
+        full_causality_count = stats["full_causality_count"]
+
+        rows.append({
+            "category": category,
+            "num_bugs": num_bugs,
+            "full_causality_bugs": full_causality_count,
+            "causality_score": round(avg_causality, 2)
+        })
+
+        total_bugs += num_bugs
+        total_causality_weighted += avg_causality * num_bugs
+        total_full_causality += full_causality_count
+
+    if total_bugs > 0:
+        overall_causality = total_causality_weighted / total_bugs
+        rows.append({
+            "category": "ALL",
+            "num_bugs": total_bugs,
+            "full_causality_bugs": total_full_causality,
+            "causality_score": round(overall_causality, 2)
+        })
+
+    headers = ["category", "num_bugs", "full_causality_bugs", "causality_score"]
+    with open(out_csv, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    if verbose:
+        print(f"[INFO] Wrote taint causality CSV: {out_csv}")
+
+    def latex_escape(s):
+        if s is None:
+            return ""
+        s = str(s)
+        s = s.replace("\\", "\\textbackslash{}")
+        s = s.replace("_", "\\_")
+        s = s.replace("%", "\\%")
+        s = s.replace("&", "\\&")
+        s = s.replace("#", "\\#")
+        s = s.replace("{", "\\{")
+        s = s.replace("}", "\\}")
+        return s
+
+    with open(out_tex, "w", encoding="utf-8") as fh:
+        fh.write("\\begin{tabular}{|l|c|c|c|}\n")
+        fh.write("\\hline\n")
+        fh.write("{\\sc Bug Category} & {\\sc \\# Found Bugs} & {\\sc \\# Full Causality} & {\\sc Causality Score} \\\\\n")
+        fh.write("\\hline\\hline\n")
+
+        for row in rows:
+            category = row["category"]
+            num_bugs = row["num_bugs"]
+            full_causality_bugs = row["full_causality_bugs"]
+            causality = row["causality_score"]
+
+            if category == "ALL":
+                fh.write(f"\\textbf{{{latex_escape(category)}}} & \\textbf{{{num_bugs}}} & \\textbf{{{full_causality_bugs}}} & \\textbf{{{causality}}} \\\\\n")
+            else:
+                fh.write(f"{latex_escape(category)} & {num_bugs} & {full_causality_bugs} & {causality} \\\\\n")
+
+        fh.write("\\hline\n")
+        fh.write("\\end{tabular}\n")
+
+    if verbose:
+        print(f"[INFO] Wrote taint causality LaTeX: {out_tex}")
+
+    return rows
 
 def build_detection_efficiency_table(
         experiments_dir: str,
@@ -1319,9 +1977,12 @@ def build_detection_efficiency_table(
         if not os.path.isdir(exp_dir):
             continue
 
+        if not should_include_experiment(sub):
+            continue
+
         config_path = os.path.join(exp_dir, "outputs", "config.ini")
         mode_val = None
-        firmware_basename = None
+        firmware_with_brand = None
         if os.path.isfile(config_path):
             cfg = configparser.ConfigParser()
             try:
@@ -1329,7 +1990,10 @@ def build_detection_efficiency_table(
                 mode_val = cfg.get("GENERAL", "mode", fallback=None)
                 firmware_path = cfg.get("GENERAL", "firmware", fallback=None)
                 if firmware_path:
-                    firmware_basename = os.path.basename(firmware_path)
+                    if os.path.dirname(firmware_path):
+                        firmware_with_brand = firmware_path
+                    else:
+                        firmware_with_brand = os.path.basename(firmware_path)
             except Exception:
                 pass
 
@@ -1345,8 +2009,8 @@ def build_detection_efficiency_table(
                     print(f"[SKIP] {sub}: mode={mode_norm} != tool_filter={tool_filter}")
                 continue
 
-        if firmware_basename is None:
-            firmware_basename = sub
+        if firmware_with_brand is None:
+            firmware_with_brand = sub
 
         fuzzer_stats_path = os.path.join(exp_dir, "outputs", "fuzzer_stats")
         if not os.path.isfile(fuzzer_stats_path):
@@ -1359,10 +2023,10 @@ def build_detection_efficiency_table(
         dedup = safe_int(stats.get("deduplicated_crashes")) or 0
         filt = safe_int(stats.get("filtered_crashes")) or 0
 
-        extracted_exp_dir = os.path.join(extracted_root, firmware_basename, mode_norm if mode_norm else "", sub)
+        extracted_exp_dir = os.path.join(extracted_root, firmware_with_brand, mode_norm if mode_norm else "", sub)
         if not os.path.isdir(extracted_exp_dir):
             extracted_exp_dir = None
-            fw_dir = os.path.join(extracted_root, firmware_basename)
+            fw_dir = os.path.join(extracted_root, firmware_with_brand)
             if os.path.isdir(fw_dir):
                 for method in sorted(os.listdir(fw_dir)):
                     candidate = os.path.join(fw_dir, method, sub)
@@ -1390,16 +2054,18 @@ def build_detection_efficiency_table(
                     module_norm = module or "(unknown)"
                     pc_norm = pc or "(unknown)"
 
-                    if (firmware_basename, method_for_skip, module_norm) in SKIP_MODULES or \
-                       (firmware_basename, "any", module_norm) in SKIP_MODULES:
+                    fw_name_only = os.path.basename(firmware_with_brand)
+                    if (fw_name_only, method_for_skip, module_norm) in SKIP_MODULES or \
+                       (fw_name_only, "any", module_norm) in SKIP_MODULES or \
+                       ("any", method_for_skip, "any") in SKIP_MODULES:
                         skipped_by_modules += 1
-                        if not skipped[(firmware_basename, module_norm)]:
-                            skipped[(firmware_basename, module_norm)] = 1
+                        if not skipped[(firmware_with_brand, module_norm)]:
+                            skipped[(firmware_with_brand, module_norm)] = 1
                         else:
                             dedup_savings_total += 1
                         continue
 
-                    mapped_key, mapped_flag = map_raw_to_mapped_key_and_flag(firmware_basename, module_norm, pc_norm)
+                    mapped_key, mapped_flag = map_raw_to_mapped_key_and_flag(firmware_with_brand, module_norm, pc_norm)
 
                     if not funcs[mapped_key]:
                         funcs[mapped_key] = 1
@@ -1421,14 +2087,14 @@ def build_detection_efficiency_table(
 
         f_val = filt_metrics.get(fm_choice)
         d_val = dedup_metrics.get(dm_choice)
-        per_fw_metrics[firmware_basename]["n_exps"] += 1
+        per_fw_metrics[firmware_with_brand]["n_exps"] += 1
         if f_val is not None:
-            per_fw_metrics[firmware_basename]["filtering_values"].append(f_val)
+            per_fw_metrics[firmware_with_brand]["filtering_values"].append(f_val)
         if d_val is not None:
-            per_fw_metrics[firmware_basename]["dedup_values"].append(d_val)
+            per_fw_metrics[firmware_with_brand]["dedup_values"].append(d_val)
 
         if verbose:
-            print(f"[EXP] {sub} fw={firmware_basename}")
+            print(f"[EXP] {sub} fw={firmware_with_brand}")
 
     out_rows = []
     for fw_basename, vals in sorted(per_fw_metrics.items()):
@@ -1443,8 +2109,11 @@ def build_detection_efficiency_table(
         col_filter_name = f"mean_filtering_{fm_choice}"
         col_dedup_name = f"mean_deduplication_{dm_choice}"
 
+        fw_name_only = os.path.basename(fw_basename)
+        fw_info = fw_map.get(fw_name_only, ("", fw_name_only, ""))
+
         out_rows.append({
-            "firmware": fw_map[fw_basename][1],
+            "firmware": fw_info[1],
             "n_experiments": n,
             col_filter_name: round(mean_filter, 4) if mean_filter is not None else "",
             col_dedup_name: round(mean_dedup, 4) if mean_dedup is not None else ""
@@ -1480,208 +2149,12 @@ def build_detection_efficiency_table(
     return out_rows
 
 
-def export_one_exp_per_bug(extracted_root="extracted_crashes_outputs",
-                            output_dir="one_exp_per_bug",
-                            selection_mode="fastest_tte",
-                            verbose=True):
-
-    if not os.path.isdir(extracted_root):
-        if verbose:
-            print(f"[ERROR] extracted_root does not exist: {extracted_root}")
-        return
-
-    os.makedirs(output_dir, exist_ok=True)
-
-    def pc_to_int(pc_str):
-        if pc_str is None:
-            return None
-        s = str(pc_str).strip()
-        try:
-            return int(s, 0)
-        except:
-            m = re.search(r"(0x[0-9a-fA-F]+)", s)
-            if m:
-                return int(m.group(1), 16)
-        return None
-
-    def map_key_by_range_and_groups(fw, module, pc_str):
-        raw = (fw, module, pc_str, None)
-        pc_int = pc_to_int(pc_str)
-        for fw_key, modmap in PC_RANGES.items():
-            if fw_key.lower() != fw.lower() and fw_key not in fw and fw not in fw_key:
-                continue
-            ranges = modmap.get(module) or modmap.get(module.lower())
-            if not ranges:
-                continue
-            if pc_int is None:
-                pc_int = pc_to_int(pc_str)
-                if pc_int is None:
-                    continue
-            for fun_name, tpl in ranges.items():
-                if len(tpl) == 3:
-                    start, end, category = tpl
-                else:
-                    start, end = tpl
-                    category = None
-                try:
-                    s = int(start)
-                    e = int(end)
-                except:
-                    continue
-                if s <= pc_int <= e:
-                    return (fw, module, fun_name, category)
-        return raw
-
-    agg_raw = build_agg_from_extracted(extracted_root=extracted_root, verbose=False)
-
-    def should_skip(fw, method, module):
-        return (fw, method, module) in SKIP_MODULES or (fw, "any", module) in SKIP_MODULES
-
-    agg = defaultdict(lambda: defaultdict(dict))
-    for (fw, module, pc_key), method_dict in agg_raw.items():
-        mapped_key = map_key_by_range_and_groups(fw, module, pc_key)
-        for method_name, exp_map in method_dict.items():
-            if should_skip(fw, method_name, module):
-                continue
-            for exp, d in exp_map.items():
-                tte = d["tte"]
-                taint = d["taint"]
-                prev = agg[mapped_key][method_name].get(exp)
-                if prev is None:
-                    agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint}
-                elif prev is not None and tte is not None:
-                    if (tte < prev["tte"]):
-                        agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint}
-
-    bug_instances = defaultdict(list)
-
-    for bug_key, method_dict in agg.items():
-        fw, module, func_or_pc, category = bug_key
-
-        for method_name, exp_dict in method_dict.items():
-            for exp, data in exp_dict.items():
-                tte = data.get("tte")
-                taint = data.get("taint")
-
-                exp_path = os.path.join(extracted_root, fw, method_name, exp)
-                if not os.path.isdir(exp_path):
-                    continue
-
-                traces_dir = os.path.join(exp_path, "crash_traces")
-                if not os.path.isdir(traces_dir):
-                    continue
-
-                best_trace = None
-                best_tte_match = None
-                for trace_file in os.listdir(traces_dir):
-                    trace_path = os.path.join(traces_dir, trace_file)
-                    if not os.path.isfile(trace_path):
-                        continue
-
-                    pc, trace_module = _parse_first_frame_pc_module(trace_path)
-                    if pc is None or trace_module is None:
-                        continue
-                    if trace_module != module:
-                        continue
-
-                    trace_mapped_key = map_key_by_range_and_groups(fw, trace_module, pc)
-                    if trace_mapped_key != bug_key:
-                        continue
-
-                    trace_tte = None
-                    if "$" in trace_file:
-                        try:
-                            tte_str = trace_file.split("$")[-1]
-                            trace_tte = int(tte_str)
-                        except:
-                            pass
-
-                    if tte is not None and trace_tte is not None:
-                        if best_trace is None or abs(trace_tte - tte) < abs(best_tte_match - tte):
-                            best_trace = trace_path
-                            best_tte_match = trace_tte
-
-                if best_trace is None:
-                    continue
-
-                bug_instances[bug_key].append({
-                    "firmware": fw,
-                    "module": module,
-                    "function": func_or_pc,
-                    "category": category,
-                    "mode": method_name,
-                    "exp": exp,
-                    "exp_path": exp_path,
-                    "trace_file": os.path.basename(best_trace),
-                    "trace_path": best_trace,
-                    "tte": tte,
-                    "taint": taint,
-                })
-
-    if verbose:
-        print(f"[INFO] Found {len(bug_instances)} unique bugs (matching out2.csv)")
-
-    selected_count = 0
-    for bug_key, instances in sorted(bug_instances.items()):
-        firmware, module, func, category = bug_key
-
-        selected = None
-        if selection_mode == "fastest_tte":
-            instances_with_tte = [i for i in instances if i["tte"] is not None]
-            if instances_with_tte:
-                selected = min(instances_with_tte, key=lambda x: x["tte"])
-            else:
-                selected = instances[0]
-        elif selection_mode == "first":
-            selected = sorted(instances, key=lambda x: (x["mode"], x["exp"], x["trace_file"]))[0]
-        elif selection_mode == "best_taint":
-            instances_with_taint = [i for i in instances if i["taint"] is not None]
-            if instances_with_taint:
-                selected = max(instances_with_taint, key=lambda x: x["taint"])
-            else:
-                selected = instances[0]
-        else:
-            selected = instances[0]
-
-        bug_output_dir = os.path.join(output_dir, firmware, module)
-        os.makedirs(bug_output_dir, exist_ok=True)
-
-        safe_func_name = str(func).replace("/", "_").replace(":", "_")
-        dest_trace = os.path.join(bug_output_dir, f"{safe_func_name}_{selected['mode']}_{selected['exp']}")
-
-        shutil.copy2(selected["trace_path"], dest_trace)
-
-        crashes_dir = os.path.join(selected["exp_path"], "crashes")
-        if os.path.isdir(crashes_dir):
-            crash_id = extract_crash_id(selected["trace_file"])
-            if crash_id:
-                for crash_file in os.listdir(crashes_dir):
-                    if extract_crash_id(crash_file) == crash_id:
-                        crash_path = os.path.join(crashes_dir, crash_file)
-                        dest_crash_dir = os.path.join(bug_output_dir, "crashes")
-                        os.makedirs(dest_crash_dir, exist_ok=True)
-                        dest_crash = os.path.join(dest_crash_dir, f"{safe_func_name}_{selected['mode']}_{selected['exp']}")
-                        shutil.copy2(crash_path, dest_crash)
-                        break
-
-        selected_count += 1
-
-        if verbose:
-            tte_str = f"{selected['tte']:.1f}s" if selected['tte'] else "N/A"
-            taint_str = f"{selected['taint']:.3f}" if selected['taint'] else "N/A"
-            print(f"[{firmware}/{module}/{func}] Selected {selected['mode']}/{selected['exp']} "
-                  f"(TTE={tte_str}, taint={taint_str}) from {len(instances)} instances")
-
-    if verbose:
-        print(f"\n[DONE] Exported {selected_count} unique bugs to: {output_dir}")
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Copy crashes from experiments_dir to extracted_root, then annotate files with $<tte> based on plot_data/fuzzer_stats."
     )
     parser.add_argument("experiments_dir", help="Path to directory containing exp_* directories.")
-    parser.add_argument("--extracted_root", default="extracted_crashes_outputs",
+    parser.add_argument("--extracted_root", default="extracted_crashes",
                         help="Destination root to update/annotate.")
     parser.add_argument("--update", action="store_true",
                         help="Do not copy crashes into extracted_root; operate only on existing extracted_root.")
@@ -1692,18 +2165,27 @@ if __name__ == "__main__":
                         help="CSV file containing PC ranges / function mapping (default: crashes.csv)")
     parser.add_argument("--pc-ranges-py", default="pc_ranges_generated.py",
                         help="Output Python file to write PC_RANGES literal to (default: pc_ranges_generated.py)")
-    parser.add_argument("--export-one-per-bug", action="store_true",
-                        help="Export one representative instance per unique bug")
-    parser.add_argument("--export-selection", default="fastest_tte",
-                        choices=["fastest_tte", "first", "best_taint"],
-                        help="How to select representative instance for each bug (default: fastest_tte)")
     parser.add_argument("--show-exp-count", action="store_true",
                         help="Add columns showing the number of experiments per (firmware, tool) pair in Table 1")
     parser.add_argument("--include-zero-crashes", action="store_true",
                         help="Include (firmware, tool) pairs in Table 1 even when no bugs were found")
+    parser.add_argument("--max-exp", type=int, default=None,
+                        help="Maximum experiment number to consider (e.g., --max-exp 5 only considers exp_1 through exp_5)")
+    parser.add_argument("--include-not-succ", action="store_true",
+                        help="Include seeds without .succ flag (default: only include .succ seeds)")
+    parser.add_argument("--extract-unique", metavar="OUTPUT_DIR",
+                        help="Extract one representative crash seed per firmware/module/function to OUTPUT_DIR")
 
     args = parser.parse_args()
     verbose = not args.quiet
+
+    MAX_EXP_NUM = args.max_exp
+    if MAX_EXP_NUM is not None and verbose:
+        print(f"[INFO] Filtering experiments: only considering exp_1 through exp_{MAX_EXP_NUM}")
+
+    REQUIRE_SUCC_FLAG = not args.include_not_succ
+    if not REQUIRE_SUCC_FLAG and verbose:
+        print(f"[INFO] Including seeds without .succ flag")
 
     try:
         PC_RANGES = load_pc_ranges_from_csv(args.crashes_csv, output_py=args.pc_ranges_py, verbose=verbose)
@@ -1716,11 +2198,12 @@ if __name__ == "__main__":
     if verbose:
         import pprint
         pprint.pprint(PC_RANGES)
-    
+
     unify_crash_and_trace_filenames()
 
     if args.update:
         update_extracted_root_from_experiments(args.experiments_dir, extracted_root=args.extracted_root, verbose=verbose)
+        count_and_log_crash_seeds(extracted_root=args.extracted_root, verbose=verbose)
     else:
         if verbose:
             print("[INFO] skipping copy step")
@@ -1731,8 +2214,8 @@ if __name__ == "__main__":
         if verbose:
             print("[INFO] skipping annotation step")
 
-    build_three_tables_and_write_consistent(
-        extracted_root="extracted_crashes_outputs",
+    tables, agg = build_three_tables_and_write_consistent(
+        extracted_root="extracted_crashes",
         out1_csv="out1.csv", out1_tex="out1.tex",
         out2_csv="out2.csv", out2_tex="out2.tex",
         out3_csv="out3.csv", out3_tex="out3.tex",
@@ -1740,6 +2223,13 @@ if __name__ == "__main__":
         show_exp_count=args.show_exp_count,
         experiments_dir=args.experiments_dir,
         include_zero_crashes=args.include_zero_crashes
+    )
+
+    build_taint_causality_table(
+        agg=agg,
+        out_csv="out_taint_causality.csv",
+        out_tex="out_taint_causality.tex",
+        verbose=True
     )
 
     build_detection_efficiency_table(
@@ -1751,12 +2241,18 @@ if __name__ == "__main__":
         verbose=not args.quiet
     )
 
-    if args.export_one_per_bug:
-        export_one_exp_per_bug(
+    chmod_recursive(args.extracted_root, 0o777)
+
+    if args.extract_unique:
+        extract_unique_crashes_per_function(
             extracted_root=args.extracted_root,
-            output_dir="one_exp_per_bug",
-            selection_mode=args.export_selection,
+            output_dir=args.extract_unique,
             verbose=verbose
         )
 
-    chmod_recursive(args.extracted_root, 0o777)
+    chmod_recursive(args.extract_unique, 0o777)
+
+    print_seed_status_statistics(extracted_root=args.extracted_root, verbose=verbose)
+
+    print_unprocessed_seed_paths(extracted_root=args.extracted_root)
+
