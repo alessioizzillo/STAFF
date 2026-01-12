@@ -1,0 +1,35 @@
+POST /setTestEmail HTTP/1.1
+Host: 2.65.87.200
+Content-Length: 70
+Cache-Control: max-age=0
+Authorization: Digest username="admin", realm="_00", nonce="4981be60ff28fe3ccb29ee0a784e037d", uri="/setTestEmail", response="ff769528adb656ec84653d12c7fb7f6f", qop=auth, nc=00000188, cnonce="56b906c057129b75"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://2.65.87.200
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://2.65.87.200/emtest.htm
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+ReplySuccessPage=stseml.htm&ReplyErrorPage=replye.htm&EmailTest=+Test+POST /setFirmwareUpgrade HTTP/1.1
+Host: 2.65.87.200
+Content-Length: 664
+Cache-Control: max-age=0
+Authorization: Digest username="admin", realm="_00", nonce="4981be60ff28fe3ccb29ee0a784e037d", uri="/setFirmwarePOST /stsftp.htm HTTP/1.1
+Host: 2.65.87.200
+Content-Length: 53
+Cache-Control: max-age=0
+Authorization: Digest username="admin", realm="_00", nonce="4981be60ff28fe3ccb29ee0a784e037d", uri="/stsftp.htm", response="ec8e773a79f9e7e4d52dbe5bb6bba838", qop=auth, nc=000000f7, cnonce="4944513773271463"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://2.65.87.200
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://2.65.87.200/setTestFTP
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+ReplySuccessPage=stsftp.htm&ReplyErrorPage=stsftp.htm

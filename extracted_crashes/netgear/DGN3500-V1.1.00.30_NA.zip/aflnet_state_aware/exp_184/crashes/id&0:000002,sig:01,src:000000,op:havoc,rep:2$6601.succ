@@ -1,0 +1,5 @@
+GET /help/setup.cgi?nt: */*
+Referer: http://192.168.0.1/help/h_usb_basic.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+

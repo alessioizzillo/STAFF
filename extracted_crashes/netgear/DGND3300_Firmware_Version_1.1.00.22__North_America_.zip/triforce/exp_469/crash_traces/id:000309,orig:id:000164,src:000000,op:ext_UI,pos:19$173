@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: mini_httpd
+  [00] inode: 24712, pc: 0x0000410c, module: mini_httpd
+  [01] inode: 24712, pc: 0x00004178, module: mini_httpd
+  [02] inode: 24712, pc: 0x00004160, module: mini_httpd
+  [03] inode: 24712, pc: 0x00004134, module: mini_httpd
+  [04] inode: 24712, pc: 0x00004100, module: mini_httpd
+

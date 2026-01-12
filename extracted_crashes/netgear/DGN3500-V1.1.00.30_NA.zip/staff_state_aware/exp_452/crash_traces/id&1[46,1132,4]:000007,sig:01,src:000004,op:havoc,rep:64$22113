@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: setup.cgi
+  [00] inode: 57671, pc: 0x0001097c, module: unknown
+  [01] inode: 57671, pc: 0x0001096c, module: unknown
+  [02] inode: 57671, pc: 0x00010944, module: unknown
+  [03] inode: 57671, pc: 0x00010938, module: unknown
+  [04] inode: 57671, pc: 0x00010920, module: unknown
+

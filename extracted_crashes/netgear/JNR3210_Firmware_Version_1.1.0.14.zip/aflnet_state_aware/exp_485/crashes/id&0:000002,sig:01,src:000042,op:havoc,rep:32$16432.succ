@@ -1,0 +1,9 @@
+GET /setup.cgi?next_fLle=common/system.xml&timestamp=1747070581869 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ChrTme/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1./FW_email_h*htm
+Accept-Encoding: gzip, deflate
+Accept-Languag‡: en-US,en;q=0.9
+

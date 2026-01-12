@@ -1,0 +1,9 @@
+GET /langs/English/msg.xml?timestamp=1747919588721 HT168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFozilla/5.0 (X11; Linux x86_64) zc3dvcmQ=
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.0.1/usb_adv.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+AcceptíLanguage: en-US,en;q=0.9
+

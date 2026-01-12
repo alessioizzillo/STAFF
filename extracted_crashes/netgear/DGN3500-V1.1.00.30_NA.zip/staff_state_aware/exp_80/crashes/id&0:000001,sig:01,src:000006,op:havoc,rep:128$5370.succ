@@ -1,0 +1,16 @@
+GET /help/setup.cgi?next_file=../common/system.xml?timestamp=1747920263573 HTTP/1.1*Host: 192.168.0.1
+Connection: kalive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML,like Gecko) Chrome/131.0.1.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.0.1/help/hschedul.htm
+Accept-Encoding: gzip, deflatdð
+Acctuept-Language: en-US,en;q=0.9
+	ÿGET /help/setup.cgi?next_file=../common/system.xml?t´mestamp=1747920263573 H192.168.0.1
+Connection: kalive
+AuhorizationÿBasic YWRtaW46cGFzc3dvcmQ=
+User-Agent: Mozilla/5.0 (X11; Linux x86_6 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 SafariB537.36
+Acyept: */*
+Referer: http://192.168.0.1/help/hschedul.htmyyyyyyyyyyyyyyyyyyyyyy, deflate
+Accept-Language: en-US,en;q=0.9
+

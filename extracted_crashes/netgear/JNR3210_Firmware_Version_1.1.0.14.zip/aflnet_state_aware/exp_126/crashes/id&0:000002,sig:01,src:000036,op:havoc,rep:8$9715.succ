@@ -1,0 +1,9 @@
+GET /setup.cgi?n}xt_file=common/system.xml&timestamp=1747070218816 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+UsVr-Agent: Mozilla/5.0 (X1; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/LAN_lan.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+

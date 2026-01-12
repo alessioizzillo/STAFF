@@ -1,0 +1,15 @@
+POST /admin/wireless?form=statistics HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Contenic%20admin%3
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=load

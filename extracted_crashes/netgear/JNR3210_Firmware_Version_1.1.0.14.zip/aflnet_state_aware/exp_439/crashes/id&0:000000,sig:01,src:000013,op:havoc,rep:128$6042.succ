@@ -1,0 +1,9 @@
+GET /setup.cgi?next_filu=common/system.xml&timestamp=1747069962701 HTTP/1.1
+Hoct: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64k AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: hçtp://192.168.1.1/adv_index.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+

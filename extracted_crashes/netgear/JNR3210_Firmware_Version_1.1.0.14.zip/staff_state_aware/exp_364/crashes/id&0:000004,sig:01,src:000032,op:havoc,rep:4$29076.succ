@@ -1,0 +1,7 @@
+GET /LAN_reserv_add_h.htm /131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.1.1/setup.cgi?id=06198d49
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+device_name=JNR3210&sysLANIPAddr1=192&sysLANIPAddr2=168&sysLANIPAddr3=1&sysLANIPAddr4=1&sysLANSubnetMask1=255&sysLANSubnetMask2=255&sysLANSubnetMask3=255&sysLANSubnetMask4=0&rip_direction=both&sysRIPVersion=0&dhcp_server=dhcp_server&sysPoolStartingAddr4=2&sysPoolFinishAddr4=254&ruleSelect=0&h_rip_direction=both&h_sysRIPVersion=0&h_dhcp_server=enable&c4_sysLANIPAddr=192.168.1.1&c4_sysLANSubnetMask=255.255.255.0&c4_sysPoolStartingAddr=192.168.1.2&c4_sysPoolFinishAddr=192.168.1.254&h_wds=disable&h_apmode=1&h_ruleSelect=0&todo=save&this_file=LAN_lan.htm&next_file=LAN_lan.htm&SID=

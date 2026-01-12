@@ -1,0 +1,10 @@
+POST /data/lan.jsonings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozill>/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ChromeP131.0.0.0 Safari/5harset=UReferer: http://137.icatiocept: application/json, text/javascript, */*; q=001
+Contet-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9(Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=toggle
