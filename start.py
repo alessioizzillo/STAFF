@@ -1813,7 +1813,7 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
 
                                 m_mod = MODULE_RE.match(line)
                                 if m_mod:
-                                    current_module = m_mod.group(1)
+                                    current_module = m_mod.group(1).rstrip('.,;:')
                                     if current_module not in module_functions_map:
                                         module_functions_map[current_module] = []
                                     if not trace_module_name:
@@ -3027,7 +3027,7 @@ def crash_analysis(container_name):
                 out.append(line)
                 continue
 
-            module_name = m_mod.group(1)
+            module_name = m_mod.group(1).rstrip('.,;:')
             addr        = int(m_pc.group(1), 16)
             module_path = find_module_path(extract_dir, module_name)
             if not module_path:
@@ -3134,7 +3134,7 @@ def crash_analysis(container_name):
                         if m_pc:
                             pc_str = m_pc.group(1)
                         if m_mod:
-                            module_name = m_mod.group(1)
+                            module_name = m_mod.group(1).rstrip('.,;:')
 
                         if line.startswith("["):
                             break
@@ -3406,7 +3406,7 @@ def crash_analysis(container_name):
                                 target_process = m.group(1)
                             m_mod = MODULE_RE.match(line)
                             if m_mod:
-                                module_name = m_mod.group(1)
+                                module_name = m_mod.group(1).rstrip('.,;:')
                             if target_process and module_name:
                                 break
 
@@ -3656,7 +3656,7 @@ def crash_analysis(container_name):
                                                 if process_found and "module:" in line:
                                                     m_mod = MODULE_RE.search(line)
                                                     if m_mod:
-                                                        old_module_name = m_mod.group(1)
+                                                        old_module_name = m_mod.group(1).rstrip('.,;:')
                                                         break
                                         print(f"[DEBUG] Old trace module: {old_module_name}")
                                     except Exception as e:
@@ -3691,7 +3691,7 @@ def crash_analysis(container_name):
                                                         if process_found and "module:" in line:
                                                             m_mod = MODULE_RE.search(line)
                                                             if m_mod:
-                                                                new_module_name = m_mod.group(1)
+                                                                new_module_name = m_mod.group(1).rstrip('.,;:')
                                                                 break
 
                                                 print(f"[DEBUG] New trace {fn} module: {new_module_name}")
