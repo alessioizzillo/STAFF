@@ -1409,8 +1409,9 @@ def _read_seed_as_poc(seed_path: str, delimiter: bytes) -> str:
         return ""
 
 def update_crash_analysis_prompt() -> None:
-    os.makedirs(CRASH_REPORTS_DIR, exist_ok=True)
-    os.chmod(CRASH_REPORTS_DIR, 0o777)
+    if not os.path.exists(CRASH_REPORTS_DIR):
+        os.makedirs(CRASH_REPORTS_DIR, exist_ok=True)
+        os.chmod(CRASH_REPORTS_DIR, 0o777)
 
     report_files = sorted([f for f in os.listdir(CRASH_REPORTS_DIR) if f.endswith('.report')])
 
@@ -1528,6 +1529,12 @@ After creating the main table, consider providing:
 def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
     global config
 
+    if os.path.exists(CRASH_REPORTS_DIR):
+        print(f"[\033[31mERROR\033[0m] Output directory already exists: {CRASH_REPORTS_DIR}")
+        print(f"Please remove or rename it before running --unique-crash-report mode.")
+        print(f"To remove: rm -rf {CRASH_REPORTS_DIR}")
+        sys.exit(1)
+
     def read_arch_from_workdir(work_dir: str) -> Optional[str]:
         p = os.path.join(work_dir, "architecture")
         try:
@@ -1611,7 +1618,7 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
             return {}, None
 
     def disassemble_with_capstone(binary_path: str, binary_name: str, function_names: List[str],
-                                  work_dir: str, debug_dir: str = None) -> Tuple[str, List[str]]:
+                                  work_dir: str) -> Tuple[str, List[str]]:
         try:
             arch = read_arch_from_workdir(work_dir)
             cs_arch, cs_mode = pick_capstone_arch_mode(arch)
@@ -1652,23 +1659,6 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
                     variants.append(base_name_no_version)
 
                 return list(set(variants))
-
-            if debug_dir:
-                try:
-                    debug_funcs_file = os.path.join(debug_dir, f"functions_{binary_name}.txt")
-                    with open(debug_funcs_file, 'w', encoding='utf-8') as f:
-                        f.write("Functions to match:\n")
-                        for func_name in function_names:
-                            variants = normalize_function_name(func_name)
-                            f.write(f"  {func_name}\n")
-                            f.write(f"    Variants: {', '.join(variants)}\n")
-                        f.write(f"\nAvailable symbols in binary ({len(funcs_dict)} total, showing first 100):\n")
-                        for sym_name in sorted(funcs_dict.keys())[:100]:
-                            f.write(f"  {sym_name}\n")
-                    os.chmod(debug_funcs_file, 0o666)
-                    print(f"[DEBUG] Wrote function names to {debug_funcs_file}")
-                except Exception as e:
-                    print(f"[WARN] Could not write debug functions file: {e}")
 
             disasm_output = []
             func_set = set()
@@ -1734,30 +1724,6 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
             not_found = set(function_names) - found_original_names
             not_found_list = sorted(list(not_found))
 
-            if not_found and debug_dir:
-                try:
-                    debug_notfound_file = os.path.join(debug_dir, f"notfound_{binary_name}.txt")
-                    with open(debug_notfound_file, 'w', encoding='utf-8') as f:
-                        f.write(f"Functions NOT matched ({len(not_found)} total):\n")
-                        for func_name in not_found_list:
-                            variants = normalize_function_name(func_name)
-                            f.write(f"  {func_name}\n")
-                            f.write(f"    Tried variants: {', '.join(variants)}\n")
-                    os.chmod(debug_notfound_file, 0o666)
-                    print(f"[DEBUG] Wrote unmatched functions to {debug_notfound_file}")
-                except Exception as e:
-                    print(f"[WARN] Could not write debug notfound file: {e}")
-
-            if debug_dir and found_funcs:
-                try:
-                    debug_disasm_file = os.path.join(debug_dir, f"disasm_{binary_name}.txt")
-                    with open(debug_disasm_file, 'w', encoding='utf-8') as f:
-                        f.write("".join(disasm_output))
-                    os.chmod(debug_disasm_file, 0o666)
-                    print(f"[DEBUG] Wrote disassembly to {debug_disasm_file}")
-                except Exception as e:
-                    print(f"[WARN] Could not write debug disasm file: {e}")
-
             disasm_text = "".join(disasm_output) if disasm_output else "No functions found for disassembly.\n"
             return disasm_text, not_found_list
 
@@ -1815,18 +1781,14 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
                     report_path = os.path.join(module_path, f"{seed_base}.report")
                     log_path = os.path.join(module_path, f"{seed_base}.log")
                     code_path = os.path.join(module_path, f"{seed_base}.code")
-                    
-                    debug_dir = os.path.join(STAFF_DIR, "debug_unique_crashes", brand_name, firmware_name, module_name)
-                    os.makedirs(debug_dir, exist_ok=True)
-                    os.chmod(debug_dir, 0o777)
 
                     print("Processing seed:", seed_path)
-                    # input("Press Enter to continue...")
-                    
+                    input("Press Enter to continue...")
+
                     if os.path.isfile(report_path) and os.path.isfile(log_path):
                         print(f"[SKIP] Already processed {firmware_name}/{module_name}/{seed_base}")
                         continue
-                    
+
                     if not os.path.isfile(trace_path):
                         print(f"[WARN] Trace file missing for seed {seed_base}, skipping")
                         continue
@@ -1835,45 +1797,55 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
                     PROCESS_RE = re.compile(r".*Process:\s*(\S+)")
                     MODULE_RE = re.compile(r".*module:\s*(\S+)")
                     SYMBOL_RE = re.compile(r", symbol:\s*(\S+)")
-                    
+
                     target_process = None
                     trace_module_name = None
                     unique_functions = []
-                    
+                    module_functions_map = {}
+                    current_module = None
+
                     try:
                         with open(trace_path, 'r', errors='ignore') as tf:
                             for line in tf:
                                 m = PROCESS_RE.match(line)
                                 if m:
                                     target_process = m.group(1)
+
                                 m_mod = MODULE_RE.match(line)
                                 if m_mod:
-                                    trace_module_name = m_mod.group(1)
-                                
+                                    current_module = m_mod.group(1)
+                                    if current_module not in module_functions_map:
+                                        module_functions_map[current_module] = []
+                                    if not trace_module_name:
+                                        trace_module_name = current_module
+
                                 m_sym = SYMBOL_RE.search(line)
                                 if m_sym:
                                     func_name = m_sym.group(1)
                                     if func_name not in unique_functions:
                                         unique_functions.append(func_name)
-                                
-                                if target_process and trace_module_name:
-                                    if not unique_functions:
-                                        continue
+
+                                    if current_module and func_name not in module_functions_map[current_module]:
+                                        module_functions_map[current_module].append(func_name)
                     except Exception as e:
                         print(f"[WARN] Could not read trace file {trace_path}: {e}")
                         target_process = None
                         trace_module_name = None
-                    
+
                     process_list_for_monitoring = []
                     if target_process:
                         process_list_for_monitoring.append(target_process)
                     if trace_module_name and trace_module_name != target_process:
                         process_list_for_monitoring.append(trace_module_name)
-                    
+
                     process_names_csv = ",".join(process_list_for_monitoring) if process_list_for_monitoring else None
                     if not process_names_csv:
                         print(f"[WARN] Could not extract process names from trace, using module_name: {module_name}")
                         process_names_csv = module_name
+
+                    print(f"[INFO] Found {len(module_functions_map)} modules in trace file")
+                    for mod, funcs in module_functions_map.items():
+                        print(f"  - {mod}: {len(funcs)} functions")
 
                     saved_firmware = config["GENERAL"]["firmware"]
 
@@ -1976,7 +1948,7 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
 
                     disasm_content = ""
                     all_unmatched_functions = []
-                    if process_names_csv:
+                    if module_functions_map:
                         try:
                             fw_file = os.path.join(FIRMWARE_DIR, brand_name, firmware_name)
                             if os.path.isfile(fw_file):
@@ -1991,30 +1963,34 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
                                         with tarfile.open(latest, "r:gz") as tar:
                                             tar.extractall(path=extract_dir)
 
-                                    for process_name_item in process_names_csv.split(","):
-                                        process_name_item = process_name_item.strip()
+                                    for module_name_item, module_functions in module_functions_map.items():
+                                        module_name_item = module_name_item.strip()
 
-                                        module_path_extracted = find_module_path(extract_dir, process_name_item)
+                                        if not module_functions:
+                                            print(f"[SKIP] No functions for module {module_name_item}")
+                                            continue
+
+                                        module_path_extracted = find_module_path(extract_dir, module_name_item)
                                         if not module_path_extracted:
-                                            print(f"[WARN] Could not find module {process_name_item} for disassembly")
+                                            print(f"[WARN] Could not find module {module_name_item} for disassembly")
+                                            for func in module_functions:
+                                                if func not in all_unmatched_functions:
+                                                    all_unmatched_functions.append(func)
                                             continue
 
                                         if os.path.islink(module_path_extracted):
-                                            print(f"[SKIP] {process_name_item} is a symlink, skipping")
+                                            print(f"[SKIP] {module_name_item} is a symlink, skipping")
                                             continue
 
-                                        if unique_functions:
-                                            binary_disasm, unmatched = disassemble_with_capstone(
-                                                module_path_extracted,
-                                                process_name_item,
-                                                unique_functions,
-                                                work_dir,
-                                                debug_dir=debug_dir
-                                            )
-                                            disasm_content += binary_disasm + "\n"
-                                            all_unmatched_functions.extend(unmatched)
-                                        else:
-                                            print(f"[WARN] No unique functions found for disassembly")
+                                        print(f"[INFO] Disassembling {module_name_item} with {len(module_functions)} functions")
+                                        binary_disasm, unmatched = disassemble_with_capstone(
+                                            module_path_extracted,
+                                            module_name_item,
+                                            module_functions,
+                                            work_dir
+                                        )
+                                        disasm_content += binary_disasm + "\n"
+                                        all_unmatched_functions.extend(unmatched)
                                 finally:
                                     shutil.rmtree(extract_dir, ignore_errors=True)
                         except Exception as e:
