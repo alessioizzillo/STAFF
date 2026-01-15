@@ -24,6 +24,7 @@ import bisect
 import sys
 from itertools import groupby
 from datetime import datetime
+import capstone
 
 SKIP_MODULES = {("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
                 ("dap2310_v1.00_o772.bin", "any", "ethlink"), ("dap2310_v1.00_o772.bin", "any", "aparraymsg"),
@@ -127,6 +128,8 @@ PRE_ANALYSIS_EXP_DIR=os.path.join(STAFF_DIR, "pre_analysis_exp5_new")
 CRASH_ANALYSIS_LOG=os.path.join(STAFF_DIR, "crash_analysis.log")
 CRASH_PROCESSING_LOG = os.path.join(STAFF_DIR, "crash_analysis_processed.log")
 CRASH_SEED_COUNT_LOG = os.path.join(STAFF_DIR, "crash_seed_count.log")
+CRASH_REPORTS_DIR = os.path.join(STAFF_DIR, "crash_reports_analysis")
+CRASH_ANALYSIS_PROMPT_FILE = os.path.join(CRASH_REPORTS_DIR, "ANALYZE_ALL_CRASHES_PROMPT.md")
 
 removed_wait_for_container_init = False
 captured_pcap_path = None
@@ -1136,7 +1139,7 @@ def send_and_monitor_seed(container_name, firmware_name, seed_path, port=80, tim
                                 output_minimized=None, process_name=None):
     global config
 
-    if "test" in config["GENERAL"]["mode"]:
+    if "test" in config["GENERAL"]["mode"] or "unique_crash_report" in config["GENERAL"]["mode"]:
         mode = "run"
         os.environ["DEBUG"] = "1"
     else:
@@ -1355,6 +1358,756 @@ def minimize_crash_seed(container_name, firmware_name, seed_path, port=80, timeo
         "iterations": iterations,
         "removed_requests": sorted(removed_indices, reverse=True)
     }
+
+def _extract_kernel_message(log_path: str) -> str:
+    message = ""
+    try:
+        with open(log_path, 'r', errors='ignore') as log_file:
+            lines = log_file.readlines()
+            
+            crash_start_idx = -1
+            for i, line in enumerate(lines):
+                low = line.lower()
+                if "sending sigsegv" in low or "kernel panic" in low or "unexpected fatal signal" in low:
+                    crash_start_idx = i
+                    break
+            
+            if crash_start_idx >= 0:
+                crash_lines = []
+                for i in range(crash_start_idx, len(lines)):
+                    line = lines[i].strip()
+                    if not line:
+                        continue
+                    crash_lines.append(line)
+                    if "PrId" in line or len(crash_lines) > 30:
+                        break
+                
+                if crash_lines:
+                    message = "\n".join(crash_lines)
+                    return message
+            
+            if lines:
+                return lines[-1].strip()
+    except Exception:
+        pass
+    return message
+
+
+def _read_seed_as_poc(seed_path: str, delimiter: bytes) -> str:
+    try:
+        with open(seed_path, 'rb') as f:
+            data = f.read()
+        regions = [r for r in data.split(delimiter) if r]
+        decoded = []
+        for region in regions:
+            try:
+                decoded.append(region.decode('latin-1'))
+            except Exception:
+                decoded.append(str(region))
+        return "####".join(decoded)
+    except Exception:
+        return ""
+
+def update_crash_analysis_prompt() -> None:
+    os.makedirs(CRASH_REPORTS_DIR, exist_ok=True)
+    os.chmod(CRASH_REPORTS_DIR, 0o777)
+
+    report_files = sorted([f for f in os.listdir(CRASH_REPORTS_DIR) if f.endswith('.report')])
+
+    prompt_content = """# CRASH ANALYSIS TASK
+
+## Objective
+Analyze all crash reports in this directory and create a comprehensive comparison table.
+
+## Instructions
+1. Read and analyze ALL `.report` files in this directory
+2. Compare the crashes to identify which ones are caused by the same underlying bug
+3. Search the MITRE CVE database for known vulnerabilities related to each firmware
+4. Classify each crash according to CWE (Common Weakness Enumeration)
+
+## Required Output Format
+
+Create a comprehensive table with the following columns:
+
+| Bug ID | Report File(s) | Firmware | Module | Functions | Crash Type | Related CVE | CWE | Root Cause Summary |
+|--------|---------------|----------|--------|-----------|------------|-------------|-----|-------------------|
+
+### Column Descriptions:
+- **Bug ID**: Sequential number (0, 1, 2, ...). Reports with the same Bug ID represent the same underlying vulnerability.
+- **Report File(s)**: List all report files that share this Bug ID (comma-separated if multiple)
+- **Firmware**: The firmware name(s) affected
+- **Module**: The vulnerable binary/module name(s)
+- **Functions**: The affected function(s) from the crash
+- **Crash Type**: Type of crash (e.g., Buffer Overflow, Use-After-Free, NULL Pointer Dereference)
+- **Related CVE**: Known CVE identifiers from MITRE database (if any), or "None found"
+- **CWE**: Applicable CWE identifier(s) (e.g., CWE-119, CWE-787)
+- **Root Cause Summary**: Brief description of the vulnerability
+
+## Analysis Guidelines
+
+### Identifying Same Bug (Same Bug ID):
+- Compare crash locations (functions, modules)
+- Compare PoC patterns and input structure
+- Compare disassembly patterns
+- Consider if crashes occur in the same or similar code paths
+- Look for similar memory corruption patterns
+
+### CVE Search Strategy:
+For each firmware, search MITRE CVE database using:
+- Firmware manufacturer/brand name
+- Product name/model
+- Keywords from the vulnerability type
+
+### CWE Classification:
+Common CWEs to consider:
+- CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer
+- CWE-787: Out-of-bounds Write
+- CWE-788: Access of Memory Location After End of Buffer
+- CWE-125: Out-of-bounds Read
+- CWE-416: Use After Free
+- CWE-476: NULL Pointer Dereference
+- CWE-20: Improper Input Validation
+- CWE-121: Stack-based Buffer Overflow
+- CWE-122: Heap-based Buffer Overflow
+
+## Report Files to Analyze
+
+"""
+
+    prompt_content += f"Total reports: {len(report_files)}\n\n"
+
+    for report_file in report_files:
+        prompt_content += f"- `{report_file}`\n"
+
+    prompt_content += """
+
+## Next Steps
+1. Use web search to look up CVEs for each firmware in the MITRE CVE database
+2. Read each report file carefully
+3. Group crashes by root cause
+4. Generate the comparison table as specified above
+
+## Additional Analysis (Optional)
+After creating the main table, consider providing:
+- Statistics on most common vulnerability types
+- Recommendations for firmware vendors
+- Patterns observed across multiple firmwares
+- Severity assessment for each Bug ID
+"""
+
+    try:
+        with open(CRASH_ANALYSIS_PROMPT_FILE, 'w', encoding='utf-8') as f:
+            f.write(prompt_content)
+        os.chmod(CRASH_ANALYSIS_PROMPT_FILE, 0o666)
+        print(f"[INFO] Updated crash analysis prompt: {CRASH_ANALYSIS_PROMPT_FILE}")
+    except Exception as e:
+        print(f"[WARN] Could not write crash analysis prompt: {e}")
+
+def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
+    global config
+
+    def read_arch_from_workdir(work_dir: str) -> Optional[str]:
+        p = os.path.join(work_dir, "architecture")
+        try:
+            with open(p, "r", encoding="utf-8", errors="ignore") as f:
+                return f.read().strip().lower()
+        except Exception:
+            return None
+
+    def pick_capstone_arch_mode(arch: Optional[str]) -> Tuple[int, int]:
+        if not arch:
+            return (capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 | capstone.CS_MODE_LITTLE_ENDIAN)
+        
+        arch = arch.replace(" ", "").strip().lower()
+        
+        if arch in ("mipsel", "mipsle", "little", "le"):
+            return (capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 | capstone.CS_MODE_LITTLE_ENDIAN)
+        
+        if arch in ("mipseb", "mipsbe", "mips", "big", "be"):
+            return (capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 | capstone.CS_MODE_BIG_ENDIAN)
+        
+        return (capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 | capstone.CS_MODE_LITTLE_ENDIAN)
+
+    def run_extractor(fw_path: str, extract_dir: str) -> None:
+        env = os.environ.copy()
+        env["NO_PSQL"] = "1"
+        subprocess.run(
+            [
+                "./sources/extractor/extractor.py",
+                "-t", "run",
+                "-b", "unknown",
+                "-sql", "0.0.0.0",
+                "-np",
+                "-nk",
+                fw_path,
+                extract_dir
+            ],
+            env=env,
+            check=True
+        )
+
+    def is_angr_loadable(binary_path: str) -> bool:
+        try:
+            angr.Project(binary_path, auto_load_libs=False)
+            return True
+        except Exception:
+            return False
+
+    def find_module_path(extract_dir: str, module_name: str) -> Optional[str]:
+        for d, _, files in os.walk(extract_dir):
+            if module_name in files:
+                candidate = os.path.join(d, module_name)
+                if is_angr_loadable(candidate):
+                    return candidate
+        return None
+
+    def load_symbols_angr(binary_path: str) -> Tuple[Dict[str, Tuple[int, int, int]], angr.Project]:
+        try:
+            proj = angr.Project(binary_path, auto_load_libs=False)
+            mobj = proj.loader.main_object
+
+            base = getattr(mobj, "rebased_addr", None) \
+                 or getattr(mobj, "mapped_base", None) \
+                 or getattr(mobj, "linked_base", 0)
+
+            funcs = {}
+            for sym in mobj.symbols:
+                if sym.is_function:
+                    start_va = sym.rebased_addr
+                    size = sym.size if sym.size and sym.size > 0 else 1
+                    end_va = start_va + size
+
+                    try:
+                        file_offset = mobj.addr_to_offset(start_va)
+                        funcs[sym.name] = (start_va, end_va, file_offset)
+                    except Exception:
+                        pass
+
+            return funcs, proj
+        except Exception as e:
+            print(f"[WARN] Could not load symbols with angr: {e}")
+            return {}, None
+
+    def disassemble_with_capstone(binary_path: str, binary_name: str, function_names: List[str],
+                                  work_dir: str, debug_dir: str = None) -> Tuple[str, List[str]]:
+        try:
+            arch = read_arch_from_workdir(work_dir)
+            cs_arch, cs_mode = pick_capstone_arch_mode(arch)
+            
+            proj = None
+            funcs_dict = {}
+            try:
+                funcs_dict, proj = load_symbols_angr(binary_path)
+            except Exception as e:
+                print(f"[WARN] angr symbol loading failed: {e}, using capstone only")
+            
+            with open(binary_path, 'rb') as f:
+                binary_data = f.read()
+            
+            cs = capstone.Cs(cs_arch, cs_mode)
+            cs.detail = True
+
+            def normalize_function_name(fname: str) -> List[str]:
+                variants = []
+                base_name = fname
+
+                if '@@' in base_name:
+                    base_name = base_name.split('@@')[0]
+                variants.append(base_name)
+
+                if '@' in base_name and '@@' not in fname:
+                    base_name = base_name.split('@')[0]
+                    variants.append(base_name)
+
+                if base_name.startswith('_'):
+                    variants.append(base_name[1:])
+
+                if not base_name.startswith('_'):
+                    variants.append('_' + base_name)
+
+                if '.' in base_name:
+                    base_name_no_version = base_name.rsplit('.', 1)[0]
+                    variants.append(base_name_no_version)
+
+                return list(set(variants))
+
+            if debug_dir:
+                try:
+                    debug_funcs_file = os.path.join(debug_dir, f"functions_{binary_name}.txt")
+                    with open(debug_funcs_file, 'w', encoding='utf-8') as f:
+                        f.write("Functions to match:\n")
+                        for func_name in function_names:
+                            variants = normalize_function_name(func_name)
+                            f.write(f"  {func_name}\n")
+                            f.write(f"    Variants: {', '.join(variants)}\n")
+                        f.write(f"\nAvailable symbols in binary ({len(funcs_dict)} total, showing first 100):\n")
+                        for sym_name in sorted(funcs_dict.keys())[:100]:
+                            f.write(f"  {sym_name}\n")
+                    os.chmod(debug_funcs_file, 0o666)
+                    print(f"[DEBUG] Wrote function names to {debug_funcs_file}")
+                except Exception as e:
+                    print(f"[WARN] Could not write debug functions file: {e}")
+
+            disasm_output = []
+            func_set = set()
+            func_map = {}
+            func_variants_map = {}
+
+            for fname in function_names:
+                variants = normalize_function_name(fname)
+                for variant in variants:
+                    func_set.add(variant)
+                    func_map[variant] = fname
+                    if fname not in func_variants_map:
+                        func_variants_map[fname] = []
+                    func_variants_map[fname].append(variant)
+
+            found_funcs = set()
+            found_original_names = set()
+
+            for sym_name, (start_va, end_va, file_offset) in funcs_dict.items():
+                sym_variants = normalize_function_name(sym_name)
+
+                matched_func = None
+                for variant in sym_variants:
+                    if variant in func_set:
+                        matched_func = func_map[variant]
+                        break
+
+                if matched_func and matched_func not in found_original_names:
+                    found_original_names.add(matched_func)
+
+                    disasm_output.append(f"\n{'='*60}\n")
+                    disasm_output.append(f"({binary_name}, {matched_func}):\n")
+                    disasm_output.append(f"[Matched symbol: {sym_name}]\n")
+                    disasm_output.append(f"[VA: 0x{start_va:08x}, File offset: 0x{file_offset:08x}]\n")
+                    disasm_output.append(f"{'='*60}\n")
+
+                    func_size = end_va - start_va
+                    func_data = binary_data[file_offset:file_offset + func_size]
+
+                    if len(func_data) < func_size:
+                        disasm_output.append(f"[WARN] Function size mismatch: expected {func_size}, got {len(func_data)} bytes\n")
+                        func_size = len(func_data)
+
+                    instr_count = 0
+                    for instr in cs.disasm(func_data, start_va):
+                        addr_rebased = instr.address - start_va
+                        disasm_output.append(f"{addr_rebased:8x}:  {instr.mnemonic:12} {instr.op_str}\n")
+                        instr_count += 1
+
+                    if instr_count == 0:
+                        disasm_output.append(f"[WARN] No instructions disassembled for this function\n")
+
+                    found_funcs.add(sym_name)
+            
+            if not found_funcs:
+                print(f"[WARN] No matching functions found in {binary_name}")
+                print(f"[INFO] Requested functions: {function_names[:5]}")
+                print(f"[INFO] Symbols available: {list(funcs_dict.keys())[:20]}")
+            else:
+                print(f"[INFO] Found {len(found_funcs)} matching functions in {binary_name}")
+                print(f"[INFO] Matched: {', '.join(list(found_original_names)[:5])}")
+
+            not_found = set(function_names) - found_original_names
+            not_found_list = sorted(list(not_found))
+
+            if not_found and debug_dir:
+                try:
+                    debug_notfound_file = os.path.join(debug_dir, f"notfound_{binary_name}.txt")
+                    with open(debug_notfound_file, 'w', encoding='utf-8') as f:
+                        f.write(f"Functions NOT matched ({len(not_found)} total):\n")
+                        for func_name in not_found_list:
+                            variants = normalize_function_name(func_name)
+                            f.write(f"  {func_name}\n")
+                            f.write(f"    Tried variants: {', '.join(variants)}\n")
+                    os.chmod(debug_notfound_file, 0o666)
+                    print(f"[DEBUG] Wrote unmatched functions to {debug_notfound_file}")
+                except Exception as e:
+                    print(f"[WARN] Could not write debug notfound file: {e}")
+
+            if debug_dir and found_funcs:
+                try:
+                    debug_disasm_file = os.path.join(debug_dir, f"disasm_{binary_name}.txt")
+                    with open(debug_disasm_file, 'w', encoding='utf-8') as f:
+                        f.write("".join(disasm_output))
+                    os.chmod(debug_disasm_file, 0o666)
+                    print(f"[DEBUG] Wrote disassembly to {debug_disasm_file}")
+                except Exception as e:
+                    print(f"[WARN] Could not write debug disasm file: {e}")
+
+            disasm_text = "".join(disasm_output) if disasm_output else "No functions found for disassembly.\n"
+            return disasm_text, not_found_list
+
+        except Exception as e:
+            return f"Error during disassembly: {e}\n", []
+
+    def _format_bytes_as_hex(data: bytes) -> str:
+        result = []
+        for byte in data:
+            if 32 <= byte < 127 and chr(byte) not in '\\':
+                result.append(chr(byte))
+            else:
+                result.append(f"\\x{byte:02x}")
+        return "".join(result)
+
+    def _read_seed_as_poc_hex(seed_path: str, delimiter: bytes) -> str:
+        try:
+            with open(seed_path, 'rb') as f:
+                data = f.read()
+            regions = [r for r in data.split(delimiter) if r]
+            
+            delimiter_str = _format_bytes_as_hex(delimiter)
+            
+            formatted_regions = []
+            for region in regions:
+                formatted_regions.append(_format_bytes_as_hex(region))
+            
+            return f"{delimiter_str}".join(formatted_regions)
+        except Exception:
+            return ""
+
+    root_dir = os.path.join(STAFF_DIR, "unique_crashes")
+    if not os.path.isdir(root_dir):
+        print(f"[!] unique_crashes directory not found: {root_dir}")
+        return
+
+    delimiter = config["AFLNET_FUZZING"]["region_delimiter"]
+
+    for brand_name in sorted(os.listdir(root_dir)):
+        brand_path = os.path.join(root_dir, brand_name)
+        for firmware_name in sorted(os.listdir(brand_path)):
+            firmware_path = os.path.join(brand_path, firmware_name)
+            if not os.path.isdir(firmware_path):
+                continue
+            for module_name in sorted(os.listdir(firmware_path)):
+                module_path = os.path.join(firmware_path, module_name)
+                if not os.path.isdir(module_path):
+                    continue
+                for fname in sorted(os.listdir(module_path)):
+                    if not fname.endswith(".succ"):
+                        continue
+                    seed_base = fname[:-5]
+                    seed_path = os.path.join(module_path, fname)
+                    trace_path = os.path.join(module_path, seed_base)
+                    report_path = os.path.join(module_path, f"{seed_base}.report")
+                    log_path = os.path.join(module_path, f"{seed_base}.log")
+                    code_path = os.path.join(module_path, f"{seed_base}.code")
+                    
+                    debug_dir = os.path.join(STAFF_DIR, "debug_unique_crashes", brand_name, firmware_name, module_name)
+                    os.makedirs(debug_dir, exist_ok=True)
+                    os.chmod(debug_dir, 0o777)
+
+                    print("Processing seed:", seed_path)
+                    # input("Press Enter to continue...")
+                    
+                    if os.path.isfile(report_path) and os.path.isfile(log_path):
+                        print(f"[SKIP] Already processed {firmware_name}/{module_name}/{seed_base}")
+                        continue
+                    
+                    if not os.path.isfile(trace_path):
+                        print(f"[WARN] Trace file missing for seed {seed_base}, skipping")
+                        continue
+                    print(f"[+] Processing {firmware_name}/{module_name}/{seed_base}")
+
+                    PROCESS_RE = re.compile(r".*Process:\s*(\S+)")
+                    MODULE_RE = re.compile(r".*module:\s*(\S+)")
+                    SYMBOL_RE = re.compile(r", symbol:\s*(\S+)")
+                    
+                    target_process = None
+                    trace_module_name = None
+                    unique_functions = []
+                    
+                    try:
+                        with open(trace_path, 'r', errors='ignore') as tf:
+                            for line in tf:
+                                m = PROCESS_RE.match(line)
+                                if m:
+                                    target_process = m.group(1)
+                                m_mod = MODULE_RE.match(line)
+                                if m_mod:
+                                    trace_module_name = m_mod.group(1)
+                                
+                                m_sym = SYMBOL_RE.search(line)
+                                if m_sym:
+                                    func_name = m_sym.group(1)
+                                    if func_name not in unique_functions:
+                                        unique_functions.append(func_name)
+                                
+                                if target_process and trace_module_name:
+                                    if not unique_functions:
+                                        continue
+                    except Exception as e:
+                        print(f"[WARN] Could not read trace file {trace_path}: {e}")
+                        target_process = None
+                        trace_module_name = None
+                    
+                    process_list_for_monitoring = []
+                    if target_process:
+                        process_list_for_monitoring.append(target_process)
+                    if trace_module_name and trace_module_name != target_process:
+                        process_list_for_monitoring.append(trace_module_name)
+                    
+                    process_names_csv = ",".join(process_list_for_monitoring) if process_list_for_monitoring else None
+                    if not process_names_csv:
+                        print(f"[WARN] Could not extract process names from trace, using module_name: {module_name}")
+                        process_names_csv = module_name
+
+                    saved_firmware = config["GENERAL"]["firmware"]
+
+                    config["GENERAL"]["firmware"] = brand_name+"/"+firmware_name
+                    if "TEST" not in config:
+                        config["TEST"] = {}
+                    config["TEST"]["seed_input"] = seed_path
+                    config["TEST"]["port"] = 80
+                    config["TEST"]["timeout"] = config["GENERAL_FUZZING"]["timeout"]
+                    config["TEST"]["process_name"] = module_name
+
+                    firmware = config["GENERAL"]["firmware"]
+                    seed_input = config["TEST"]["seed_input"]
+                    port = config["TEST"]["port"]
+                    timeout = config["TEST"]["timeout"]
+                    process_name = config["TEST"]["process_name"] if config["TEST"]["process_name"] else None
+
+                    if not seed_input or not os.path.exists(seed_input):
+                        print(f"[ERROR] Seed input path not found: {seed_input}")
+                        return
+
+                    os.environ["EXEC_MODE"] = "RUN"
+                    os.environ["REGION_DELIMITER"] = config["AFLNET_FUZZING"]["region_delimiter"].decode('latin-1')
+                    os.environ["INCLUDE_LIBRARIES"] = str(config["EMULATION_TRACING"]["include_libraries"])
+
+                    if os.path.isdir(seed_input):
+                        print(f"[ERROR] seed_input is a directory but firmware is not 'all'")
+                        return
+
+                    firmware_with_brand = find_firmware_with_brand(firmware)
+                    if not firmware_with_brand:
+                        print(f"\n[\033[31mERROR\033[0m] Could not find firmware {firmware} in any brand subdirectory")
+                        print(f"Please specify firmware as 'brand/firmware.zip' or ensure it exists in firmwares directory")
+                        return
+
+                    print(f"\n[\033[32m+\033[0m] Test mode with crash detection")
+                    print(f"Firmware: {firmware}")
+                    if firmware != firmware_with_brand:
+                        print(f"Full path: {firmware_with_brand}")
+                    print(f"Seed: {seed_input}")
+                    print(f"Port: {port}")
+                    print(f"Timeout: {timeout}ms")
+                    if process_name:
+                        print(f"Process name: {process_name}")
+
+                    original_firmware = config["GENERAL"]["firmware"]
+                    config["GENERAL"]["firmware"] = firmware_with_brand
+
+                    result = None
+                    try:
+                        result = send_and_monitor_seed(
+                            container_name,
+                            firmware_with_brand,
+                            seed_input,
+                            port=port,
+                            timeout=timeout,
+                            check_crashes=True,
+                            output_minimized=seed_input,
+                            process_name=process_names_csv
+                        )
+                    except Exception as e:
+                        config["GENERAL"]["firmware"] = original_firmware
+                        print(f"\n[\033[31mERROR\033[0m] Failed to test seed: {e}")
+                        return
+                    finally:
+                        config["GENERAL"]["firmware"] = original_firmware
+                    try:
+                        send_signal_recursive(result["qemu_pid"], 2)
+                        try:
+                            os.waitpid(result["qemu_pid"], 0)
+                        except Exception:
+                            pass
+                    except Exception:
+                        pass
+
+                    if not result.get("crash_detected"):
+                        print(f"[SKIP] No crash reproduced for {seed_base}")
+                        continue
+
+                    work_dir = result.get("work_dir")
+                    if not work_dir or not os.path.isdir(work_dir):
+                        print(f"[WARN] work_dir not found for {seed_base}, skipping log copy")
+                        continue
+
+                    qemu_log = os.path.join(work_dir, "qemu.final.serial.log")
+                    if os.path.isfile(qemu_log):
+                        dest_log = os.path.join(module_path, f"{seed_base}.log")
+                        shutil.copy2(qemu_log, dest_log)
+                        print(f"[INFO] Copied QEMU log to {dest_log}")
+                    else:
+                        print(f"[WARN] qemu.final.serial.log missing in {work_dir}")
+
+                    poc = _read_seed_as_poc_hex(seed_path, delimiter)
+                    kernel_message = _extract_kernel_message(qemu_log)
+                    try:
+                        with open(trace_path, 'r', errors='ignore') as f:
+                            trace_content = f.read()
+                    except Exception:
+                        trace_content = ""
+
+                    disasm_content = ""
+                    all_unmatched_functions = []
+                    if process_names_csv:
+                        try:
+                            fw_file = os.path.join(FIRMWARE_DIR, brand_name, firmware_name)
+                            if os.path.isfile(fw_file):
+                                extract_dir = tempfile.mkdtemp(prefix="disasm_")
+                                try:
+                                    run_extractor(fw_file, extract_dir)
+                                    set_permissions_recursive(extract_dir)
+
+                                    tars = glob.glob(os.path.join(extract_dir, "*.tar.gz"))
+                                    if tars:
+                                        latest = max(tars, key=os.path.getmtime)
+                                        with tarfile.open(latest, "r:gz") as tar:
+                                            tar.extractall(path=extract_dir)
+
+                                    for process_name_item in process_names_csv.split(","):
+                                        process_name_item = process_name_item.strip()
+
+                                        module_path_extracted = find_module_path(extract_dir, process_name_item)
+                                        if not module_path_extracted:
+                                            print(f"[WARN] Could not find module {process_name_item} for disassembly")
+                                            continue
+
+                                        if os.path.islink(module_path_extracted):
+                                            print(f"[SKIP] {process_name_item} is a symlink, skipping")
+                                            continue
+
+                                        if unique_functions:
+                                            binary_disasm, unmatched = disassemble_with_capstone(
+                                                module_path_extracted,
+                                                process_name_item,
+                                                unique_functions,
+                                                work_dir,
+                                                debug_dir=debug_dir
+                                            )
+                                            disasm_content += binary_disasm + "\n"
+                                            all_unmatched_functions.extend(unmatched)
+                                        else:
+                                            print(f"[WARN] No unique functions found for disassembly")
+                                finally:
+                                    shutil.rmtree(extract_dir, ignore_errors=True)
+                        except Exception as e:
+                            print(f"[WARN] Could not generate disassembly: {e}")
+
+                    try:
+                        delimiter_str = _format_bytes_as_hex(delimiter)
+                        with open(report_path, 'w', encoding='utf-8') as rep:
+                            rep.write("=" * 80 + "\n")
+                            rep.write("FIRMWARE CRASH ANALYSIS REPORT\n")
+                            rep.write("=" * 80 + "\n\n")
+                            
+                            rep.write("## EXECUTIVE SUMMARY\n")
+                            rep.write("-" * 80 + "\n")
+                            rep.write(f"Firmware: {firmware_name}\n")
+                            rep.write(f"Vulnerable Binary: {module_name}\n")
+                            rep.write(f"Target Process: {target_process if target_process else 'Unknown'}\n")
+                            rep.write(f"Trace Module: {trace_module_name if trace_module_name else 'Unknown'}\n")
+                            rep.write(f"Crash Type: Segmentation Fault (SIGSEGV)\n")
+                            rep.write(f"Affected Functions: {', '.join(unique_functions) if unique_functions else 'Unknown'}\n\n")
+                            
+                            rep.write("## PROOF OF CONCEPT (PoC)\n")
+                            rep.write("-" * 80 + "\n")
+                            rep.write("The following HTTP requests trigger the crash when sent in sequence.\n")
+                            rep.write(f"Note: Multiple requests are separated by the delimiter: {delimiter_str}\n\n")
+                            rep.write(poc + "\n\n")
+                            
+                            rep.write("## AFFECTED CODE - DISASSEMBLY\n")
+                            rep.write("-" * 80 + "\n")
+                            if disasm_content:
+                                rep.write(disasm_content + "\n\n")
+                            else:
+                                rep.write("No disassembly available for the affected functions.\n\n")
+
+                            if all_unmatched_functions:
+                                rep.write("## FUNCTIONS NOT FOUND IN BINARY\n")
+                                rep.write("-" * 80 + "\n")
+                                rep.write("The following functions from the trace could not be matched in the binary.\n")
+                                rep.write("This may indicate dynamic loading, stripped symbols, or inlined functions.\n\n")
+                                for func_name in all_unmatched_functions:
+                                    rep.write(f"  - {func_name}\n")
+                                rep.write("\n")
+
+                            rep.write("## EXECUTION TRACE AT CRASH\n")
+                            rep.write("-" * 80 + "\n")
+                            rep.write("Call stack and instruction sequence leading to the crash:\n\n")
+                            rep.write(trace_content + "\n\n")
+                            
+                            rep.write("## KERNEL/SYSTEM MESSAGE\n")
+                            rep.write("-" * 80 + "\n")
+                            rep.write("Crash details captured from system logs:\n\n")
+                            rep.write(kernel_message if kernel_message else "No crash message available\n")
+                            rep.write("\n\n")
+                            
+                            rep.write("## ANALYSIS REQUEST FOR SECURITY RESEARCHER\n")
+                            rep.write("-" * 80 + "\n")
+                            rep.write("Please analyze the above crash information and provide:\n\n")
+                            rep.write("1. ROOT CAUSE ANALYSIS:\n")
+                            rep.write("   - What is the vulnerability (buffer overflow, use-after-free, etc.)?\n")
+                            rep.write("   - Where in the code does it occur?\n")
+                            rep.write("   - What conditions trigger it?\n\n")
+                            
+                            rep.write("2. ATTACK VECTOR:\n")
+                            rep.write("   - How can this vulnerability be exploited?\n")
+                            rep.write("   - What is the severity (remote code execution, DoS, etc.)?\n")
+                            rep.write("   - What privileges are required to exploit it?\n\n")
+                            
+                            rep.write("3. IMPACT ASSESSMENT:\n")
+                            rep.write("   - What are the security implications?\n")
+                            rep.write("   - Can it lead to privilege escalation?\n")
+                            rep.write("   - Is arbitrary code execution possible?\n\n")
+                            
+                            rep.write("4. REMEDIATION RECOMMENDATIONS:\n")
+                            rep.write("   - What code changes would fix this issue?\n")
+                            rep.write("   - Are there input validation improvements needed?\n")
+                            rep.write("   - What defensive programming practices apply?\n\n")
+                            
+                            rep.write("5. SIMILAR VULNERABILITIES:\n")
+                            rep.write("   - Are there similar patterns elsewhere in the codebase?\n")
+                            rep.write("   - What preventive measures should be implemented?\n\n")
+                            
+                            rep.write("=" * 80 + "\n")
+                            rep.write("END OF REPORT\n")
+                            rep.write("=" * 80 + "\n")
+                        
+                        os.chmod(report_path, 0o666)
+                        print(f"[✓] Report generated: {report_path}")
+
+                        os.makedirs(CRASH_REPORTS_DIR, exist_ok=True)
+                        os.chmod(CRASH_REPORTS_DIR, 0o777)
+
+                        first_func = unique_functions[0] if unique_functions else "unknown"
+                        first_func = re.sub(r'[^\w\-]', '_', first_func)
+
+                        firmware_name_clean = re.sub(r'[^\w\-]', '_', firmware_name)
+                        brand_name_clean = re.sub(r'[^\w\-]', '_', brand_name)
+                        module_name_clean = re.sub(r'[^\w\-]', '_', module_name)
+
+                        centralized_report_name = f"{brand_name_clean}_{firmware_name_clean}_{module_name_clean}_{first_func}.report"
+                        centralized_report_path = os.path.join(CRASH_REPORTS_DIR, centralized_report_name)
+
+                        try:
+                            shutil.copy2(report_path, centralized_report_path)
+                            os.chmod(centralized_report_path, 0o666)
+                            print(f"[✓] Copied report to centralized directory: {centralized_report_name}")
+                        except Exception as e:
+                            print(f"[WARN] Could not copy report to centralized directory: {e}")
+
+                        try:
+                            update_crash_analysis_prompt()
+                        except Exception as e:
+                            print(f"[WARN] Could not update crash analysis prompt: {e}")
+
+                    except Exception as e:
+                        print(f"[ERROR] Could not write report for {seed_base}: {e}")
 
 def test_mode(container_name):
     global config
@@ -3071,7 +3824,7 @@ def crash_analysis(container_name):
         finally:
             shutil.rmtree(extract_dir, ignore_errors=True)
 
-def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_name, crash_dir=None):
+def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_name, crash_dir=None, config_dict=None):
     global PSQL_IP, config
     global removed_wait_for_container_init
 
@@ -3097,7 +3850,10 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
         #     os.remove(CRASH_SEED_COUNT_LOG)
 
 
-    config = load_config(CONFIG_INI_PATH)
+    if config_dict is not None:
+        config = config_dict
+    else:
+        config = load_config(CONFIG_INI_PATH)
 
     if not keep_config:
         if any(x in config["GENERAL"]["mode"] for x in ["aflnet_base", "aflnet_state_aware", "triforce", "staff_base", "staff_state_aware"]):
@@ -3124,6 +3880,12 @@ def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_nam
         if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
             os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
         test_mode(container_name)
+        if out_dir:
+            update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
+    elif mode == "unique_crash_report":
+        if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
+            os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
+        generate_unique_crash_reports(container_name)
         if out_dir:
             update_schedule_status(SCHEDULE_CSV_PATH_1, "succeeded", os.path.basename(out_dir))
     elif mode == "replay_mem_count":
@@ -3211,51 +3973,89 @@ if __name__ == "__main__":
 
     parser.add_argument("--replay-mem-count", action="store_true", help="Enable replay mode with memory operations counting")
     parser.add_argument("--mem-count-log", type=str, help="Output CSV file for memory operations counting results (stored in STAFF main directory, default: mem_ops_replay_results.csv)", default="mem_ops_replay_results.csv")
+    parser.add_argument("--unique-crash-report", action="store_true", help="Replay all seeds in unique_crashes and generate detailed reports")
 
     args = parser.parse_args()
 
-    if args.test:
-        if not args.firmware or not args.seed_input:
+    config_memory = None
+    if args.test or args.unique_crash_report:
+        if args.test and (not args.firmware or not args.seed_input):
             print("[ERROR] Test mode requires --firmware, --seed_input, and --process_name arguments")
             exit(1)
 
-        import configparser
-        config_tmp = configparser.ConfigParser()
-        config_tmp["GENERAL"] = {
-            "mode": "test",
-            "firmware": args.firmware
-        }
-        config_tmp["AFLNET_FUZZING"] = {
-            "region_delimiter": "\\x1A\\x1A\\x1A\\x1A",
-            "proto": "http",
-            "region_level_mutation": "1"
-        }
-        config_tmp["EMULATION_TRACING"] = {
-            "include_libraries": "1"
-        }
-        config_tmp["GENERAL_FUZZING"] = {
-            "timeout": str(args.timeout)
-        }
-        config_tmp["TEST"] = {
-            "seed_input": os.path.abspath(args.seed_input),
-            "port": str(args.port),
-            "timeout": str(args.timeout),
-            "process_name": args.process_name if args.process_name else ""
-        }
+        if args.unique_crash_report:
+            config_memory = {
+                "GENERAL": {
+                    "mode": "unique_crash_report",
+                    "firmware": args.firmware if args.firmware else ""
+                },
+                "AFLNET_FUZZING": {
+                    "region_delimiter": b'\x1A\x1A\x1A\x1A',
+                    "proto": "http",
+                    "region_level_mutation": 1
+                },
+                "EMULATION_TRACING": {
+                    "include_libraries": 1
+                },
+                "GENERAL_FUZZING": {
+                    "timeout": args.timeout,
+                    "map_size_pow2": 25,
+                    "fuzz_tmout": 86400,
+                    "afl_no_arith": 1,
+                    "afl_no_bitflip": 0,
+                    "afl_no_interest": 1,
+                    "afl_no_user_extras": 1,
+                    "afl_no_extras": 1,
+                    "afl_calibration": 1,
+                    "afl_shuffle_queue": 1
+                },
+                "TEST": {
+                    "seed_input": "",
+                    "port": 80,
+                    "timeout": args.timeout,
+                    "process_name": ""
+                }
+            }
+            print(f"[INFO] Unique crash report mode configuration created (in memory, no config.ini)")
+        else:
+            import configparser
+            config_tmp = configparser.ConfigParser()
+            config_tmp["GENERAL"] = {
+                "mode": "test",
+                "firmware": args.firmware if args.firmware else ""
+            }
+            config_tmp["AFLNET_FUZZING"] = {
+                "region_delimiter": "\\x1A\\x1A\\x1A\\x1A",
+                "proto": "http",
+                "region_level_mutation": "1"
+            }
+            config_tmp["EMULATION_TRACING"] = {
+                "include_libraries": "1"
+            }
+            config_tmp["GENERAL_FUZZING"] = {
+                "timeout": str(args.timeout)
+            }
 
-        with open(CONFIG_INI_PATH, "w") as f:
-            config_tmp.write(f)
+            if args.test:
+                config_tmp["TEST"] = {
+                    "seed_input": os.path.abspath(args.seed_input),
+                    "port": str(args.port),
+                    "timeout": str(args.timeout),
+                    "process_name": args.process_name if args.process_name else ""
+                }
 
-        print(f"[INFO] Test mode configuration created")
-        print(f"  Firmware: {args.firmware}")
-        print(f"  Seed: {os.path.abspath(args.seed_input)}")
-        print(f"  Port: {args.port}")
-        print(f"  Timeout: {args.timeout}ms")
-        if args.process_name:
-            print(f"  Process name: {args.process_name}")
+            with open(CONFIG_INI_PATH, "w") as f:
+                config_tmp.write(f)
+
+            print(f"[INFO] Test mode configuration created")
+            print(f"  Firmware: {args.firmware}")
+            print(f"  Seed: {os.path.abspath(args.seed_input)}")
+            print(f"  Port: {args.port}")
+            print(f"  Timeout: {args.timeout}ms")
+            if args.process_name:
+                print(f"  Process name: {args.process_name}")
 
     if args.replay_mem_count:
-        import configparser
         config_tmp = configparser.ConfigParser()
         config_tmp["GENERAL"] = {
             "mode": "replay_mem_count",
@@ -3291,10 +4091,11 @@ if __name__ == "__main__":
         print(f"  Output CSV: {mem_count_csv_path}")
 
     start(
-        args.keep_config if not (args.test or args.replay_mem_count) else 0,
+        args.keep_config if not (args.test or args.replay_mem_count or args.unique_crash_report) else 1,
         args.reset_firmware_images,
         args.replay_exp,
         os.path.abspath(args.output) if args.output else None,
         args.container_name if args.container_name else None,
-        args.crash_dir
+        args.crash_dir,
+        config_dict=config_memory
     )

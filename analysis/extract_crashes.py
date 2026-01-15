@@ -781,6 +781,7 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
             extracted_idx = parts.index("extracted_crashes")
             if extracted_idx + 2 < len(parts):
                 firmware = parts[extracted_idx + 2]
+                brand = parts[extracted_idx + 1]
             else:
                 firmware = "unknown"
         except (ValueError, IndexError):
@@ -832,7 +833,7 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
                 module = "unknown"
                 function = "unknown"
 
-            unique_key = (firmware, module, function)
+            unique_key = (brand, firmware, module, function)
 
             status_priority = {"succ": 3, "fail": 2, "unprocessed": 1}
 
@@ -861,8 +862,8 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
             print(f"[INFO] Created output directory: {output_dir}")
 
     copied_count = 0
-    for (firmware, module, function), info in sorted(unique_crashes.items()):
-        fw_dir = os.path.join(output_dir, firmware)
+    for (brand, firmware, module, function), info in sorted(unique_crashes.items()):
+        fw_dir = os.path.join(output_dir, brand, firmware)
         module_dir = os.path.join(fw_dir, module)
         os.makedirs(module_dir, exist_ok=True)
 
@@ -878,7 +879,7 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
 
         copied_count += 1
         if verbose:
-            print(f"[COPY] {firmware}/{module}/{function} ({info['status']}) -> {dest_seed}")
+            print(f"[COPY] {brand}/{firmware}/{module}/{function} ({info['status']}) -> {dest_seed}")
 
     print(f"\n[SUCCESS] Extracted {copied_count} unique crashes to: {output_dir}")
     print(f"           Organized by: firmware/module/function\n")
