@@ -1783,7 +1783,7 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
                     code_path = os.path.join(module_path, f"{seed_base}.code")
 
                     print("Processing seed:", seed_path)
-                    input("Press Enter to continue...")
+                    # input("Press Enter to continue...")
 
                     if os.path.isfile(report_path) and os.path.isfile(log_path):
                         print(f"[SKIP] Already processed {firmware_name}/{module_name}/{seed_base}")
