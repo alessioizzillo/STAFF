@@ -107,7 +107,7 @@ DEFAULT_CONFIG = {
     "TEST": {
         "seed_input": ("", str),
         "port": (80, int),
-        "timeout": (2000, int),
+        "timeout": (150, int),
         "process_name": ("", str)
     }
 }
@@ -661,7 +661,7 @@ def load_config(file_path="config.ini"):
 
     return final_config
 
-def send_seed_to_firmware(firmware_name, seed_path, port=80, timeout=2000, work_dir=None,
+def send_seed_to_firmware(firmware_name, seed_path, port=80, timeout=150, work_dir=None,
                           check_crashes=False, process_name=None):
     global config
 
@@ -1134,7 +1134,7 @@ def check_crash_in_log(work_dir, process_name=None, crash_patterns=None):
 
     return False, None
 
-def send_and_monitor_seed(container_name, firmware_name, seed_path, port=80, timeout=2000,
+def send_and_monitor_seed(container_name, firmware_name, seed_path, port=80, timeout=150,
                                 work_dir=None, check_crashes=True,
                                 output_minimized=None, process_name=None):
     global config
@@ -1251,7 +1251,7 @@ def send_and_monitor_seed(container_name, firmware_name, seed_path, port=80, tim
         "total_requests": len(regions)
     }
 
-def minimize_crash_seed(container_name, firmware_name, seed_path, port=80, timeout=2000, process_name=None):
+def minimize_crash_seed(container_name, firmware_name, seed_path, port=80, timeout=150, process_name=None):
     global config
 
     print(f"\n[\033[36m*\033[0m] Starting crash seed minimization...")
@@ -1887,7 +1887,7 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
                         print(f"Full path: {firmware_with_brand}")
                     print(f"Seed: {seed_input}")
                     print(f"Port: {port}")
-                    print(f"Timeout: {timeout}ms")
+                    print(f"Timeout: {timeout}sec")
                     if process_name:
                         print(f"Process name: {process_name}")
 
@@ -2128,7 +2128,7 @@ def test_mode(container_name):
         print(f"\n[\033[32m+\033[0m] Test mode with crash detection (BATCH MODE)")
         print(f"Directory: {seed_input}")
         print(f"Port: {port}")
-        print(f"Timeout: {timeout}ms")
+        print(f"Timeout: {timeout}sec")
         print(f"Process name: {process_name}")
         print("="*60)
 
@@ -2155,7 +2155,7 @@ def test_single_seed(container_name, firmware, seed_input, port, timeout, proces
         print(f"Full path: {firmware_with_brand}")
     print(f"Seed: {seed_input}")
     print(f"Port: {port}")
-    print(f"Timeout: {timeout}ms")
+    print(f"Timeout: {timeout}sec")
     if process_name:
         print(f"Process name: {process_name}")
 
@@ -3966,7 +3966,7 @@ if __name__ == "__main__":
     parser.add_argument("--firmware", type=str, help="Firmware path for test mode (e.g., dlink/dap2310_v1.00_o772.bin)", default=None)
     parser.add_argument("--seed_input", type=str, help="Seed input file path for test mode", default=None)
     parser.add_argument("--port", type=int, help="Target port for test mode (default: 80)", default=80)
-    parser.add_argument("--timeout", type=int, help="Request timeout in ms for test mode (default: 2000)", default=2000)
+    parser.add_argument("--timeout", type=int, help="Request timeout in sec for test mode (default: 150 sec)", default=150)
     parser.add_argument("--process_name", type=str, help="Process name to monitor for crashes (e.g., mini_httpd) - REQUIRED for test mode", default=None)
 
     parser.add_argument("--replay-mem-count", action="store_true", help="Enable replay mode with memory operations counting")
@@ -4049,7 +4049,7 @@ if __name__ == "__main__":
             print(f"  Firmware: {args.firmware}")
             print(f"  Seed: {os.path.abspath(args.seed_input)}")
             print(f"  Port: {args.port}")
-            print(f"  Timeout: {args.timeout}ms")
+            print(f"  Timeout: {args.timeout}sec")
             if args.process_name:
                 print(f"  Process name: {args.process_name}")
 
@@ -4068,7 +4068,7 @@ if __name__ == "__main__":
             "include_libraries": "1"
         }
         config_tmp["GENERAL_FUZZING"] = {
-            "timeout": "2000"
+            "timeout": "150"
         }
 
         mem_count_csv_path = args.mem_count_log
