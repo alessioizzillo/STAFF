@@ -1422,15 +1422,16 @@ Analyze all crash reports in this directory and create a comprehensive compariso
 ## Instructions
 1. Read and analyze ALL `.report` files in this directory
 2. Compare the crashes to identify which ones are caused by the same underlying bug
-3. Search the MITRE CVE database for known vulnerabilities related to each firmware
-4. Classify each crash according to CWE (Common Weakness Enumeration)
+3. Determine if each crash is a false positive (not a real exploitable vulnerability)
+4. Search the MITRE CVE database for known vulnerabilities related to each firmware
+5. Classify each crash according to CWE (Common Weakness Enumeration)
 
 ## Required Output Format
 
 Create a comprehensive table with the following columns:
 
-| Bug ID | Report File(s) | Firmware | Module | Functions | Crash Type | Related CVE | CWE | Root Cause Summary |
-|--------|---------------|----------|--------|-----------|------------|-------------|-----|-------------------|
+| Bug ID | Report File(s) | Firmware | Module | Functions | Crash Type | False Positive | Related CVE | CWE | Root Cause Summary |
+|--------|---------------|----------|--------|-----------|------------|----------------|-------------|-----|-------------------|
 
 ### Column Descriptions:
 - **Bug ID**: Sequential number (0, 1, 2, ...). Reports with the same Bug ID represent the same underlying vulnerability.
@@ -1439,6 +1440,7 @@ Create a comprehensive table with the following columns:
 - **Module**: The vulnerable binary/module name(s)
 - **Functions**: The affected function(s) from the crash
 - **Crash Type**: Type of crash (e.g., Buffer Overflow, Use-After-Free, NULL Pointer Dereference)
+- **False Positive**: "Yes" or "No" - whether this crash is a false positive
 - **Related CVE**: Known CVE identifiers from MITRE database (if any), or "None found"
 - **CWE**: Applicable CWE identifier(s) (e.g., CWE-119, CWE-787)
 - **Root Cause Summary**: Brief description of the vulnerability
@@ -1451,6 +1453,26 @@ Create a comprehensive table with the following columns:
 - Compare disassembly patterns
 - Consider if crashes occur in the same or similar code paths
 - Look for similar memory corruption patterns
+
+### Determining False Positives:
+A crash is a **FALSE POSITIVE** if the binary crash is unrelated to the PoC seed sent.
+
+Mark a crash as "Yes" (false positive) if:
+- The crash appears to be caused by environmental factors (timing, race conditions, etc.) rather than the input
+- The execution trace shows no correlation between the PoC content and the crash location
+- The crash occurs in code paths that don't process the input data
+- The disassembly shows the crash happens in unrelated functionality (e.g., background tasks, timers, unrelated services)
+- The kernel message indicates a crash source independent of the HTTP/network input
+- Multiple different inputs (including empty/minimal inputs) produce identical crashes
+- The crash is in initialization or cleanup code that runs regardless of input
+
+Mark as "No" (true positive - real input-triggered crash) if:
+- The execution trace clearly shows input data being processed before the crash
+- The crash location is in parsing, validation, or processing functions for the received data
+- The disassembly shows operations on buffers containing the PoC data
+- The crash is reproducible specifically with this PoC but not with normal inputs
+- The affected functions are directly involved in handling the HTTP request/data from the PoC
+- Memory corruption patterns match the structure/content of the PoC seed
 
 ### CVE Search Strategy:
 For each firmware, search MITRE CVE database using:
