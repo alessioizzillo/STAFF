@@ -2082,14 +2082,37 @@ def generate_unique_crash_reports(container_name: Optional[str] = None) -> None:
                         os.makedirs(CRASH_REPORTS_DIR, exist_ok=True)
                         os.chmod(CRASH_REPORTS_DIR, 0o777)
 
-                        first_func = unique_functions[0] if unique_functions else "unknown"
-                        first_func = re.sub(r'[^\w\-]', '_', first_func)
+                        short_fw_name = firmware_name
+                        if short_fw_name.lower().startswith("fw_"):
+                            short_fw_name = short_fw_name[3:]
+                        first_underscore = short_fw_name.find("_")
+                        if first_underscore != -1:
+                            short_fw_name = short_fw_name[:first_underscore]
 
-                        firmware_name_clean = re.sub(r'[^\w\-]', '_', firmware_name)
+                        func_or_pc = None
+                        if unique_functions:
+                            func_or_pc = unique_functions[0]
+                        else:
+                            try:
+                                with open(trace_path, 'r', errors='ignore') as tf:
+                                    for line in tf:
+                                        if "pc:" in line and "[000]" in line:
+                                            pc_match = re.search(r"pc:\s*(0x[0-9A-Fa-f]+)", line)
+                                            if pc_match:
+                                                func_or_pc = pc_match.group(1)
+                                                break
+                            except Exception:
+                                pass
+
+                        if not func_or_pc:
+                            func_or_pc = "unknown"
+
+                        short_fw_name_clean = re.sub(r'[^\w\-]', '_', short_fw_name)
                         brand_name_clean = re.sub(r'[^\w\-]', '_', brand_name)
                         module_name_clean = re.sub(r'[^\w\-]', '_', module_name)
+                        func_or_pc_clean = re.sub(r'[^\w\-]', '_', func_or_pc)
 
-                        centralized_report_name = f"{brand_name_clean}_{firmware_name_clean}_{module_name_clean}_{first_func}.report"
+                        centralized_report_name = f"{brand_name_clean}_{short_fw_name_clean}_{module_name_clean}_{func_or_pc_clean}.report"
                         centralized_report_path = os.path.join(CRASH_REPORTS_DIR, centralized_report_name)
 
                         try:
