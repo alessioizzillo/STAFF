@@ -29,6 +29,7 @@ SKIP_MODULES = {("any", "aflnet_base", "any"), ("dap2310_v1.00_o772.bin", "any",
                 ("dir300_v1.03_7c.bin", "triforce", "xmldb"), ("TL-WPA8630_US__V2_171011.zip", "triforce", "ledschd"), 
                 ("DGN3500-V1.1.00.30_NA.zip", "triforce", "setup.cgi"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "triforce", "setup.cgi")}
 
+CAUSALITY_CATEGORY_ORDER = ["OIB", "OID", "OII", "MIB", "MID", "MII"]
 
 # DEFAULT_METHODS = ["triforce", "aflnet_state_aware", "aflnet_base", "staff_state_aware"]
 # COMPETITORS = ["triforce", "aflnet_state_aware", "aflnet_base"]
@@ -51,6 +52,11 @@ DEDUP_METRIC_CHOICE = "recall"
 OUTPUT_DIR = "analysis_results"
 
 MAX_EXP_NUM = None
+
+def ordered_categories(keys):
+    ordered = [c for c in CAUSALITY_CATEGORY_ORDER if c in keys]
+    extras = sorted([c for c in keys if c not in CAUSALITY_CATEGORY_ORDER])
+    return ordered + extras
 
 def should_include_experiment(exp_name: str) -> bool:
     if MAX_EXP_NUM is None:
@@ -1786,7 +1792,7 @@ def build_crash_level_tables(
     total_full_causality = 0
     all_causality_scores = []
 
-    for category in sorted(category_stats.keys()):
+    for category in ordered_categories(category_stats.keys()):
         stats = category_stats[category]
         num_crashes = len(stats["crashes"])
         avg_causality = sum(stats["causality_scores"]) / len(stats["causality_scores"]) if stats["causality_scores"] else 0.0
@@ -2027,19 +2033,16 @@ def build_bug_level_tables(
                     prev["sites"].add((module, func_or_pc))
 
     # ---------- Table1-bug: mean #bugs ----------
-    # Get firmware order from crashes.csv to preserve order
     csv_firmware_order = get_firmware_order_from_csv(firmwares_csv.replace("fw_names.csv", "crashes.csv"))
     firmware_set_unsorted = {k[0] for k in bug_agg.keys()}
 
     if include_zero_bugs and all_firmwares_from_experiments:
         firmware_set_unsorted = firmware_set_unsorted | all_firmwares_from_experiments
 
-    # Order firmware according to crashes.csv, then add any additional ones
     firmware_set = []
     for fw in csv_firmware_order:
         if fw in firmware_set_unsorted:
             firmware_set.append(fw)
-    # Add any remaining firmware not in crashes.csv (sorted alphabetically)
     for fw in sorted(firmware_set_unsorted - set(firmware_set)):
         firmware_set.append(fw)
 
@@ -2082,14 +2085,12 @@ def build_bug_level_tables(
     write_csv_and_latex(headers1, table1_rows, out_count_csv, out_count_tex, caption="Number of bugs")
 
     # ---------- Table2-bug (TTE): one row per bug ----------
-    # Create firmware order mapping for sorting bugs
     fw_order_map = {fw: idx for idx, fw in enumerate(csv_firmware_order)}
     def bug_sort_key(item):
         fw = item[0][0]
         bug_id = item[0][1]
-        # Use firmware order from crashes.csv, fallback to very high number for unlisted
         fw_idx = fw_order_map.get(fw, 999999)
-        return (fw_idx, str(bug_id))  # fw_order, bug_id
+        return (fw_idx, str(bug_id))
 
     table2_rows = []
     for (fw, bug_id, category, cve_id), method_dict in sorted(bug_agg.items(), key=bug_sort_key):
