@@ -1614,6 +1614,10 @@ def build_crash_level_tables(
                 if f != fw:
                     continue
 
+                for exp, data in method_dict.get(m, {}).items():
+                    if data is not None and data.get("tte") is not None:
+                        per_run_crashes[exp].add(key)
+
             mean_crashes = (
                 sum(len(s) for s in per_run_crashes.values()) / len(per_run_crashes)
                 if per_run_crashes else 0.0
