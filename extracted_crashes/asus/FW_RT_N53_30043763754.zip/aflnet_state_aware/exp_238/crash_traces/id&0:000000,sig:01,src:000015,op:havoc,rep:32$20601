@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: watchdog
+  [00] inode: 24645, pc: 0x0003cc38, module: rc
+  [01] inode: 24645, pc: 0x0003cc30, module: rc
+  [02] inode: 24645, pc: 0x0003cc20, module: rc
+  [03] inode: 24645, pc: 0x0003cc08, module: rc
+  [04] inode: 24645, pc: 0x0003c218, module: rc
+

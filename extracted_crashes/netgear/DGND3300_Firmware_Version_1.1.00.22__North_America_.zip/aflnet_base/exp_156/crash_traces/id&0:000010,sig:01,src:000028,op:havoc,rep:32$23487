@@ -1,0 +1,16 @@
+=== Trace 1 ===
+Process: mini_httpd
+  [00] inode: 24746, pc: 0x00012234, module: setup.cgi
+  [01] inode: 24746, pc: 0x0000f064, module: setup.cgi
+  [02] inode: 24746, pc: 0x0000f058, module: setup.cgi
+  [03] inode: 24746, pc: 0x0000f040, module: setup.cgi
+  [04] inode: 24746, pc: 0x0000f000, module: setup.cgi
+
+=== Trace 2 ===
+Process: setup.cgi
+  [00] inode: 24746, pc: 0x00024118, module: setup.cgi
+  [01] inode: 24746, pc: 0x00024110, module: setup.cgi
+  [02] inode: 24746, pc: 0x000240fc, module: setup.cgi
+  [03] inode: 24746, pc: 0x000240dc, module: setup.cgi
+  [04] inode: 24746, pc: 0x00023610, module: setup.cgi
+

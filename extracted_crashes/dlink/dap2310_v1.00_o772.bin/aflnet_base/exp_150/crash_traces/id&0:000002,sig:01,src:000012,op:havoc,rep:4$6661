@@ -1,0 +1,8 @@
+=== Trace 1 ===
+Process: sh
+  [00] inode: 24679, pc: 0x00003804, module: neapc
+  [01] inode: 24679, pc: 0x000037e8, module: neapc
+  [02] inode: 24679, pc: 0x000037cc, module: neapc
+  [03] inode: 24679, pc: 0x000037b0, module: neapc
+  [04] inode: 24679, pc: 0x00003794, module: neapc
+

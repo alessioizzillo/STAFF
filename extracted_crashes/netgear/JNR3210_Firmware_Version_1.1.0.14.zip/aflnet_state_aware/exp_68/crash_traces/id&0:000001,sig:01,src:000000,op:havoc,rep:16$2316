@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: sh
+  [00] inode: 41245, pc: 0x00006364, module: busybox
+  [01] inode: 41245, pc: 0x0000a700, module: busybox
+  [02] inode: 41245, pc: 0x00006338, module: busybox
+  [03] inode: 41245, pc: 0x000062ec, module: busybox
+  [04] inode: 41245, pc: 0x000062d4, module: busybox
+

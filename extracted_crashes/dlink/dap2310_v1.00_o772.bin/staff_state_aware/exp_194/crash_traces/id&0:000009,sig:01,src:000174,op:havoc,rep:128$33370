@@ -1,0 +1,16 @@
+=== Trace 5 ===
+Process: sh
+  [00] inode: 24679, pc: 0x00003804, module: neapc
+  [01] inode: 24679, pc: 0x000037e8, module: neapc
+  [02] inode: 24679, pc: 0x000037cc, module: neapc
+  [03] inode: 24679, pc: 0x000037b0, module: neapc
+  [04] inode: 24679, pc: 0x00003794, module: neapc
+
+=== Trace 6 ===
+Process: sh
+  [00] inode: 24681, pc: 0x000035f0, module: neaps_array
+  [01] inode: 24681, pc: 0x000035d4, module: neaps_array
+  [02] inode: 24681, pc: 0x000035b8, module: neaps_array
+  [03] inode: 24681, pc: 0x0000359c, module: neaps_array
+  [04] inode: 24681, pc: 0x00003580, module: neaps_array
+

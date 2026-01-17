@@ -1,0 +1,16 @@
+=== Trace 0 ===
+Process: setup.cgi
+  [00] inode: 57718, pc: 0x0002b208, module: setup.cgi
+  [01] inode: 57718, pc: 0x0002b1f0, module: setup.cgi
+  [02] inode: 57718, pc: 0x0002b1e8, module: setup.cgi
+  [03] inode: 57718, pc: 0x0002b1b8, module: setup.cgi
+  [04] inode: 57718, pc: 0x0002b1a0, module: setup.cgi
+
+=== Trace 1 ===
+Process: setup.cgi
+  [00] inode: 57718, pc: 0x0002b208, module: setup.cgi
+  [01] inode: 57718, pc: 0x0002b1f0, module: setup.cgi
+  [02] inode: 57718, pc: 0x0002b1e8, module: setup.cgi
+  [03] inode: 57718, pc: 0x0002b1c0, module: setup.cgi
+  [04] inode: 57718, pc: 0x0002b1a0, module: setup.cgi
+

@@ -1,0 +1,504 @@
+GET / HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET / HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /rdr.cgi HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /rdr.cgi HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET / HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET / HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /rdr.cgi HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /rdr.cgi HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /rdr.cgi HTTP/1.1
+Host: 127.0.0.1
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /rdr.cgi HTTP/1.1
+Host: 127.0.0.1
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /admin/view.cgi?profile=2&language=en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/rdr.cgi
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /admin/view.cgi?profile=2&language=en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/rdr.cgi
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /admin/hidden.asp HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/view.cgi?profile=2&language=en
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /admin/hidden.asp HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/view.cgi?profile=2&language=en
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /admin/view.cgi?profile=2&language=en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozillt/5.0 (Windows NT 10.0; Win64; x64) ApleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/rdr.cgi
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /admin/video.asp?en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platforzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyw€ wzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywtchzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzzywzywzywzywzywzywzywzywo) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,applicPtion/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/setup.cgi?page=video
+Accept-Encodin: gzip, deflate, br
+Connection: keep-alive
+
+POST /admin/filter.cgi HTTP/1.1
+Host: 127.0.0.1
+Content-Length: 338
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://127.0.0.1
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/ipfilter.asp?en
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+a_startip1=&a_startip2=&a_startip3=&a_startip4=&a_endip1=&a_endip2=&a_endip3=&a_endip4=&a_ip6_1=&mode=2&d_startip1=&d_startip2=&d_startip3=&d_startip4=&d_endip1=&d_endip2=&d_endip3=&d_endip4=&d_ip6_1=&type=m_mode&amaxkey=2&dmaxkey=1&a6maxkey=0&d6maxkey=0&accept0=4.56.7.9%7E7.5.8.5&accept1=45.8.4.8%7E51.5.89.90&deny0=3.4.6.8%7E12.89.0.78POST /admin/filter.cgi HTTP/1.1
+Host: 127.0.0.1
+Content-Length: 338
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://127.0.0.1
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/ipfilter.asp?en
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+a_startip1=&a_startip2=&a_startip3=&a_startip4=&a_endip1=&a_endip2=&a_endip3=&a_endip4=&a_ip6_1=&mode=2&d_startip1=&d_startip2=&d_startip3=&d_startip4=&d_endip1=&d_endip2=&d_endip3=&d_endip4=&d_ip6_1=&type=m_mode&amaxkey=2&dmaxkey=1&a6maxkey=0&d6maxkey=0&accept0=4.56.7.9%7E7.5.8.5&accept1=45.8.4.8%7E51.5.89.90&deny0=3.4.6.8%7E12.89.0.78POST /admin/filter.cgi HTTP/1.1
+Host: 127.0.0.1
+Content-Length: 311
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://127.0.0.1
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/filter.cgi
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+a_startip1=&a_startip2=&a_startip3=&a_startip4=&a_endip1=&a_endip2=&a_endip3=&a_endip4=&a_ip6_1=&mode=2&d_startip1=&d_startip2=&d_startip3=&d_startip4=&d_endip1=&d_endip2=&d_endip3=&d_endip4=&d_ip6_1=&type=m_mode&amaxkey=1&dmaxkey=1&a6maxkey=0&d6maxkey=0&accept0=45.8.4.8%7E51.5.89.90&deny0=3.4.6.8%7E12.89.0.78POST /admin/filter.cgi HTTP/1.1
+Host: 127.0.0.1
+Content-Length: 311
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://127.0.0.1
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/filter.cgi
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+a_startip1=&a_startip2=&a_startip3=&a_startip4=&a_endip1=&a_endip2=&a_endip3=&a_endip4=&a_ip6_1=&mode=2&d_startip1=&d_startip2=&d_startip3=&d_startip4=&d_endip1=&d_endip2=&d_endip3=&d_endip4=&d_ip6_1=&type=m_mode&amaxkey=1&dmaxkey=1&a6maxkey=0&d6maxkey=0&accept0=45.8.4.8%7E51.5.89.90&deny0=3.4.6.8%7E12.89.0.78GET /admin/scheprofile.asp?en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-D
+Referer: http://127.0.0.1/admin/setup.cgi?page=scheduleprofile
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /ad n/scheprofile.asp?en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: hedu/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.K,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-\ite: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: iframe
+Refereø: http://127.0.0.1/admin/setup.cgi?page=scheduleprofile
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /admin/scheprofile.asp?en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-FetLh-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/setup.cgi?page=scheduleprofile
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alife
+
+GET /admin/scheprofile.asp?en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand"Xv="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)@ hrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/latfxml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/setup.cgi?page=scheduleprofile
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /admin/view.cgi?Qrofile=2&language=en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0   8.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: document
+Referer: http://127.0.0.1/rdr.cgi
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET /ad n/scheprofile.asp?en HTTP/1.1
+Host: 127.0.0.1
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua:	"Not/A)Brand";v="8", "Chromium";v=-Mode
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: hedu/html,application/xhtml+xÿ ,zywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywz    wzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywŽywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywguage: en-US
+Upgrade-Insecure-Requests: 1€ User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)@ hrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/setup.cgi?page=scheduleprofile
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+GET / HTTP/1.1
+Host: 127.0.0.1
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br
+ConnectionZ keep-alive
+
+POST /admin/sound.cgi HTTP/1.1
+Host: 127.0.0.1
+Content-Length: 39
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46YWRtaW4=
+sec-ch-ua: "Not/A)Brand";v="8", "Chromium";v="126"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "Linux"
+Accept-Language: en-US
+Upgrade-Insecure-Requests: 1
+Origin: http://127.0.0.1
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: iframe
+Referer: http://127.0.0.1/admin/audio.asp?en
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+mic_enable=1&speaker_enable=1&volume=90

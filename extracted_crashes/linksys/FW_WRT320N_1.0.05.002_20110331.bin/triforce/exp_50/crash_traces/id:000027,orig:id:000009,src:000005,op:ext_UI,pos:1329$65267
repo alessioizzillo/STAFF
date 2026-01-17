@@ -1,0 +1,16 @@
+=== Trace 0 ===
+Process: upnp
+  [00] inode: 24667, pc: 0x00012060, module: upnp
+  [01] inode: 24667, pc: 0x00012028, module: upnp
+  [02] inode: 24667, pc: 0x00012000, module: upnp
+  [03] inode: 24667, pc: 0x00011fec, module: upnp
+  [04] inode: 24667, pc: 0x00011fc0, module: upnp
+
+=== Trace 1 ===
+Process: httpd
+  [00] inode: 24643, pc: 0x0002742c, module: httpd
+  [01] inode: 24643, pc: 0x00027418, module: httpd
+  [02] inode: 24643, pc: 0x00026a34, module: httpd
+  [03] inode: 24643, pc: 0x00026ac4, module: httpd
+  [04] inode: 24643, pc: 0x00026ab4, module: httpd
+

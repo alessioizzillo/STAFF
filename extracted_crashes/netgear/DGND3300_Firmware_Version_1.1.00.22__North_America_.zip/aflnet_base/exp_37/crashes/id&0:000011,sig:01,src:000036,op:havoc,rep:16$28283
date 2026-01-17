@@ -1,0 +1,226 @@
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=devices.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=devices.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=devices.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=adv_wire_setting.htm&todo=cfg_init HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /h_adv_wire_setting.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=adv_wire_setting.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=m_access.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=adv_wire_setting.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=m_access.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (XzywzywzywzywzywzywzywzywúywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzÅwzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyw=enable&h_keep_wifi=disable&h_wl0_type=0&h_wl0_on=1&h_idx_num=1&save_only=0&todo=save&this_file=adv_wire_setting.htm&next_file=adv_wire_setting.htmGET /h_adv_wire_setting.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=adv_wds.htm&todo=cfg_init HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /menu.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=adv_wds.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /h_adv_wds.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/53 36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=adv_wds.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi&next_file=adv_wds.dtm&todo=cfg_init HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x8&_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,auplication/signed-exchange;v=b3;q=0.7
+Reverer: http://192.168.0.1/menu_wds.htm
+Accept-Encoding: gzip, deflate
+Accept-Lang    : en-US,en;q=0.9
+
+GET /menu.htm HTTP/1.1
+Host: 192.1e
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests:1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/ate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=adv_wds.htm&todo=cfg_init HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu_wds.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /menu.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=adv_wds.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /h_adv_wds.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=adv_wds.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 385
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/security.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+dod_enable=dod&pppoeRelay_enable=pppoeRelay_enable&disable_spi=disable_sp&dmz_enable=dmz_enable&dmzip4=12&rspToPing=rspToPing&mtu_size=1492&apply=Apply&c4_dmzip=192.168.0.12&wan_dhcp_status=PPPoE&h_dmz_enable=enable&h_rspToPing=enable&h_disable_spi=enable&h_dod_enable=enable&h_pppoeRelay_enable=enable&dod=true&h_dSipALG=disable&todo=save&this_file=security.htm&next_file=security.htmGET /h_secu.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+

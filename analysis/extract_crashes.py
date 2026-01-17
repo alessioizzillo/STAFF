@@ -517,40 +517,6 @@ def update_extracted_root_from_experiments(experiments_dir, extracted_root="extr
                         print(f"[WARN] cannot extract crash id from '{file}', skipping")
                     continue
 
-                skip_this_file = False
-                if ftype == "crashes":
-                    trace_folder = os.path.join(sub_path, "outputs", "crash_traces")
-                    trace_file = os.path.join(trace_folder, file)
-                    if not os.path.isfile(trace_file):
-                        for t in os.listdir(trace_folder) if os.path.isdir(trace_folder) else []:
-                            if crash_id == extract_crash_id(t):
-                                trace_file = os.path.join(trace_folder, t)
-                                break
-                    if os.path.isfile(trace_file):
-                        try:
-                            pc, module = _parse_first_frame_pc_module(trace_file)
-                        except Exception:
-                            pc, module = None, None
-                    else:
-                        module = None
-                else:
-                    try:
-                        pc, module = _parse_first_frame_pc_module(src_file)
-                    except Exception:
-                        pc, module = None, None
-
-                module_norm = module or "(unknown)"
-                fw_name_only = os.path.basename(firmware_with_brand)
-                if (fw_name_only, mode, module_norm) in SKIP_MODULES or \
-                (fw_name_only, "any", module_norm) in SKIP_MODULES or \
-                ("any", mode, "any") in SKIP_MODULES:
-                    skip_this_file = True
-
-                if skip_this_file:
-                    if verbose:
-                        print(f"[SKIP_MODULE] skipping {ftype} file due to SKIP_MODULES: {src_file}")
-                    continue
-
                 already_exists = False
                 is_done_file = False
                 for existing_file in os.listdir(dst_folder):
@@ -1599,8 +1565,6 @@ def build_crash_level_tables(
     agg = defaultdict(lambda: defaultdict(dict))
     for (fw, module, pc_key), method_dict in agg_raw.items():
         mapped_key = map_key_by_range_and_groups(fw, module, pc_key)
-        if mapped_key[3] == None:
-            continue
         for method_name, exp_map in method_dict.items():
             if should_skip(fw, method_name, module):
                 continue
@@ -1976,8 +1940,6 @@ def build_bug_level_tables(
     agg_mapped = defaultdict(lambda: defaultdict(dict))
     for (fw, module, pc_key), method_dict in agg_raw.items():
         mapped_key = map_key_by_range_and_groups(fw, module, pc_key)  # 6-tuple
-        if mapped_key[3] == None:
-            continue
         for method_name, exp_map in method_dict.items():
             if should_skip(fw, method_name, module):
                 continue

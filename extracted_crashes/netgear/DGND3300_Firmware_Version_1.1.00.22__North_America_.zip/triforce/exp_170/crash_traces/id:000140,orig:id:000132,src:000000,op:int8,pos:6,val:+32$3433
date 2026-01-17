@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: potcounter
+  [00] inode: 24674, pc: 0x00019934, module: unknown
+  [01] inode: 24674, pc: 0x00019b30, module: unknown
+  [02] inode: 24674, pc: 0x00019b04, module: unknown
+  [03] inode: 24674, pc: 0x00019ae8, module: unknown
+  [04] inode: 24674, pc: 0x00012f04, module: unknown
+

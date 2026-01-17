@@ -1,0 +1,4 @@
+=== Trace 1 ===
+Process: mini_httpd
+  [00] inode: 41301, pc: 0x00006364, module: mini_httpd
+
