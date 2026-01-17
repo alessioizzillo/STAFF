@@ -35,8 +35,8 @@ netgear/JNR3210_Firmware_Version_1.1.0.14.zip,mini_httpd,0x5c88,0x81a0,(FUN_0040
 netgear/JNR3210_Firmware_Version_1.1.0.14.zip,setup.cgi,0x21640,0x218f8,(html_parser),OID,R1-Bug9,???,CWE-119
 netgear/JNR3210_Firmware_Version_1.1.0.14.zip,setup.cgi,0x4da30,0x4de08,(upgrade_main),OID,R1-Bug10,???,CWE-119
 tplink/TL-WPA8630_US__V2_171011.zip,httpd,0x57d0,0x5b68,(FUN_004057d0),OIB,R1-Bug11,CVE-2024-57357,CWE-78
-tplink/TL-WPA8630_US__V2_171011.zip,httpd,0xedfc,0xf16c,(FUN_0040edfc),MIB,R1-Bug11,CVE-2023-27837,CWE-78
-tplink/TL-WPA8630_US__V2_171011.zip,httpd,0x1685c,0x169e0,(FUN_0041685c),MIB,R1-Bug11,CVE-2024-57357,CWE-78
+tplink/TL-WPA8630_US__V2_171011.zip,httpd,0xedfc,0xf16c,(FUN_0040edfc),OIB,R1-Bug11,CVE-2023-27837,CWE-78
+tplink/TL-WPA8630_US__V2_171011.zip,httpd,0x1685c,0x169e0,(FUN_0041685c),OIB,R1-Bug11,CVE-2024-57357,CWE-78
 tplink/TL-WPA8630_US__V2_171011.zip,httpd,0x25f90,0x260f4,(FUN_00425f90),OIB,R1-Bug11,CVE-2023-27837,CWE-78
 tplink/TL-WPA8630_US__V2_171011.zip,ledschd,0x2320,0x236c,(FUN_00402320),MII,R1-Bug12,???,???
 dlink/dap2310_v1.00_o772.bin,atp,0x3830,0x3a14,(redirect_htm),MID,R0-Bug1,???,CWE-119

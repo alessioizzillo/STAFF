@@ -810,7 +810,7 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
 
         parts = root.split(os.sep)
         try:
-            extracted_idx = parts.index("extracted_crashes")
+            extracted_idx = parts.index(extracted_root)
             if extracted_idx + 2 < len(parts):
                 firmware = parts[extracted_idx + 2]
                 brand = parts[extracted_idx + 1]
@@ -1723,12 +1723,10 @@ def build_crash_level_tables(
             row[f"{METHOD_ABBR.get(m, m)}_avg_taint"] = (round(avg_taint, 3) if avg_taint is not None else "")
 
         num_requests = 0
-        if all_crash_seed_paths:
-            first_seed = all_crash_seed_paths[0]
-            if first_seed:
-                num_requests = count_requests_in_seed(first_seed)
-                if verbose and num_requests == 0:
-                    print(f"[DEBUG] No requests counted for {first_seed} (file exists: {os.path.isfile(first_seed)})")
+        succ_paths = [p for p in all_crash_seed_paths if p and p.endswith(".succ")]
+
+        if succ_paths:
+            num_requests = count_requests_in_seed(succ_paths[0])
         row["num_requests"] = num_requests if num_requests > 0 else ""
 
         table2_rows.append(row)
@@ -2279,7 +2277,7 @@ if __name__ == "__main__":
             print("[INFO] skipping annotation step")
 
     tables, agg = build_crash_level_tables(
-        extracted_root="extracted_crashes",
+        extracted_root=args.extracted_root,
         verbose=True,
         show_exp_count=args.show_exp_count,
         experiments_dir=args.experiments_dir,
@@ -2287,7 +2285,7 @@ if __name__ == "__main__":
     )
 
     bug_tables, bug_agg = build_bug_level_tables(
-        extracted_root="extracted_crashes",
+        extracted_root=args.extracted_root,
         firmwares_csv="analysis/fw_names.csv",
         verbose=True,
         show_exp_count=args.show_exp_count,
