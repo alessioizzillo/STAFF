@@ -1702,6 +1702,80 @@ def build_crash_level_tables(
 
     write_csv_and_latex(headers2, table2_rows, out_tte_csv, out_tte_tex, caption="TTE crashes", count_tte_table=True, add_category_col=True, add_taint_col=True)
 
+    # ---------- CVE/CWE Summary Table ----------
+    crashes_csv_path = "analysis/crashes.csv"
+    cve_cwe_lookup = {}
+    if os.path.isfile(crashes_csv_path):
+        try:
+            with open(crashes_csv_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    csv_fw = row.get('firmware', '').strip()
+                    csv_mod = row.get('module', '').strip()
+                    csv_func = row.get('function_name', '').strip()
+                    
+                    if csv_func.startswith('(') and csv_func.endswith(')'):
+                        csv_func = csv_func[1:-1].strip()
+
+                    csv_cve = row.get('cve', '').strip()
+                    csv_cwe = row.get('cwe', '').strip()
+
+                    key = (csv_fw.lower(), csv_mod.lower(), csv_func.lower())
+                    cve_cwe_lookup[key] = {
+                        'cve': csv_cve if csv_cve and csv_cve != '???' else '',
+                        'cwe': csv_cwe if csv_cwe and csv_cwe != '???' else ''
+                    }
+        except Exception as e:
+            if verbose:
+                print(f"[WARN] Could not read crashes.csv: {e}")
+
+    cve_cwe_rows = []
+    for key, method_dict in sorted(agg.items(), key=crash_sort_key):
+        if len(key) == 5:
+            fw, module, func_or_pc, category, cve_id = key
+        elif len(key) == 4:
+            fw, module, func_or_pc, category = key
+            cve_id = None
+        else:
+            fw, module, func_or_pc = key
+            category = None
+            cve_id = None
+
+        fw_display = fw
+        fw_name_only = os.path.basename(fw)
+        if fw_name_only in fw_map:
+            brand, name, version = fw_map[fw_name_only]
+            fw_display = name if name else fw
+
+        cve_value = cve_id if cve_id and cve_id != '???' else ''
+        cwe_value = ''
+
+        for (lookup_fw, lookup_mod, lookup_func), info in cve_cwe_lookup.items():
+            fw_match = (lookup_fw in fw.lower() or fw.lower() in lookup_fw)
+            mod_match = (lookup_mod == module.lower())
+            func_match = (lookup_func == func_or_pc.lower())
+
+            if fw_match and mod_match and func_match:
+                if not cve_value and info['cve']:
+                    cve_value = info['cve']
+                if info['cwe']:
+                    cwe_value = info['cwe']
+                break
+
+        row = {
+            "firmware": fw_display,
+            "module": module,
+            "function": func_or_pc,
+            "CVE": cve_value,
+            "CWE": cwe_value
+        }
+        cve_cwe_rows.append(row)
+
+    cve_cwe_csv = os.path.join(OUTPUT_DIR, "out_cve_cwe_summary.csv")
+    cve_cwe_tex = os.path.join(OUTPUT_DIR, "out_cve_cwe_summary.tex")
+    cve_cwe_headers = ["firmware", "module", "function", "CVE", "CWE"]
+    write_csv_and_latex(cve_cwe_headers, cve_cwe_rows, cve_cwe_csv, cve_cwe_tex, caption="CVE and CWE Summary")
+
     # ---------- Table3 (Causality) ----------
 
     staff_method = "staff_state_aware"
