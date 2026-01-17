@@ -32,7 +32,7 @@ cmake --build .
 cmake --build . --target install
 cd /STAFF
 rm -r xxHash
-sudo apt install -y python3.7-distutils;
+sudo apt install -y python3.7-distutils binutils-mips-linux-gnu binutils-mipsel-linux-gnu;
 sudo python3 -m pip install scapy scipy matplotlib_venn venn colorama docker angr;
 download
 sudo python3 -m pip config set global.break-system-packages true

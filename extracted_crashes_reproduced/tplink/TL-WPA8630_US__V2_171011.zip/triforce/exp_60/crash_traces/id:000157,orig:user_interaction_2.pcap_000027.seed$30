@@ -1,0 +1,1578 @@
+=== Trace for PID 292 ===
+Process: wifiSched
+
+--- Self PID 292 Trace ---
+  [000] inode: 32816, pc: 0x0000c27c, module: wifiSched, symbol: mc_sub_detach
+  [001] inode: 32816, pc: 0x00005940, module: wifiSched
+  [002] inode: 32816, pc: 0x00005924, module: wifiSched
+  [003] inode: 32816, pc: 0x000058dc, module: wifiSched
+  [004] inode: 32816, pc: 0x00005be8, module: wifiSched
+  [005] inode: 32816, pc: 0x00006794, module: wifiSched
+  [006] inode: 32816, pc: 0x0000d608, module: wifiSched, symbol: utl_remove_pidfile
+  [007] inode: 32816, pc: 0x0000d5dc, module: wifiSched, symbol: utl_remove_pidfile
+  [008] inode: 32816, pc: 0x00006774, module: wifiSched
+  [009] inode: 32816, pc: 0x00006760, module: wifiSched
+  [010] inode: 32816, pc: 0x0000dc8c, module: wifiSched, symbol: utl_echo
+  [011] inode: 32816, pc: 0x0000dc78, module: wifiSched, symbol: utl_echo
+  [012] inode: 32816, pc: 0x0000dc58, module: wifiSched, symbol: utl_echo
+  [013] inode: 32816, pc: 0x0000dc18, module: wifiSched, symbol: utl_echo
+  [014] inode: 32816, pc: 0x0000dbe4, module: wifiSched, symbol: utl_echo
+  [015] inode: 32816, pc: 0x0000dbbc, module: wifiSched, symbol: utl_echo
+  [016] inode: 32816, pc: 0x0000db90, module: wifiSched, symbol: utl_echo
+  [017] inode: 32816, pc: 0x0000db38, module: wifiSched, symbol: utl_echo
+  [018] inode: 32816, pc: 0x00006740, module: wifiSched
+  [019] inode: 32816, pc: 0x00006708, module: wifiSched
+  [020] inode: 32816, pc: 0x000066e4, module: wifiSched
+  [021] inode: 32816, pc: 0x000066d8, module: wifiSched
+  [022] inode: 32816, pc: 0x00005d94, module: wifiSched
+  [023] inode: 32816, pc: 0x00005d74, module: wifiSched
+  [024] inode: 32816, pc: 0x000058c0, module: wifiSched
+  [025] inode: 32816, pc: 0x000058a0, module: wifiSched
+  [026] inode: 32816, pc: 0x0000dc8c, module: wifiSched, symbol: utl_echo
+  [027] inode: 32816, pc: 0x0000dc78, module: wifiSched, symbol: utl_echo
+  [028] inode: 32816, pc: 0x0000dc58, module: wifiSched, symbol: utl_echo
+  [029] inode: 32816, pc: 0x0000dc20, module: wifiSched, symbol: utl_echo
+  [030] inode: 32816, pc: 0x0000dbe4, module: wifiSched, symbol: utl_echo
+  [031] inode: 32816, pc: 0x0000dbbc, module: wifiSched, symbol: utl_echo
+  [032] inode: 32816, pc: 0x0000db90, module: wifiSched, symbol: utl_echo
+  [033] inode: 32816, pc: 0x0000db54, module: wifiSched, symbol: utl_echo
+  [034] inode: 32816, pc: 0x0000585c, module: wifiSched
+  [035] inode: 32816, pc: 0x0000583c, module: wifiSched
+  [036] inode: 32816, pc: 0x00005828, module: wifiSched
+  [037] inode: 32816, pc: 0x0000c040, module: wifiSched, symbol: mc_sub_attach
+  [038] inode: 32816, pc: 0x0000c26c, module: wifiSched, symbol: mc_sub_attach
+  [039] inode: 32816, pc: 0x0000c25c, module: wifiSched, symbol: mc_sub_attach
+  [040] inode: 32816, pc: 0x0000c014, module: wifiSched, symbol: mc_sub_attach
+  [041] inode: 32816, pc: 0x0000bbb0, module: wifiSched
+  [042] inode: 32816, pc: 0x0000bbc8, module: wifiSched
+  [043] inode: 32816, pc: 0x0000bb94, module: wifiSched
+  [044] inode: 32816, pc: 0x0000bb60, module: wifiSched
+  [045] inode: 32816, pc: 0x0000bb24, module: wifiSched
+  [046] inode: 32816, pc: 0x0000bb24, module: wifiSched
+  [047] inode: 32816, pc: 0x0000bb24, module: wifiSched
+  [048] inode: 32816, pc: 0x0000bb24, module: wifiSched
+  [049] inode: 32816, pc: 0x0000bb58, module: wifiSched
+  [050] inode: 32816, pc: 0x0000bb18, module: wifiSched
+  [051] inode: 32816, pc: 0x0000bab4, module: wifiSched
+  [052] inode: 32816, pc: 0x0000ba70, module: wifiSched
+  [053] inode: 32816, pc: 0x0000c000, module: wifiSched, symbol: mc_sub_attach
+  [054] inode: 32816, pc: 0x0000bffc, module: wifiSched, symbol: mc_sub_attach
+  [055] inode: 32816, pc: 0x0000bff0, module: wifiSched, symbol: mc_sub_attach
+  [056] inode: 32816, pc: 0x0000bcb0, module: wifiSched
+  [057] inode: 32816, pc: 0x0000bca4, module: wifiSched
+  [058] inode: 32816, pc: 0x0000bc7c, module: wifiSched
+  [059] inode: 32816, pc: 0x0000bc70, module: wifiSched
+  [060] inode: 32816, pc: 0x0000bc50, module: wifiSched
+  [061] inode: 32816, pc: 0x0000bc40, module: wifiSched
+  [062] inode: 32816, pc: 0x0000bc18, module: wifiSched
+  [063] inode: 32816, pc: 0x0000bc0c, module: wifiSched
+  [064] inode: 32816, pc: 0x0000bbd0, module: wifiSched
+  [065] inode: 32816, pc: 0x0000bfdc, module: wifiSched, symbol: mc_sub_attach
+  [066] inode: 32816, pc: 0x0000bfa0, module: wifiSched, symbol: mc_sub_attach
+  [067] inode: 32816, pc: 0x000057cc, module: wifiSched
+  [068] inode: 32816, pc: 0x000057b0, module: wifiSched
+  [069] inode: 32816, pc: 0x00005784, module: wifiSched
+  [070] inode: 32816, pc: 0x000056fc, module: wifiSched
+  [071] inode: 32816, pc: 0x000056b8, module: wifiSched
+  [072] inode: 32816, pc: 0x00005d54, module: wifiSched
+  [073] inode: 32816, pc: 0x0000484c, module: wifiSched, symbol: wifiSched_saveRunTimeInfo
+  [074] inode: 32816, pc: 0x00006da4, module: wifiSched, symbol: cJSON_Delete
+  [075] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [076] inode: 32816, pc: 0x00006d68, module: wifiSched, symbol: cJSON_Delete
+  [077] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [078] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [079] inode: 32816, pc: 0x00006cb4, module: wifiSched, symbol: cJSON_Delete
+  [080] inode: 32816, pc: 0x00006da4, module: wifiSched, symbol: cJSON_Delete
+  [081] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [082] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [083] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [084] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [085] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [086] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [087] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [088] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [089] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [090] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [091] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [092] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [093] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [094] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [095] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [096] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [097] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [098] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [099] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [100] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [101] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [102] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [103] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [104] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [105] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [106] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [107] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [108] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [109] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [110] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [111] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [112] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [113] inode: 32816, pc: 0x00006d94, module: wifiSched, symbol: cJSON_Delete
+  [114] inode: 32816, pc: 0x00006c18, module: wifiSched, symbol: cJSON_Delete
+  [115] inode: 32816, pc: 0x00006c8c, module: wifiSched, symbol: cJSON_Delete
+  [116] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [117] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [118] inode: 32816, pc: 0x00006d94, module: wifiSched, symbol: cJSON_Delete
+  [119] inode: 32816, pc: 0x00006c18, module: wifiSched, symbol: cJSON_Delete
+  [120] inode: 32816, pc: 0x00004834, module: wifiSched, symbol: wifiSched_saveRunTimeInfo
+  [121] inode: 32816, pc: 0x00004820, module: wifiSched, symbol: wifiSched_saveRunTimeInfo
+  [122] inode: 32816, pc: 0x00006da4, module: wifiSched, symbol: cJSON_Delete
+  [123] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [124] inode: 32816, pc: 0x00006d68, module: wifiSched, symbol: cJSON_Delete
+  [125] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [126] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [127] inode: 32816, pc: 0x00006cb4, module: wifiSched, symbol: cJSON_Delete
+  [128] inode: 32816, pc: 0x00006da4, module: wifiSched, symbol: cJSON_Delete
+  [129] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [130] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [131] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [132] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [133] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [134] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [135] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [136] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [137] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [138] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [139] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [140] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [141] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [142] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [143] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [144] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [145] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [146] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [147] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [148] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [149] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [150] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [151] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [152] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [153] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [154] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [155] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [156] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [157] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [158] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [159] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [160] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [161] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [162] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [163] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [164] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [165] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [166] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [167] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [168] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [169] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [170] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [171] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [172] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [173] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [174] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [175] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [176] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [177] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [178] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [179] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [180] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [181] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [182] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [183] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [184] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [185] inode: 32816, pc: 0x00006d84, module: wifiSched, symbol: cJSON_Delete
+  [186] inode: 32816, pc: 0x00006d60, module: wifiSched, symbol: cJSON_Delete
+  [187] inode: 32816, pc: 0x00006d34, module: wifiSched, symbol: cJSON_Delete
+  [188] inode: 32816, pc: 0x00006d1c, module: wifiSched, symbol: cJSON_Delete
+  [189] inode: 32816, pc: 0x00006cd4, module: wifiSched, symbol: cJSON_Delete
+  [190] inode: 32816, pc: 0x00006cb8, module: wifiSched, symbol: cJSON_Delete
+  [191] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [192] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [193] inode: 32816, pc: 0x00006d94, module: wifiSched, symbol: cJSON_Delete
+  [194] inode: 32816, pc: 0x00006c18, module: wifiSched, symbol: cJSON_Delete
+  [195] inode: 32816, pc: 0x00006c8c, module: wifiSched, symbol: cJSON_Delete
+  [196] inode: 32816, pc: 0x00006c74, module: wifiSched, symbol: cJSON_Delete
+  [197] inode: 32816, pc: 0x00006c44, module: wifiSched, symbol: cJSON_Delete
+  [198] inode: 32816, pc: 0x00006d94, module: wifiSched, symbol: cJSON_Delete
+  [199] inode: 32816, pc: 0x00006c18, module: wifiSched, symbol: cJSON_Delete
+  [200] inode: 32816, pc: 0x00004808, module: wifiSched, symbol: wifiSched_saveRunTimeInfo
+  [201] inode: 32816, pc: 0x000047f8, module: wifiSched, symbol: wifiSched_saveRunTimeInfo
+  [202] inode: 32816, pc: 0x000047e4, module: wifiSched, symbol: wifiSched_saveRunTimeInfo
+  [203] inode: 32816, pc: 0x0000ca28, module: wifiSched, symbol: utl_json2file
+  [204] inode: 32816, pc: 0x0000ca10, module: wifiSched, symbol: utl_json2file
+  [205] inode: 32816, pc: 0x0000c9f8, module: wifiSched, symbol: utl_json2file
+  [206] inode: 32816, pc: 0x0000c9e0, module: wifiSched, symbol: utl_json2file
+  [207] inode: 32816, pc: 0x0000c9c8, module: wifiSched, symbol: utl_json2file
+  [208] inode: 32816, pc: 0x0000c678, module: wifiSched, symbol: unlock
+  [209] inode: 32816, pc: 0x0000c61c, module: wifiSched, symbol: unlock
+  [210] inode: 32816, pc: 0x0000c9b0, module: wifiSched, symbol: utl_json2file
+  [211] inode: 32816, pc: 0x0000c980, module: wifiSched, symbol: utl_json2file
+  [212] inode: 32816, pc: 0x0000c95c, module: wifiSched, symbol: utl_json2file
+  [213] inode: 32816, pc: 0x0000c940, module: wifiSched, symbol: utl_json2file
+  [214] inode: 32816, pc: 0x0000c58c, module: wifiSched, symbol: write_lock
+  [215] inode: 32816, pc: 0x0000c530, module: wifiSched, symbol: write_lock
+  [216] inode: 32816, pc: 0x0000c928, module: wifiSched, symbol: utl_json2file
+  [217] inode: 32816, pc: 0x0000c8a0, module: wifiSched, symbol: utl_json2file
+  [218] inode: 32816, pc: 0x0000c884, module: wifiSched, symbol: utl_json2file
+  [219] inode: 32816, pc: 0x0000c7fc, module: wifiSched, symbol: utl_json2file
+  [220] inode: 32816, pc: 0x00008654, module: wifiSched, symbol: cJSON_Print
+  [221] inode: 32816, pc: 0x00008b74, module: wifiSched
+  [222] inode: 32816, pc: 0x0000a2cc, module: wifiSched
+  [223] inode: 32816, pc: 0x0000a2ac, module: wifiSched
+  [224] inode: 32816, pc: 0x0000a274, module: wifiSched
+  [225] inode: 32816, pc: 0x0000a260, module: wifiSched
+  [226] inode: 32816, pc: 0x0000a23c, module: wifiSched
+  [227] inode: 32816, pc: 0x0000a220, module: wifiSched
+  [228] inode: 32816, pc: 0x0000a1f4, module: wifiSched
+  [229] inode: 32816, pc: 0x0000a1b0, module: wifiSched
+  [230] inode: 32816, pc: 0x0000a14c, module: wifiSched
+  [231] inode: 32816, pc: 0x0000a13c, module: wifiSched
+  [232] inode: 32816, pc: 0x0000a0f0, module: wifiSched
+  [233] inode: 32816, pc: 0x0000a0b4, module: wifiSched
+  [234] inode: 32816, pc: 0x0000a060, module: wifiSched
+  [235] inode: 32816, pc: 0x0000a020, module: wifiSched
+  [236] inode: 32816, pc: 0x0000a000, module: wifiSched
+  [237] inode: 32816, pc: 0x00009fe4, module: wifiSched
+  [238] inode: 32816, pc: 0x00009fac, module: wifiSched
+  [239] inode: 32816, pc: 0x00009f68, module: wifiSched
+  [240] inode: 32816, pc: 0x00009f94, module: wifiSched
+  [241] inode: 32816, pc: 0x00009f5c, module: wifiSched
+  [242] inode: 32816, pc: 0x00009f4c, module: wifiSched
+  [243] inode: 32816, pc: 0x0000a1f4, module: wifiSched
+  [244] inode: 32816, pc: 0x0000a1b0, module: wifiSched
+  [245] inode: 32816, pc: 0x0000a14c, module: wifiSched
+  [246] inode: 32816, pc: 0x0000a120, module: wifiSched
+  [247] inode: 32816, pc: 0x0000a0f0, module: wifiSched
+  [248] inode: 32816, pc: 0x0000a0b4, module: wifiSched
+  [249] inode: 32816, pc: 0x0000a060, module: wifiSched
+  [250] inode: 32816, pc: 0x0000a020, module: wifiSched
+  [251] inode: 32816, pc: 0x0000a000, module: wifiSched
+  [252] inode: 32816, pc: 0x00009fe4, module: wifiSched
+  [253] inode: 32816, pc: 0x00009fac, module: wifiSched
+  [254] inode: 32816, pc: 0x00009f68, module: wifiSched
+  [255] inode: 32816, pc: 0x00009f94, module: wifiSched
+  [256] inode: 32816, pc: 0x00009f5c, module: wifiSched
+  [257] inode: 32816, pc: 0x00009f4c, module: wifiSched
+  [258] inode: 32816, pc: 0x0000a1f4, module: wifiSched
+  [259] inode: 32816, pc: 0x0000a1b0, module: wifiSched
+  [260] inode: 32816, pc: 0x0000a14c, module: wifiSched
+  [261] inode: 32816, pc: 0x0000a120, module: wifiSched
+  [262] inode: 32816, pc: 0x0000a0f0, module: wifiSched
+  [263] inode: 32816, pc: 0x0000a0b4, module: wifiSched
+  [264] inode: 32816, pc: 0x0000a060, module: wifiSched
+  [265] inode: 32816, pc: 0x0000a020, module: wifiSched
+  [266] inode: 32816, pc: 0x0000a000, module: wifiSched
+  [267] inode: 32816, pc: 0x00009fe4, module: wifiSched
+  [268] inode: 32816, pc: 0x00009fac, module: wifiSched
+  [269] inode: 32816, pc: 0x00009f68, module: wifiSched
+  [270] inode: 32816, pc: 0x00009f94, module: wifiSched
+  [271] inode: 32816, pc: 0x00009f5c, module: wifiSched
+  [272] inode: 32816, pc: 0x00009f4c, module: wifiSched
+  [273] inode: 32816, pc: 0x0000a1f4, module: wifiSched
+  [274] inode: 32816, pc: 0x0000a1b0, module: wifiSched
+  [275] inode: 32816, pc: 0x0000a14c, module: wifiSched
+  [276] inode: 32816, pc: 0x0000a120, module: wifiSched
+  [277] inode: 32816, pc: 0x0000a0f0, module: wifiSched
+  [278] inode: 32816, pc: 0x0000a0b4, module: wifiSched
+  [279] inode: 32816, pc: 0x0000a060, module: wifiSched
+  [280] inode: 32816, pc: 0x0000a020, module: wifiSched
+  [281] inode: 32816, pc: 0x0000a000, module: wifiSched
+  [282] inode: 32816, pc: 0x00009fe4, module: wifiSched
+  [283] inode: 32816, pc: 0x00009fac, module: wifiSched
+  [284] inode: 32816, pc: 0x00009f68, module: wifiSched
+  [285] inode: 32816, pc: 0x00009f94, module: wifiSched
+  [286] inode: 32816, pc: 0x00009f5c, module: wifiSched
+  [287] inode: 32816, pc: 0x00009f4c, module: wifiSched
+  [288] inode: 32816, pc: 0x0000a208, module: wifiSched
+  [289] inode: 32816, pc: 0x00009f18, module: wifiSched
+  [290] inode: 32816, pc: 0x00009eec, module: wifiSched
+  [291] inode: 32816, pc: 0x00009d88, module: wifiSched
+  [292] inode: 32816, pc: 0x00009d68, module: wifiSched
+  [293] inode: 32816, pc: 0x00009d44, module: wifiSched
+  [294] inode: 32816, pc: 0x00009d34, module: wifiSched
+  [295] inode: 32816, pc: 0x00009d10, module: wifiSched
+  [296] inode: 32816, pc: 0x00009ce8, module: wifiSched
+  [297] inode: 32816, pc: 0x00009cd0, module: wifiSched
+  [298] inode: 32816, pc: 0x00009cb8, module: wifiSched
+  [299] inode: 32816, pc: 0x00009c98, module: wifiSched
+Total Self trace elements: 300
+
+--- Parent PID 263 Trace ---
+  [000] inode: 32816, pc: 0x000022b0, module: wifiSched
+  [001] inode: 32816, pc: 0x000022a0, module: wifiSched
+  [002] inode: 32816, pc: 0x00002268, module: wifiSched
+  [003] inode: 32816, pc: 0x0000225c, module: wifiSched
+  [004] inode: 32816, pc: 0x0000d2f4, module: wifiSched, symbol: utl_run_daemonize
+  [005] inode: 32816, pc: 0x0000d2e4, module: wifiSched, symbol: utl_run_daemonize
+  [006] inode: 32816, pc: 0x0000d2d0, module: wifiSched, symbol: utl_run_daemonize
+  [007] inode: 32816, pc: 0x000065f8, module: wifiSched
+  [008] inode: 32816, pc: 0x000065e0, module: wifiSched
+  [009] inode: 32816, pc: 0x000065c0, module: wifiSched
+  [010] inode: 32816, pc: 0x000063c4, module: wifiSched
+  [011] inode: 32816, pc: 0x00010c54, module: wifiSched
+  [012] inode: 32816, pc: 0x00010c48, module: wifiSched
+  [013] inode: 32816, pc: 0x00010c24, module: wifiSched
+  [014] inode: 32816, pc: 0x000022fc, module: wifiSched
+  [015] inode: 32816, pc: 0x000022d4, module: wifiSched
+  [016] inode: 32816, pc: 0x000021f0, module: wifiSched
+Total Parent trace elements: 17
+
+--- Parent PID 241 Trace ---
+  [000] inode: 49155, pc: 0x0002a614, module: busybox
+  [001] inode: 49155, pc: 0x00025664, module: busybox
+  [002] inode: 49155, pc: 0x00025634, module: busybox
+  [003] inode: 49155, pc: 0x0002a60c, module: busybox
+  [004] inode: 49155, pc: 0x0002a658, module: busybox
+  [005] inode: 49155, pc: 0x0001ea50, module: busybox
+  [006] inode: 49155, pc: 0x0001ea30, module: busybox
+  [007] inode: 49155, pc: 0x0001ea14, module: busybox
+  [008] inode: 49155, pc: 0x0001f3bc, module: busybox
+  [009] inode: 49155, pc: 0x000575c8, module: busybox
+  [010] inode: 49155, pc: 0x0001f398, module: busybox
+  [011] inode: 49155, pc: 0x0002a650, module: busybox
+  [012] inode: 49155, pc: 0x0002a620, module: busybox
+  [013] inode: 49155, pc: 0x0002a5e0, module: busybox
+  [014] inode: 49155, pc: 0x0002a5c0, module: busybox
+  [015] inode: 49155, pc: 0x0002ca8c, module: busybox
+  [016] inode: 49155, pc: 0x0002cf60, module: busybox
+  [017] inode: 49155, pc: 0x0002cc44, module: busybox
+  [018] inode: 49155, pc: 0x00028a98, module: busybox
+  [019] inode: 49155, pc: 0x0001ea50, module: busybox
+  [020] inode: 49155, pc: 0x0001ea30, module: busybox
+  [021] inode: 49155, pc: 0x0001ea1c, module: busybox
+  [022] inode: 49155, pc: 0x0001f2f4, module: busybox
+  [023] inode: 49155, pc: 0x0001f2e8, module: busybox
+  [024] inode: 49155, pc: 0x0001f2b8, module: busybox
+  [025] inode: 49155, pc: 0x0001f2ac, module: busybox
+  [026] inode: 49155, pc: 0x0001f26c, module: busybox
+  [027] inode: 49155, pc: 0x00028a90, module: busybox
+  [028] inode: 49155, pc: 0x00028a88, module: busybox
+  [029] inode: 49155, pc: 0x00028a10, module: busybox
+  [030] inode: 49155, pc: 0x00028a08, module: busybox
+  [031] inode: 49155, pc: 0x000286f8, module: busybox
+  [032] inode: 49155, pc: 0x000286f0, module: busybox
+  [033] inode: 49155, pc: 0x000286b8, module: busybox
+  [034] inode: 49155, pc: 0x0002844c, module: busybox
+  [035] inode: 49155, pc: 0x000285a4, module: busybox
+  [036] inode: 49155, pc: 0x00028580, module: busybox
+  [037] inode: 49155, pc: 0x00028508, module: busybox
+  [038] inode: 49155, pc: 0x000284d4, module: busybox
+  [039] inode: 49155, pc: 0x000284cc, module: busybox
+  [040] inode: 49155, pc: 0x000284c4, module: busybox
+  [041] inode: 49155, pc: 0x000284bc, module: busybox
+  [042] inode: 49155, pc: 0x0001f4b0, module: busybox
+  [043] inode: 49155, pc: 0x0001f558, module: busybox
+  [044] inode: 49155, pc: 0x0001f59c, module: busybox
+  [045] inode: 49155, pc: 0x0001f544, module: busybox
+  [046] inode: 49155, pc: 0x0001f4d8, module: busybox
+  [047] inode: 49155, pc: 0x0001f45c, module: busybox
+  [048] inode: 49155, pc: 0x00028490, module: busybox
+  [049] inode: 49155, pc: 0x00026d94, module: busybox
+  [050] inode: 49155, pc: 0x00026d84, module: busybox
+  [051] inode: 49155, pc: 0x0002847c, module: busybox
+  [052] inode: 49155, pc: 0x00028408, module: busybox
+  [053] inode: 49155, pc: 0x00028678, module: busybox
+  [054] inode: 49155, pc: 0x000289fc, module: busybox
+  [055] inode: 49155, pc: 0x00026d94, module: busybox
+  [056] inode: 49155, pc: 0x00026d84, module: busybox
+  [057] inode: 49155, pc: 0x000289d0, module: busybox
+  [058] inode: 49155, pc: 0x00028a80, module: busybox
+  [059] inode: 49155, pc: 0x00028ae8, module: busybox
+  [060] inode: 49155, pc: 0x00028ad8, module: busybox
+  [061] inode: 49155, pc: 0x0001ea50, module: busybox
+  [062] inode: 49155, pc: 0x0001ea30, module: busybox
+  [063] inode: 49155, pc: 0x0001ea08, module: busybox
+  [064] inode: 49155, pc: 0x0001fa48, module: busybox
+  [065] inode: 49155, pc: 0x0001f9dc, module: busybox
+  [066] inode: 49155, pc: 0x0001f9bc, module: busybox
+  [067] inode: 49155, pc: 0x00028ad0, module: busybox
+  [068] inode: 49155, pc: 0x00028c74, module: busybox
+  [069] inode: 49155, pc: 0x00028c54, module: busybox
+  [070] inode: 49155, pc: 0x00028c30, module: busybox
+  [071] inode: 49155, pc: 0x00028bcc, module: busybox
+  [072] inode: 49155, pc: 0x00028ba8, module: busybox
+  [073] inode: 49155, pc: 0x00028b48, module: busybox
+  [074] inode: 49155, pc: 0x00028c20, module: busybox
+  [075] inode: 49155, pc: 0x00028e44, module: busybox
+  [076] inode: 49155, pc: 0x0002c590, module: busybox
+  [077] inode: 49155, pc: 0x0001ea50, module: busybox
+  [078] inode: 49155, pc: 0x0001ea30, module: busybox
+  [079] inode: 49155, pc: 0x0001ea08, module: busybox
+  [080] inode: 49155, pc: 0x0001fa48, module: busybox
+  [081] inode: 49155, pc: 0x0001f9dc, module: busybox
+  [082] inode: 49155, pc: 0x0001f9bc, module: busybox
+  [083] inode: 49155, pc: 0x0002c588, module: busybox
+  [084] inode: 49155, pc: 0x0002c570, module: busybox
+  [085] inode: 49155, pc: 0x000216c8, module: busybox
+  [086] inode: 49155, pc: 0x00021608, module: busybox
+  [087] inode: 49155, pc: 0x0002c568, module: busybox
+  [088] inode: 49155, pc: 0x0002c798, module: busybox
+  [089] inode: 49155, pc: 0x0001ea50, module: busybox
+  [090] inode: 49155, pc: 0x0001ea30, module: busybox
+  [091] inode: 49155, pc: 0x0001ea08, module: busybox
+  [092] inode: 49155, pc: 0x0002c78c, module: busybox
+  [093] inode: 49155, pc: 0x00021200, module: busybox
+  [094] inode: 49155, pc: 0x0001ea50, module: busybox
+  [095] inode: 49155, pc: 0x0001ea08, module: busybox
+  [096] inode: 49155, pc: 0x0001eeb0, module: busybox
+  [097] inode: 49155, pc: 0x0001d504, module: busybox
+  [098] inode: 49155, pc: 0x0001d51c, module: busybox
+  [099] inode: 49155, pc: 0x0001d4e4, module: busybox
+  [100] inode: 49155, pc: 0x0001d4d0, module: busybox
+  [101] inode: 49155, pc: 0x0001ee94, module: busybox
+  [102] inode: 49155, pc: 0x0001ee7c, module: busybox
+  [103] inode: 49155, pc: 0x0001ee4c, module: busybox
+  [104] inode: 49155, pc: 0x0001ee70, module: busybox
+  [105] inode: 49155, pc: 0x0001ee58, module: busybox
+  [106] inode: 49155, pc: 0x0001ee04, module: busybox
+  [107] inode: 49155, pc: 0x000211f8, module: busybox
+  [108] inode: 49155, pc: 0x000211e8, module: busybox
+  [109] inode: 49155, pc: 0x0002119c, module: busybox
+  [110] inode: 49155, pc: 0x0001d608, module: busybox
+  [111] inode: 49155, pc: 0x0001d5e0, module: busybox
+  [112] inode: 49155, pc: 0x0001d580, module: busybox
+  [113] inode: 49155, pc: 0x00021194, module: busybox
+  [114] inode: 49155, pc: 0x0001ea50, module: busybox
+  [115] inode: 49155, pc: 0x0001ea08, module: busybox
+  [116] inode: 49155, pc: 0x0002118c, module: busybox
+  [117] inode: 49155, pc: 0x00021168, module: busybox
+  [118] inode: 49155, pc: 0x00021184, module: busybox
+  [119] inode: 49155, pc: 0x0001f8c8, module: busybox
+  [120] inode: 49155, pc: 0x0001f924, module: busybox
+  [121] inode: 49155, pc: 0x0001eb9c, module: busybox
+  [122] inode: 49155, pc: 0x0001ec40, module: busybox
+  [123] inode: 49155, pc: 0x0001ebb8, module: busybox
+  [124] inode: 49155, pc: 0x0001eb50, module: busybox
+  [125] inode: 49155, pc: 0x0001f918, module: busybox
+  [126] inode: 49155, pc: 0x0001f8c0, module: busybox
+  [127] inode: 49155, pc: 0x0001f8b8, module: busybox
+  [128] inode: 49155, pc: 0x0001ea50, module: busybox
+  [129] inode: 49155, pc: 0x0001ea08, module: busybox
+  [130] inode: 49155, pc: 0x0001f8b0, module: busybox
+  [131] inode: 49155, pc: 0x0001f89c, module: busybox
+  [132] inode: 49155, pc: 0x0001f87c, module: busybox
+  [133] inode: 49155, pc: 0x0001f874, module: busybox
+  [134] inode: 49155, pc: 0x0001f86c, module: busybox
+  [135] inode: 49155, pc: 0x0001f85c, module: busybox
+  [136] inode: 49155, pc: 0x0001f954, module: busybox
+  [137] inode: 49155, pc: 0x0001f94c, module: busybox
+  [138] inode: 49155, pc: 0x0001f848, module: busybox
+  [139] inode: 49155, pc: 0x0001f90c, module: busybox
+  [140] inode: 49155, pc: 0x0001f820, module: busybox
+  [141] inode: 49155, pc: 0x0001f804, module: busybox
+  [142] inode: 49155, pc: 0x0001f7d0, module: busybox
+  [143] inode: 49155, pc: 0x0001f7bc, module: busybox
+  [144] inode: 49155, pc: 0x0001f7b0, module: busybox
+  [145] inode: 49155, pc: 0x0001f788, module: busybox
+  [146] inode: 49155, pc: 0x00021178, module: busybox
+  [147] inode: 49155, pc: 0x00021164, module: busybox
+  [148] inode: 49155, pc: 0x0002c784, module: busybox
+  [149] inode: 49155, pc: 0x0002c77c, module: busybox
+  [150] inode: 49155, pc: 0x000236d0, module: busybox
+  [151] inode: 49155, pc: 0x000237c8, module: busybox
+  [152] inode: 49155, pc: 0x00023784, module: busybox
+  [153] inode: 49155, pc: 0x00023740, module: busybox
+  [154] inode: 49155, pc: 0x00023738, module: busybox
+  [155] inode: 49155, pc: 0x000236f4, module: busybox
+  [156] inode: 49155, pc: 0x000236b4, module: busybox
+  [157] inode: 49155, pc: 0x0002368c, module: busybox
+  [158] inode: 49155, pc: 0x00023660, module: busybox
+  [159] inode: 49155, pc: 0x0002c768, module: busybox
+  [160] inode: 49155, pc: 0x0001f084, module: busybox
+  [161] inode: 49155, pc: 0x0001f048, module: busybox
+  [162] inode: 49155, pc: 0x0001f024, module: busybox
+  [163] inode: 49155, pc: 0x0001f000, module: busybox
+  [164] inode: 49155, pc: 0x0001efc0, module: busybox
+  [165] inode: 49155, pc: 0x0001efac, module: busybox
+  [166] inode: 49155, pc: 0x0001ef44, module: busybox
+  [167] inode: 49155, pc: 0x0001ef38, module: busybox
+  [168] inode: 49155, pc: 0x000571e4, module: busybox
+  [169] inode: 49155, pc: 0x000571cc, module: busybox
+  [170] inode: 49155, pc: 0x000571b8, module: busybox
+  [171] inode: 49155, pc: 0x0001ef24, module: busybox
+  [172] inode: 49155, pc: 0x0001eed0, module: busybox
+  [173] inode: 49155, pc: 0x0002c748, module: busybox
+  [174] inode: 49155, pc: 0x0002c734, module: busybox
+  [175] inode: 49155, pc: 0x0002c690, module: busybox
+  [176] inode: 49155, pc: 0x0002c630, module: busybox
+  [177] inode: 49155, pc: 0x0002c54c, module: busybox
+  [178] inode: 49155, pc: 0x0002c7a8, module: busybox
+  [179] inode: 49155, pc: 0x0002c7a0, module: busybox
+  [180] inode: 49155, pc: 0x0002c604, module: busybox
+  [181] inode: 49155, pc: 0x0002a818, module: busybox
+  [182] inode: 49155, pc: 0x0002aa94, module: busybox
+  [183] inode: 49155, pc: 0x0002abb4, module: busybox
+  [184] inode: 49155, pc: 0x0001ea50, module: busybox
+  [185] inode: 49155, pc: 0x0001ea30, module: busybox
+  [186] inode: 49155, pc: 0x0001ea08, module: busybox
+  [187] inode: 49155, pc: 0x0002aba0, module: busybox
+  [188] inode: 49155, pc: 0x0001e5e4, module: busybox
+  [189] inode: 49155, pc: 0x0001e5c8, module: busybox
+  [190] inode: 49155, pc: 0x0005721c, module: busybox
+  [191] inode: 49155, pc: 0x00057208, module: busybox
+  [192] inode: 49155, pc: 0x000571a8, module: busybox
+  [193] inode: 49155, pc: 0x00057190, module: busybox
+  [194] inode: 49155, pc: 0x0005717c, module: busybox
+  [195] inode: 49155, pc: 0x000571f4, module: busybox
+  [196] inode: 49155, pc: 0x0001e5c0, module: busybox
+  [197] inode: 49155, pc: 0x0001e5b8, module: busybox
+  [198] inode: 49155, pc: 0x0001e5b0, module: busybox
+  [199] inode: 49155, pc: 0x0001e5a8, module: busybox
+  [200] inode: 49155, pc: 0x0001e570, module: busybox
+  [201] inode: 49155, pc: 0x0001e55c, module: busybox
+  [202] inode: 49155, pc: 0x0001e54c, module: busybox
+  [203] inode: 49155, pc: 0x0001e60c, module: busybox
+  [204] inode: 49155, pc: 0x0001e54c, module: busybox
+  [205] inode: 49155, pc: 0x0001e60c, module: busybox
+  [206] inode: 49155, pc: 0x0001e54c, module: busybox
+  [207] inode: 49155, pc: 0x0001e60c, module: busybox
+  [208] inode: 49155, pc: 0x0001e54c, module: busybox
+  [209] inode: 49155, pc: 0x0001e60c, module: busybox
+  [210] inode: 49155, pc: 0x0001e54c, module: busybox
+  [211] inode: 49155, pc: 0x0001e60c, module: busybox
+  [212] inode: 49155, pc: 0x0001e54c, module: busybox
+  [213] inode: 49155, pc: 0x0001e60c, module: busybox
+  [214] inode: 49155, pc: 0x0001e54c, module: busybox
+  [215] inode: 49155, pc: 0x0001e60c, module: busybox
+  [216] inode: 49155, pc: 0x0001e54c, module: busybox
+  [217] inode: 49155, pc: 0x0001e60c, module: busybox
+  [218] inode: 49155, pc: 0x0001e54c, module: busybox
+  [219] inode: 49155, pc: 0x0001e60c, module: busybox
+  [220] inode: 49155, pc: 0x0001e520, module: busybox
+  [221] inode: 49155, pc: 0x0002ab78, module: busybox
+  [222] inode: 49155, pc: 0x0002ab70, module: busybox
+  [223] inode: 49155, pc: 0x0002ab0c, module: busybox
+  [224] inode: 49155, pc: 0x0002aaec, module: busybox
+  [225] inode: 49155, pc: 0x0002aab8, module: busybox
+  [226] inode: 49155, pc: 0x0002aaac, module: busybox
+  [227] inode: 49155, pc: 0x0002aa84, module: busybox
+  [228] inode: 49155, pc: 0x0002aa74, module: busybox
+  [229] inode: 49155, pc: 0x0002a990, module: busybox
+  [230] inode: 49155, pc: 0x0001d1a8, module: busybox
+  [231] inode: 49155, pc: 0x0002a988, module: busybox
+  [232] inode: 49155, pc: 0x0002a980, module: busybox
+  [233] inode: 49155, pc: 0x00021920, module: busybox
+  [234] inode: 49155, pc: 0x0002186c, module: busybox
+  [235] inode: 49155, pc: 0x0002362c, module: busybox
+  [236] inode: 49155, pc: 0x00023658, module: busybox
+  [237] inode: 49155, pc: 0x00023618, module: busybox
+  [238] inode: 49155, pc: 0x000235d8, module: busybox
+  [239] inode: 49155, pc: 0x000235bc, module: busybox
+  [240] inode: 49155, pc: 0x000235b0, module: busybox
+  [241] inode: 49155, pc: 0x000235a4, module: busybox
+  [242] inode: 49155, pc: 0x00023524, module: busybox
+  [243] inode: 49155, pc: 0x0002351c, module: busybox
+  [244] inode: 49155, pc: 0x0002350c, module: busybox
+  [245] inode: 49155, pc: 0x0002359c, module: busybox
+  [246] inode: 49155, pc: 0x00023594, module: busybox
+  [247] inode: 49155, pc: 0x0002358c, module: busybox
+  [248] inode: 49155, pc: 0x0002350c, module: busybox
+  [249] inode: 49155, pc: 0x0002359c, module: busybox
+  [250] inode: 49155, pc: 0x00023594, module: busybox
+  [251] inode: 49155, pc: 0x0002358c, module: busybox
+  [252] inode: 49155, pc: 0x0002350c, module: busybox
+  [253] inode: 49155, pc: 0x0002359c, module: busybox
+  [254] inode: 49155, pc: 0x00023594, module: busybox
+  [255] inode: 49155, pc: 0x0002358c, module: busybox
+  [256] inode: 49155, pc: 0x0002350c, module: busybox
+  [257] inode: 49155, pc: 0x0002359c, module: busybox
+  [258] inode: 49155, pc: 0x00023594, module: busybox
+  [259] inode: 49155, pc: 0x0002358c, module: busybox
+  [260] inode: 49155, pc: 0x0002350c, module: busybox
+  [261] inode: 49155, pc: 0x0002359c, module: busybox
+  [262] inode: 49155, pc: 0x00023594, module: busybox
+  [263] inode: 49155, pc: 0x0002358c, module: busybox
+  [264] inode: 49155, pc: 0x0002350c, module: busybox
+  [265] inode: 49155, pc: 0x0002359c, module: busybox
+  [266] inode: 49155, pc: 0x00023594, module: busybox
+  [267] inode: 49155, pc: 0x0002358c, module: busybox
+  [268] inode: 49155, pc: 0x0002350c, module: busybox
+  [269] inode: 49155, pc: 0x0002359c, module: busybox
+  [270] inode: 49155, pc: 0x00023594, module: busybox
+  [271] inode: 49155, pc: 0x0002358c, module: busybox
+  [272] inode: 49155, pc: 0x0002350c, module: busybox
+  [273] inode: 49155, pc: 0x0002359c, module: busybox
+  [274] inode: 49155, pc: 0x00023594, module: busybox
+  [275] inode: 49155, pc: 0x0002358c, module: busybox
+  [276] inode: 49155, pc: 0x00023500, module: busybox
+  [277] inode: 49155, pc: 0x000234cc, module: busybox
+  [278] inode: 49155, pc: 0x0002a978, module: busybox
+  [279] inode: 49155, pc: 0x0002aac0, module: busybox
+  [280] inode: 49155, pc: 0x0002aab8, module: busybox
+  [281] inode: 49155, pc: 0x0002aaac, module: busybox
+  [282] inode: 49155, pc: 0x0002aa84, module: busybox
+  [283] inode: 49155, pc: 0x0002aa74, module: busybox
+  [284] inode: 49155, pc: 0x0002a990, module: busybox
+  [285] inode: 49155, pc: 0x0001d1a8, module: busybox
+  [286] inode: 49155, pc: 0x0002a988, module: busybox
+  [287] inode: 49155, pc: 0x0002a980, module: busybox
+  [288] inode: 49155, pc: 0x00021920, module: busybox
+  [289] inode: 49155, pc: 0x0002186c, module: busybox
+  [290] inode: 49155, pc: 0x00023628, module: busybox
+  [291] inode: 49155, pc: 0x00023618, module: busybox
+  [292] inode: 49155, pc: 0x000235d8, module: busybox
+  [293] inode: 49155, pc: 0x000235bc, module: busybox
+  [294] inode: 49155, pc: 0x000235b0, module: busybox
+  [295] inode: 49155, pc: 0x000235a4, module: busybox
+  [296] inode: 49155, pc: 0x00023524, module: busybox
+  [297] inode: 49155, pc: 0x0002351c, module: busybox
+  [298] inode: 49155, pc: 0x0002358c, module: busybox
+  [299] inode: 49155, pc: 0x0002350c, module: busybox
+Total Parent trace elements: 300
+
+--- Parent PID 70 Trace ---
+  [000] inode: 32813, pc: 0x00004034, module: uclited
+  [001] inode: 32813, pc: 0x00004028, module: uclited
+  [002] inode: 32813, pc: 0x00004000, module: uclited
+  [003] inode: 32813, pc: 0x00003ff4, module: uclited
+  [004] inode: 32813, pc: 0x00003fc0, module: uclited
+  [005] inode: 32813, pc: 0x00004028, module: uclited
+  [006] inode: 32813, pc: 0x00004000, module: uclited
+  [007] inode: 32813, pc: 0x00003ff4, module: uclited
+  [008] inode: 32813, pc: 0x00003fc0, module: uclited
+  [009] inode: 32813, pc: 0x00004028, module: uclited
+  [010] inode: 32813, pc: 0x00004000, module: uclited
+  [011] inode: 32813, pc: 0x00003ff4, module: uclited
+  [012] inode: 32813, pc: 0x00003fc0, module: uclited
+  [013] inode: 32813, pc: 0x00004028, module: uclited
+  [014] inode: 32813, pc: 0x00004000, module: uclited
+  [015] inode: 32813, pc: 0x00003ff4, module: uclited
+  [016] inode: 32813, pc: 0x00003fc0, module: uclited
+  [017] inode: 32813, pc: 0x00004028, module: uclited
+  [018] inode: 32813, pc: 0x00004000, module: uclited
+  [019] inode: 32813, pc: 0x00003ff4, module: uclited
+  [020] inode: 32813, pc: 0x00003fc0, module: uclited
+  [021] inode: 32813, pc: 0x00004028, module: uclited
+  [022] inode: 32813, pc: 0x00004000, module: uclited
+  [023] inode: 32813, pc: 0x00003ff4, module: uclited
+  [024] inode: 32813, pc: 0x00003fc0, module: uclited
+  [025] inode: 32813, pc: 0x00004028, module: uclited
+  [026] inode: 32813, pc: 0x00004000, module: uclited
+  [027] inode: 32813, pc: 0x00003ff4, module: uclited
+  [028] inode: 32813, pc: 0x00003fc0, module: uclited
+  [029] inode: 32813, pc: 0x00004028, module: uclited
+  [030] inode: 32813, pc: 0x00004000, module: uclited
+  [031] inode: 32813, pc: 0x00003ff4, module: uclited
+  [032] inode: 32813, pc: 0x00003f84, module: uclited
+  [033] inode: 32813, pc: 0x00003f78, module: uclited
+  [034] inode: 32813, pc: 0x00004308, module: uclited
+  [035] inode: 32813, pc: 0x00003f78, module: uclited
+  [036] inode: 32813, pc: 0x00004308, module: uclited
+  [037] inode: 32813, pc: 0x00003f78, module: uclited
+  [038] inode: 32813, pc: 0x00004308, module: uclited
+  [039] inode: 32813, pc: 0x00003f78, module: uclited
+  [040] inode: 32813, pc: 0x00004308, module: uclited
+  [041] inode: 32813, pc: 0x00003f78, module: uclited
+  [042] inode: 32813, pc: 0x00004308, module: uclited
+  [043] inode: 32813, pc: 0x00003f78, module: uclited
+  [044] inode: 32813, pc: 0x00004308, module: uclited
+  [045] inode: 32813, pc: 0x00003f78, module: uclited
+  [046] inode: 32813, pc: 0x00004308, module: uclited
+  [047] inode: 32813, pc: 0x00003f78, module: uclited
+  [048] inode: 32813, pc: 0x00004308, module: uclited
+  [049] inode: 32813, pc: 0x00003f78, module: uclited
+  [050] inode: 32813, pc: 0x00004308, module: uclited
+  [051] inode: 32813, pc: 0x00003f78, module: uclited
+  [052] inode: 32813, pc: 0x00004308, module: uclited
+  [053] inode: 32813, pc: 0x00003f78, module: uclited
+  [054] inode: 32813, pc: 0x00004308, module: uclited
+  [055] inode: 32813, pc: 0x00003f78, module: uclited
+  [056] inode: 32813, pc: 0x00004308, module: uclited
+  [057] inode: 32813, pc: 0x00003f78, module: uclited
+  [058] inode: 32813, pc: 0x00004308, module: uclited
+  [059] inode: 32813, pc: 0x00003f78, module: uclited
+  [060] inode: 32813, pc: 0x00004308, module: uclited
+  [061] inode: 32813, pc: 0x00003f78, module: uclited
+  [062] inode: 32813, pc: 0x00004308, module: uclited
+  [063] inode: 32813, pc: 0x00003f78, module: uclited
+  [064] inode: 32813, pc: 0x00004308, module: uclited
+  [065] inode: 32813, pc: 0x00003f78, module: uclited
+  [066] inode: 32813, pc: 0x00004308, module: uclited
+  [067] inode: 32813, pc: 0x00003f78, module: uclited
+  [068] inode: 32813, pc: 0x00004308, module: uclited
+  [069] inode: 32813, pc: 0x00003f78, module: uclited
+  [070] inode: 32813, pc: 0x00004308, module: uclited
+  [071] inode: 32813, pc: 0x00003f78, module: uclited
+  [072] inode: 32813, pc: 0x00004308, module: uclited
+  [073] inode: 32813, pc: 0x00003f78, module: uclited
+  [074] inode: 32813, pc: 0x00004308, module: uclited
+  [075] inode: 32813, pc: 0x00003f78, module: uclited
+  [076] inode: 32813, pc: 0x00004308, module: uclited
+  [077] inode: 32813, pc: 0x00003f78, module: uclited
+  [078] inode: 32813, pc: 0x00004308, module: uclited
+  [079] inode: 32813, pc: 0x00003f78, module: uclited
+  [080] inode: 32813, pc: 0x00004308, module: uclited
+  [081] inode: 32813, pc: 0x00003f78, module: uclited
+  [082] inode: 32813, pc: 0x00004308, module: uclited
+  [083] inode: 32813, pc: 0x00003f78, module: uclited
+  [084] inode: 32813, pc: 0x00004308, module: uclited
+  [085] inode: 32813, pc: 0x00003f78, module: uclited
+  [086] inode: 32813, pc: 0x00004308, module: uclited
+  [087] inode: 32813, pc: 0x00003f78, module: uclited
+  [088] inode: 32813, pc: 0x00004308, module: uclited
+  [089] inode: 32813, pc: 0x00003f78, module: uclited
+  [090] inode: 32813, pc: 0x00004308, module: uclited
+  [091] inode: 32813, pc: 0x00003f78, module: uclited
+  [092] inode: 32813, pc: 0x00004308, module: uclited
+  [093] inode: 32813, pc: 0x00003f78, module: uclited
+  [094] inode: 32813, pc: 0x00004308, module: uclited
+  [095] inode: 32813, pc: 0x00003f78, module: uclited
+  [096] inode: 32813, pc: 0x00004304, module: uclited
+  [097] inode: 32813, pc: 0x000040d0, module: uclited
+  [098] inode: 32813, pc: 0x000040e8, module: uclited
+  [099] inode: 32813, pc: 0x000040d0, module: uclited
+  [100] inode: 32813, pc: 0x000040e8, module: uclited
+  [101] inode: 32813, pc: 0x000040d0, module: uclited
+  [102] inode: 32813, pc: 0x000040e8, module: uclited
+  [103] inode: 32813, pc: 0x000040d0, module: uclited
+  [104] inode: 32813, pc: 0x000040e8, module: uclited
+  [105] inode: 32813, pc: 0x000040d0, module: uclited
+  [106] inode: 32813, pc: 0x000040e8, module: uclited
+  [107] inode: 32813, pc: 0x000040d0, module: uclited
+  [108] inode: 32813, pc: 0x000040e8, module: uclited
+  [109] inode: 32813, pc: 0x000040d0, module: uclited
+  [110] inode: 32813, pc: 0x000040e8, module: uclited
+  [111] inode: 32813, pc: 0x000040d0, module: uclited
+  [112] inode: 32813, pc: 0x000043c8, module: uclited
+  [113] inode: 32813, pc: 0x00003950, module: uclited
+  [114] inode: 32813, pc: 0x000039ac, module: uclited
+  [115] inode: 32813, pc: 0x00005110, module: uclited
+  [116] inode: 32813, pc: 0x00005108, module: uclited
+  [117] inode: 32813, pc: 0x00004b38, module: uclited
+  [118] inode: 32813, pc: 0x000064ec, module: uclited
+  [119] inode: 32813, pc: 0x00004b24, module: uclited
+  [120] inode: 32813, pc: 0x00005100, module: uclited
+  [121] inode: 32813, pc: 0x00003e18, module: uclited
+  [122] inode: 32813, pc: 0x00003e0c, module: uclited
+  [123] inode: 32813, pc: 0x000133e4, module: uclited
+  [124] inode: 32813, pc: 0x00013210, module: uclited
+  [125] inode: 32813, pc: 0x00013154, module: uclited
+  [126] inode: 32813, pc: 0x00011660, module: uclited
+  [127] inode: 32813, pc: 0x0001313c, module: uclited
+  [128] inode: 32813, pc: 0x00013208, module: uclited
+  [129] inode: 32813, pc: 0x000131d8, module: uclited
+  [130] inode: 32813, pc: 0x000131c0, module: uclited
+  [131] inode: 32813, pc: 0x000131b8, module: uclited
+  [132] inode: 32813, pc: 0x0001310c, module: uclited
+  [133] inode: 32813, pc: 0x00013100, module: uclited
+  [134] inode: 32813, pc: 0x00011658, module: uclited
+  [135] inode: 32813, pc: 0x000130e4, module: uclited
+  [136] inode: 32813, pc: 0x000131b0, module: uclited
+  [137] inode: 32813, pc: 0x0001319c, module: uclited
+  [138] inode: 32813, pc: 0x00013194, module: uclited
+  [139] inode: 32813, pc: 0x00013080, module: uclited
+  [140] inode: 32813, pc: 0x00013070, module: uclited
+  [141] inode: 32813, pc: 0x00013060, module: uclited
+  [142] inode: 32813, pc: 0x00013050, module: uclited
+  [143] inode: 32813, pc: 0x0001318c, module: uclited
+  [144] inode: 32813, pc: 0x0001316c, module: uclited
+  [145] inode: 32813, pc: 0x000133dc, module: uclited
+  [146] inode: 32813, pc: 0x000133bc, module: uclited
+  [147] inode: 32813, pc: 0x000133ac, module: uclited
+  [148] inode: 32813, pc: 0x00003df0, module: uclited
+  [149] inode: 32813, pc: 0x000133e4, module: uclited
+  [150] inode: 32813, pc: 0x00013210, module: uclited
+  [151] inode: 32813, pc: 0x00013154, module: uclited
+  [152] inode: 32813, pc: 0x00011660, module: uclited
+  [153] inode: 32813, pc: 0x0001313c, module: uclited
+  [154] inode: 32813, pc: 0x00013208, module: uclited
+  [155] inode: 32813, pc: 0x000131d8, module: uclited
+  [156] inode: 32813, pc: 0x000131c0, module: uclited
+  [157] inode: 32813, pc: 0x000131b8, module: uclited
+  [158] inode: 32813, pc: 0x0001310c, module: uclited
+  [159] inode: 32813, pc: 0x00013100, module: uclited
+  [160] inode: 32813, pc: 0x00011658, module: uclited
+  [161] inode: 32813, pc: 0x000130e4, module: uclited
+  [162] inode: 32813, pc: 0x000131b0, module: uclited
+  [163] inode: 32813, pc: 0x0001319c, module: uclited
+  [164] inode: 32813, pc: 0x00013194, module: uclited
+  [165] inode: 32813, pc: 0x00013080, module: uclited
+  [166] inode: 32813, pc: 0x00013070, module: uclited
+  [167] inode: 32813, pc: 0x00013060, module: uclited
+  [168] inode: 32813, pc: 0x00013050, module: uclited
+  [169] inode: 32813, pc: 0x0001318c, module: uclited
+  [170] inode: 32813, pc: 0x0001316c, module: uclited
+  [171] inode: 32813, pc: 0x000133dc, module: uclited
+  [172] inode: 32813, pc: 0x000133bc, module: uclited
+  [173] inode: 32813, pc: 0x000133ac, module: uclited
+  [174] inode: 32813, pc: 0x00003de4, module: uclited
+  [175] inode: 32813, pc: 0x00003c58, module: uclited
+  [176] inode: 32813, pc: 0x00003c4c, module: uclited
+  [177] inode: 32813, pc: 0x00003c44, module: uclited
+  [178] inode: 32813, pc: 0x00003c34, module: uclited
+  [179] inode: 32813, pc: 0x00003c4c, module: uclited
+  [180] inode: 32813, pc: 0x00003c24, module: uclited
+  [181] inode: 32813, pc: 0x00003c1c, module: uclited
+  [182] inode: 32813, pc: 0x00003c08, module: uclited
+  [183] inode: 32813, pc: 0x00003bfc, module: uclited
+  [184] inode: 32813, pc: 0x00003bf4, module: uclited
+  [185] inode: 32813, pc: 0x00003b80, module: uclited
+  [186] inode: 32813, pc: 0x00003ae0, module: uclited
+  [187] inode: 32813, pc: 0x00003dd8, module: uclited
+  [188] inode: 32813, pc: 0x00003dc8, module: uclited
+  [189] inode: 32813, pc: 0x00003db8, module: uclited
+  [190] inode: 32813, pc: 0x00003d94, module: uclited
+  [191] inode: 32813, pc: 0x000050f8, module: uclited
+  [192] inode: 32813, pc: 0x00005188, module: uclited
+  [193] inode: 32813, pc: 0x000133e4, module: uclited
+  [194] inode: 32813, pc: 0x00013210, module: uclited
+  [195] inode: 32813, pc: 0x00013154, module: uclited
+  [196] inode: 32813, pc: 0x00011660, module: uclited
+  [197] inode: 32813, pc: 0x0001313c, module: uclited
+  [198] inode: 32813, pc: 0x00013208, module: uclited
+  [199] inode: 32813, pc: 0x000131d8, module: uclited
+  [200] inode: 32813, pc: 0x000131c0, module: uclited
+  [201] inode: 32813, pc: 0x000131b8, module: uclited
+  [202] inode: 32813, pc: 0x0001310c, module: uclited
+  [203] inode: 32813, pc: 0x00013100, module: uclited
+  [204] inode: 32813, pc: 0x00011658, module: uclited
+  [205] inode: 32813, pc: 0x000130e4, module: uclited
+  [206] inode: 32813, pc: 0x000131b0, module: uclited
+  [207] inode: 32813, pc: 0x0001319c, module: uclited
+  [208] inode: 32813, pc: 0x00013194, module: uclited
+  [209] inode: 32813, pc: 0x00013080, module: uclited
+  [210] inode: 32813, pc: 0x00013070, module: uclited
+  [211] inode: 32813, pc: 0x00013060, module: uclited
+  [212] inode: 32813, pc: 0x00013050, module: uclited
+  [213] inode: 32813, pc: 0x0001318c, module: uclited
+  [214] inode: 32813, pc: 0x0001316c, module: uclited
+  [215] inode: 32813, pc: 0x000133dc, module: uclited
+  [216] inode: 32813, pc: 0x000133bc, module: uclited
+  [217] inode: 32813, pc: 0x000133ac, module: uclited
+  [218] inode: 32813, pc: 0x0000517c, module: uclited
+  [219] inode: 32813, pc: 0x000064c8, module: uclited
+  [220] inode: 32813, pc: 0x000064e4, module: uclited
+  [221] inode: 32813, pc: 0x000064b4, module: uclited
+  [222] inode: 32813, pc: 0x000064dc, module: uclited
+  [223] inode: 32813, pc: 0x000064a0, module: uclited
+  [224] inode: 32813, pc: 0x00005170, module: uclited
+  [225] inode: 32813, pc: 0x000050d4, module: uclited
+  [226] inode: 32813, pc: 0x000050cc, module: uclited
+  [227] inode: 32813, pc: 0x000064ec, module: uclited
+  [228] inode: 32813, pc: 0x000050c4, module: uclited
+  [229] inode: 32813, pc: 0x00004c7c, module: uclited
+  [230] inode: 32813, pc: 0x00004c48, module: uclited
+  [231] inode: 32813, pc: 0x000064ec, module: uclited
+  [232] inode: 32813, pc: 0x00004c28, module: uclited
+  [233] inode: 32813, pc: 0x000050bc, module: uclited
+  [234] inode: 32813, pc: 0x00004d48, module: uclited
+  [235] inode: 32813, pc: 0x00004d3c, module: uclited
+  [236] inode: 32813, pc: 0x00004d34, module: uclited
+  [237] inode: 32813, pc: 0x00004bb0, module: uclited
+  [238] inode: 32813, pc: 0x0000475c, module: uclited
+  [239] inode: 32813, pc: 0x00004724, module: uclited
+  [240] inode: 32813, pc: 0x00004710, module: uclited
+  [241] inode: 32813, pc: 0x00004ba8, module: uclited
+  [242] inode: 32813, pc: 0x00004b98, module: uclited
+  [243] inode: 32813, pc: 0x00004b88, module: uclited
+  [244] inode: 32813, pc: 0x00004d28, module: uclited
+  [245] inode: 32813, pc: 0x000065b4, module: uclited
+  [246] inode: 32813, pc: 0x00004d20, module: uclited
+  [247] inode: 32813, pc: 0x00004d14, module: uclited
+  [248] inode: 32813, pc: 0x000064ec, module: uclited
+  [249] inode: 32813, pc: 0x00004cf4, module: uclited
+  [250] inode: 32813, pc: 0x000050b4, module: uclited
+  [251] inode: 32813, pc: 0x000047d0, module: uclited
+  [252] inode: 32813, pc: 0x000047c8, module: uclited
+  [253] inode: 32813, pc: 0x000065b4, module: uclited
+  [254] inode: 32813, pc: 0x000047c0, module: uclited
+  [255] inode: 32813, pc: 0x000047b8, module: uclited
+  [256] inode: 32813, pc: 0x000064ec, module: uclited
+  [257] inode: 32813, pc: 0x000047a4, module: uclited
+  [258] inode: 32813, pc: 0x000050ac, module: uclited
+  [259] inode: 32813, pc: 0x00004794, module: uclited
+  [260] inode: 32813, pc: 0x0000477c, module: uclited
+  [261] inode: 32813, pc: 0x000064ec, module: uclited
+  [262] inode: 32813, pc: 0x00004768, module: uclited
+  [263] inode: 32813, pc: 0x000050a4, module: uclited
+  [264] inode: 32813, pc: 0x0000509c, module: uclited
+  [265] inode: 32813, pc: 0x00005094, module: uclited
+  [266] inode: 32813, pc: 0x00005068, module: uclited
+  [267] inode: 32813, pc: 0x0000539c, module: uclited
+  [268] inode: 32813, pc: 0x00005318, module: uclited
+  [269] inode: 32813, pc: 0x00005308, module: uclited
+  [270] inode: 32813, pc: 0x000052f4, module: uclited
+  [271] inode: 32813, pc: 0x000052e8, module: uclited
+  [272] inode: 32813, pc: 0x00013398, module: uclited
+  [273] inode: 32813, pc: 0x00013388, module: uclited
+  [274] inode: 32813, pc: 0x00013378, module: uclited
+  [275] inode: 32813, pc: 0x000132e4, module: uclited
+  [276] inode: 32813, pc: 0x00013154, module: uclited
+  [277] inode: 32813, pc: 0x00011660, module: uclited
+  [278] inode: 32813, pc: 0x0001313c, module: uclited
+  [279] inode: 32813, pc: 0x000132d0, module: uclited
+  [280] inode: 32813, pc: 0x000132b8, module: uclited
+  [281] inode: 32813, pc: 0x000132ac, module: uclited
+  [282] inode: 32813, pc: 0x00013298, module: uclited
+  [283] inode: 32813, pc: 0x000132b0, module: uclited
+  [284] inode: 32813, pc: 0x00013290, module: uclited
+  [285] inode: 32813, pc: 0x00013280, module: uclited
+  [286] inode: 32813, pc: 0x0001326c, module: uclited
+  [287] inode: 32813, pc: 0x00013318, module: uclited
+  [288] inode: 32813, pc: 0x0001326c, module: uclited
+  [289] inode: 32813, pc: 0x00013318, module: uclited
+  [290] inode: 32813, pc: 0x0001326c, module: uclited
+  [291] inode: 32813, pc: 0x00013318, module: uclited
+  [292] inode: 32813, pc: 0x0001326c, module: uclited
+  [293] inode: 32813, pc: 0x00013318, module: uclited
+  [294] inode: 32813, pc: 0x0001326c, module: uclited
+  [295] inode: 32813, pc: 0x00013318, module: uclited
+  [296] inode: 32813, pc: 0x0001326c, module: uclited
+  [297] inode: 32813, pc: 0x00013318, module: uclited
+  [298] inode: 32813, pc: 0x00013258, module: uclited
+  [299] inode: 32813, pc: 0x00013250, module: uclited
+Total Parent trace elements: 300
+
+--- Parent PID 68 Trace ---
+  [000] inode: 32813, pc: 0x000035c0, module: uclited
+  [001] inode: 32813, pc: 0x000035b0, module: uclited
+  [002] inode: 32813, pc: 0x00003578, module: uclited
+  [003] inode: 32813, pc: 0x00003550, module: uclited
+  [004] inode: 32813, pc: 0x00023bd8, module: uclited
+  [005] inode: 32813, pc: 0x00023994, module: uclited
+  [006] inode: 32813, pc: 0x0002398c, module: uclited
+  [007] inode: 32813, pc: 0x00023974, module: uclited
+  [008] inode: 32813, pc: 0x00023960, module: uclited
+  [009] inode: 32813, pc: 0x00023950, module: uclited
+  [010] inode: 32813, pc: 0x00023924, module: uclited
+  [011] inode: 32813, pc: 0x00023bc0, module: uclited
+  [012] inode: 32813, pc: 0x00023bb0, module: uclited
+  [013] inode: 32813, pc: 0x00023ba4, module: uclited
+  [014] inode: 32813, pc: 0x00023b18, module: uclited
+  [015] inode: 32813, pc: 0x00023b08, module: uclited
+  [016] inode: 32813, pc: 0x000032e4, module: uclited
+  [017] inode: 32813, pc: 0x000032d8, module: uclited
+  [018] inode: 32813, pc: 0x000032d0, module: uclited
+  [019] inode: 32813, pc: 0x000032c8, module: uclited
+  [020] inode: 32813, pc: 0x000032c0, module: uclited
+  [021] inode: 32813, pc: 0x000032b8, module: uclited
+  [022] inode: 32813, pc: 0x000032ac, module: uclited
+  [023] inode: 32813, pc: 0x000032a0, module: uclited
+  [024] inode: 32813, pc: 0x00003210, module: uclited
+  [025] inode: 32813, pc: 0x000031b8, module: uclited
+  [026] inode: 32813, pc: 0x00030a84, module: uclited
+  [027] inode: 32813, pc: 0x00030a78, module: uclited
+  [028] inode: 32813, pc: 0x00030a54, module: uclited
+  [029] inode: 32813, pc: 0x0000360c, module: uclited
+  [030] inode: 32813, pc: 0x000035e4, module: uclited
+  [031] inode: 32813, pc: 0x00003514, module: uclited
+Total Parent trace elements: 32
+
+--- Parent PID 48 Trace ---
+  [000] inode: 49155, pc: 0x0001f7b0, module: busybox
+  [001] inode: 49155, pc: 0x0001f784, module: busybox
+  [002] inode: 49155, pc: 0x00021178, module: busybox
+  [003] inode: 49155, pc: 0x00021164, module: busybox
+  [004] inode: 49155, pc: 0x0002c784, module: busybox
+  [005] inode: 49155, pc: 0x0002c77c, module: busybox
+  [006] inode: 49155, pc: 0x000236d0, module: busybox
+  [007] inode: 49155, pc: 0x000237c8, module: busybox
+  [008] inode: 49155, pc: 0x00023784, module: busybox
+  [009] inode: 49155, pc: 0x00023740, module: busybox
+  [010] inode: 49155, pc: 0x00023738, module: busybox
+  [011] inode: 49155, pc: 0x000236f4, module: busybox
+  [012] inode: 49155, pc: 0x000236b4, module: busybox
+  [013] inode: 49155, pc: 0x0002368c, module: busybox
+  [014] inode: 49155, pc: 0x00023660, module: busybox
+  [015] inode: 49155, pc: 0x0002c768, module: busybox
+  [016] inode: 49155, pc: 0x0001f084, module: busybox
+  [017] inode: 49155, pc: 0x0001f048, module: busybox
+  [018] inode: 49155, pc: 0x0001f024, module: busybox
+  [019] inode: 49155, pc: 0x0001f014, module: busybox
+  [020] inode: 49155, pc: 0x0001ef88, module: busybox
+  [021] inode: 49155, pc: 0x0001ef18, module: busybox
+  [022] inode: 49155, pc: 0x0001efa4, module: busybox
+  [023] inode: 49155, pc: 0x0001ef9c, module: busybox
+  [024] inode: 49155, pc: 0x0001ef88, module: busybox
+  [025] inode: 49155, pc: 0x0001ef18, module: busybox
+  [026] inode: 49155, pc: 0x0001efa4, module: busybox
+  [027] inode: 49155, pc: 0x0001ef9c, module: busybox
+  [028] inode: 49155, pc: 0x0001ef88, module: busybox
+  [029] inode: 49155, pc: 0x0001eed0, module: busybox
+  [030] inode: 49155, pc: 0x0002c748, module: busybox
+  [031] inode: 49155, pc: 0x0002c734, module: busybox
+  [032] inode: 49155, pc: 0x0002c690, module: busybox
+  [033] inode: 49155, pc: 0x0002c630, module: busybox
+  [034] inode: 49155, pc: 0x0002c54c, module: busybox
+  [035] inode: 49155, pc: 0x0002c7a8, module: busybox
+  [036] inode: 49155, pc: 0x0002c7a0, module: busybox
+  [037] inode: 49155, pc: 0x0002c604, module: busybox
+  [038] inode: 49155, pc: 0x0002a814, module: busybox
+  [039] inode: 49155, pc: 0x0002a808, module: busybox
+  [040] inode: 49155, pc: 0x0002a800, module: busybox
+  [041] inode: 49155, pc: 0x0002a7bc, module: busybox
+  [042] inode: 49155, pc: 0x0002c5c0, module: busybox
+  [043] inode: 49155, pc: 0x0002c53c, module: busybox
+  [044] inode: 49155, pc: 0x0002c458, module: busybox
+  [045] inode: 49155, pc: 0x0002c3bc, module: busybox
+  [046] inode: 49155, pc: 0x00026bec, module: busybox
+  [047] inode: 49155, pc: 0x00026bcc, module: busybox
+  [048] inode: 49155, pc: 0x00026ba8, module: busybox
+  [049] inode: 49155, pc: 0x00026b7c, module: busybox
+  [050] inode: 49155, pc: 0x000265d0, module: busybox
+  [051] inode: 49155, pc: 0x00026584, module: busybox
+  [052] inode: 49155, pc: 0x00026b60, module: busybox
+  [053] inode: 49155, pc: 0x00026b58, module: busybox
+  [054] inode: 49155, pc: 0x00026b20, module: busybox
+  [055] inode: 49155, pc: 0x0002c3b0, module: busybox
+  [056] inode: 49155, pc: 0x000264bc, module: busybox
+  [057] inode: 49155, pc: 0x0002646c, module: busybox
+  [058] inode: 49155, pc: 0x0002c394, module: busybox
+  [059] inode: 49155, pc: 0x0002c378, module: busybox
+  [060] inode: 49155, pc: 0x0002c2e4, module: busybox
+  [061] inode: 49155, pc: 0x0002c2ec, module: busybox
+  [062] inode: 49155, pc: 0x0002c2d8, module: busybox
+  [063] inode: 49155, pc: 0x00021920, module: busybox
+  [064] inode: 49155, pc: 0x0002186c, module: busybox
+  [065] inode: 49155, pc: 0x0002c2d0, module: busybox
+  [066] inode: 49155, pc: 0x0002c2c8, module: busybox
+  [067] inode: 49155, pc: 0x0002c50c, module: busybox
+  [068] inode: 49155, pc: 0x0002c364, module: busybox
+  [069] inode: 49155, pc: 0x0002c36c, module: busybox
+  [070] inode: 49155, pc: 0x0002c35c, module: busybox
+  [071] inode: 49155, pc: 0x00025f84, module: busybox
+  [072] inode: 49155, pc: 0x00026228, module: busybox
+  [073] inode: 49155, pc: 0x00026208, module: busybox
+  [074] inode: 49155, pc: 0x000260e0, module: busybox
+  [075] inode: 49155, pc: 0x00026188, module: busybox
+  [076] inode: 49155, pc: 0x000261bc, module: busybox
+  [077] inode: 49155, pc: 0x00022c10, module: busybox
+  [078] inode: 49155, pc: 0x00022c08, module: busybox
+  [079] inode: 49155, pc: 0x00022bd8, module: busybox
+  [080] inode: 49155, pc: 0x000261a4, module: busybox
+  [081] inode: 49155, pc: 0x000262a4, module: busybox
+  [082] inode: 49155, pc: 0x00026298, module: busybox
+  [083] inode: 49155, pc: 0x00026190, module: busybox
+  [084] inode: 49155, pc: 0x00026164, module: busybox
+  [085] inode: 49155, pc: 0x000261d4, module: busybox
+  [086] inode: 49155, pc: 0x000219a8, module: busybox
+  [087] inode: 49155, pc: 0x00021920, module: busybox
+  [088] inode: 49155, pc: 0x0002186c, module: busybox
+  [089] inode: 49155, pc: 0x00021998, module: busybox
+  [090] inode: 49155, pc: 0x000261cc, module: busybox
+  [091] inode: 49155, pc: 0x00026154, module: busybox
+  [092] inode: 49155, pc: 0x00025fdc, module: busybox
+  [093] inode: 49155, pc: 0x00025fc4, module: busybox
+  [094] inode: 49155, pc: 0x00021920, module: busybox
+  [095] inode: 49155, pc: 0x0002186c, module: busybox
+  [096] inode: 49155, pc: 0x00025fb4, module: busybox
+  [097] inode: 49155, pc: 0x00025f78, module: busybox
+  [098] inode: 49155, pc: 0x00022e68, module: busybox
+  [099] inode: 49155, pc: 0x00022e38, module: busybox
+  [100] inode: 49155, pc: 0x00025f6c, module: busybox
+  [101] inode: 49155, pc: 0x00029260, module: busybox
+  [102] inode: 49155, pc: 0x00029258, module: busybox
+  [103] inode: 49155, pc: 0x00029238, module: busybox
+  [104] inode: 49155, pc: 0x0002912c, module: busybox
+  [105] inode: 49155, pc: 0x000292c8, module: busybox
+  [106] inode: 49155, pc: 0x000290dc, module: busybox
+  [107] inode: 49155, pc: 0x000220d0, module: busybox
+  [108] inode: 49155, pc: 0x000220c0, module: busybox
+  [109] inode: 49155, pc: 0x00021f6c, module: busybox
+  [110] inode: 49155, pc: 0x00021f30, module: busybox
+  [111] inode: 49155, pc: 0x0002209c, module: busybox
+  [112] inode: 49155, pc: 0x000290cc, module: busybox
+  [113] inode: 49155, pc: 0x000290c4, module: busybox
+  [114] inode: 49155, pc: 0x0002909c, module: busybox
+  [115] inode: 49155, pc: 0x00029054, module: busybox
+  [116] inode: 49155, pc: 0x00029194, module: busybox
+  [117] inode: 49155, pc: 0x00029170, module: busybox
+  [118] inode: 49155, pc: 0x0002903c, module: busybox
+  [119] inode: 49155, pc: 0x00029000, module: busybox
+  [120] inode: 49155, pc: 0x00028ff0, module: busybox
+  [121] inode: 49155, pc: 0x00025f60, module: busybox
+  [122] inode: 49155, pc: 0x00025ef0, module: busybox
+  [123] inode: 49155, pc: 0x0002c348, module: busybox
+  [124] inode: 49155, pc: 0x0002c33c, module: busybox
+  [125] inode: 49155, pc: 0x0002c2c0, module: busybox
+  [126] inode: 49155, pc: 0x0002c330, module: busybox
+  [127] inode: 49155, pc: 0x0002c310, module: busybox
+  [128] inode: 49155, pc: 0x0001e838, module: busybox
+  [129] inode: 49155, pc: 0x0001e064, module: busybox
+  [130] inode: 49155, pc: 0x0001e064, module: busybox
+  [131] inode: 49155, pc: 0x0001e064, module: busybox
+  [132] inode: 49155, pc: 0x0001e064, module: busybox
+  [133] inode: 49155, pc: 0x0001e064, module: busybox
+  [134] inode: 49155, pc: 0x0001e064, module: busybox
+  [135] inode: 49155, pc: 0x0001e810, module: busybox
+  [136] inode: 49155, pc: 0x0002c304, module: busybox
+  [137] inode: 49155, pc: 0x0002c280, module: busybox
+  [138] inode: 49155, pc: 0x0001d1d0, module: busybox
+  [139] inode: 49155, pc: 0x0002c244, module: busybox
+  [140] inode: 49155, pc: 0x00028e34, module: busybox
+  [141] inode: 49155, pc: 0x00028fb4, module: busybox
+  [142] inode: 49155, pc: 0x00028fe4, module: busybox
+  [143] inode: 49155, pc: 0x00028d40, module: busybox
+  [144] inode: 49155, pc: 0x00028ca0, module: busybox
+  [145] inode: 49155, pc: 0x00028bf8, module: busybox
+  [146] inode: 49155, pc: 0x00028be8, module: busybox
+  [147] inode: 49155, pc: 0x00028af0, module: busybox
+  [148] inode: 49155, pc: 0x0002a744, module: busybox
+  [149] inode: 49155, pc: 0x0002a734, module: busybox
+  [150] inode: 49155, pc: 0x0002a6f0, module: busybox
+  [151] inode: 49155, pc: 0x00027000, module: busybox
+  [152] inode: 49155, pc: 0x00026fd0, module: busybox
+  [153] inode: 49155, pc: 0x00027074, module: busybox
+  [154] inode: 49155, pc: 0x00026f08, module: busybox
+  [155] inode: 49155, pc: 0x00026e54, module: busybox
+  [156] inode: 49155, pc: 0x0002706c, module: busybox
+  [157] inode: 49155, pc: 0x00027060, module: busybox
+  [158] inode: 49155, pc: 0x00027098, module: busybox
+  [159] inode: 49155, pc: 0x00027040, module: busybox
+  [160] inode: 49155, pc: 0x0002701c, module: busybox
+  [161] inode: 49155, pc: 0x000286f8, module: busybox
+  [162] inode: 49155, pc: 0x000286f0, module: busybox
+  [163] inode: 49155, pc: 0x000286b8, module: busybox
+  [164] inode: 49155, pc: 0x00028440, module: busybox
+  [165] inode: 49155, pc: 0x00028408, module: busybox
+  [166] inode: 49155, pc: 0x00028678, module: busybox
+  [167] inode: 49155, pc: 0x00027014, module: busybox
+  [168] inode: 49155, pc: 0x00027004, module: busybox
+  [169] inode: 49155, pc: 0x00026f8c, module: busybox
+  [170] inode: 49155, pc: 0x000286f8, module: busybox
+  [171] inode: 49155, pc: 0x000286f0, module: busybox
+  [172] inode: 49155, pc: 0x000286b8, module: busybox
+  [173] inode: 49155, pc: 0x00028440, module: busybox
+  [174] inode: 49155, pc: 0x00028408, module: busybox
+  [175] inode: 49155, pc: 0x00028678, module: busybox
+  [176] inode: 49155, pc: 0x00026f84, module: busybox
+  [177] inode: 49155, pc: 0x0002bf00, module: busybox
+  [178] inode: 49155, pc: 0x0002bedc, module: busybox
+  [179] inode: 49155, pc: 0x0002be50, module: busybox
+  [180] inode: 49155, pc: 0x000286f8, module: busybox
+  [181] inode: 49155, pc: 0x000286f0, module: busybox
+  [182] inode: 49155, pc: 0x000286b8, module: busybox
+  [183] inode: 49155, pc: 0x00028440, module: busybox
+  [184] inode: 49155, pc: 0x00028408, module: busybox
+  [185] inode: 49155, pc: 0x00028678, module: busybox
+  [186] inode: 49155, pc: 0x0002be48, module: busybox
+  [187] inode: 49155, pc: 0x0002b71c, module: busybox
+  [188] inode: 49155, pc: 0x000219a8, module: busybox
+  [189] inode: 49155, pc: 0x00021920, module: busybox
+  [190] inode: 49155, pc: 0x0002186c, module: busybox
+  [191] inode: 49155, pc: 0x00021998, module: busybox
+  [192] inode: 49155, pc: 0x0002b700, module: busybox
+  [193] inode: 49155, pc: 0x0002b6f0, module: busybox
+  [194] inode: 49155, pc: 0x000286f8, module: busybox
+  [195] inode: 49155, pc: 0x000286f0, module: busybox
+  [196] inode: 49155, pc: 0x000286b8, module: busybox
+  [197] inode: 49155, pc: 0x0002844c, module: busybox
+  [198] inode: 49155, pc: 0x00028590, module: busybox
+  [199] inode: 49155, pc: 0x000285f8, module: busybox
+  [200] inode: 49155, pc: 0x000285f0, module: busybox
+  [201] inode: 49155, pc: 0x000285c0, module: busybox
+  [202] inode: 49155, pc: 0x000285b4, module: busybox
+  [203] inode: 49155, pc: 0x00028580, module: busybox
+  [204] inode: 49155, pc: 0x00028508, module: busybox
+  [205] inode: 49155, pc: 0x000284d4, module: busybox
+  [206] inode: 49155, pc: 0x000284cc, module: busybox
+  [207] inode: 49155, pc: 0x000284c4, module: busybox
+  [208] inode: 49155, pc: 0x000284bc, module: busybox
+  [209] inode: 49155, pc: 0x0001f49c, module: busybox
+  [210] inode: 49155, pc: 0x0001f45c, module: busybox
+  [211] inode: 49155, pc: 0x00028490, module: busybox
+  [212] inode: 49155, pc: 0x00026d94, module: busybox
+  [213] inode: 49155, pc: 0x00026d84, module: busybox
+  [214] inode: 49155, pc: 0x0002847c, module: busybox
+  [215] inode: 49155, pc: 0x00028408, module: busybox
+  [216] inode: 49155, pc: 0x00028678, module: busybox
+  [217] inode: 49155, pc: 0x0002b6e4, module: busybox
+  [218] inode: 49155, pc: 0x0002bcd8, module: busybox
+  [219] inode: 49155, pc: 0x0002b988, module: busybox
+  [220] inode: 49155, pc: 0x0001dab8, module: busybox
+  [221] inode: 49155, pc: 0x0001daac, module: busybox
+  [222] inode: 49155, pc: 0x00036924, module: busybox
+  [223] inode: 49155, pc: 0x0003692c, module: busybox
+  [224] inode: 49155, pc: 0x000368d8, module: busybox
+  [225] inode: 49155, pc: 0x0001da98, module: busybox
+  [226] inode: 49155, pc: 0x0002b980, module: busybox
+  [227] inode: 49155, pc: 0x0002b964, module: busybox
+  [228] inode: 49155, pc: 0x0002b95c, module: busybox
+  [229] inode: 49155, pc: 0x0002b954, module: busybox
+  [230] inode: 49155, pc: 0x0002b92c, module: busybox
+  [231] inode: 49155, pc: 0x000219a8, module: busybox
+  [232] inode: 49155, pc: 0x00021920, module: busybox
+  [233] inode: 49155, pc: 0x0002186c, module: busybox
+  [234] inode: 49155, pc: 0x00021998, module: busybox
+  [235] inode: 49155, pc: 0x0002b924, module: busybox
+  [236] inode: 49155, pc: 0x0002b890, module: busybox
+  [237] inode: 49155, pc: 0x0002b6f0, module: busybox
+  [238] inode: 49155, pc: 0x000286f8, module: busybox
+  [239] inode: 49155, pc: 0x0002879c, module: busybox
+  [240] inode: 49155, pc: 0x0001df58, module: busybox
+  [241] inode: 49155, pc: 0x0001df38, module: busybox
+  [242] inode: 49155, pc: 0x0001df28, module: busybox
+  [243] inode: 49155, pc: 0x0001dedc, module: busybox
+  [244] inode: 49155, pc: 0x0001dea4, module: busybox
+  [245] inode: 49155, pc: 0x0001de98, module: busybox
+  [246] inode: 49155, pc: 0x0001de90, module: busybox
+  [247] inode: 49155, pc: 0x0001def8, module: busybox
+  [248] inode: 49155, pc: 0x0001de90, module: busybox
+  [249] inode: 49155, pc: 0x0001def8, module: busybox
+  [250] inode: 49155, pc: 0x0001de90, module: busybox
+  [251] inode: 49155, pc: 0x0001def8, module: busybox
+  [252] inode: 49155, pc: 0x0001de90, module: busybox
+  [253] inode: 49155, pc: 0x0001def8, module: busybox
+  [254] inode: 49155, pc: 0x0001de90, module: busybox
+  [255] inode: 49155, pc: 0x0001def8, module: busybox
+  [256] inode: 49155, pc: 0x0001de90, module: busybox
+  [257] inode: 49155, pc: 0x0001def8, module: busybox
+  [258] inode: 49155, pc: 0x0001de90, module: busybox
+  [259] inode: 49155, pc: 0x0001def8, module: busybox
+  [260] inode: 49155, pc: 0x0001de90, module: busybox
+  [261] inode: 49155, pc: 0x0001def8, module: busybox
+  [262] inode: 49155, pc: 0x0001de90, module: busybox
+  [263] inode: 49155, pc: 0x0001def8, module: busybox
+  [264] inode: 49155, pc: 0x0001de90, module: busybox
+  [265] inode: 49155, pc: 0x0001def8, module: busybox
+  [266] inode: 49155, pc: 0x0001de90, module: busybox
+  [267] inode: 49155, pc: 0x0001def8, module: busybox
+  [268] inode: 49155, pc: 0x0001de90, module: busybox
+  [269] inode: 49155, pc: 0x0001def8, module: busybox
+  [270] inode: 49155, pc: 0x0001de90, module: busybox
+  [271] inode: 49155, pc: 0x0001def8, module: busybox
+  [272] inode: 49155, pc: 0x0001de90, module: busybox
+  [273] inode: 49155, pc: 0x0001def8, module: busybox
+  [274] inode: 49155, pc: 0x0001de90, module: busybox
+  [275] inode: 49155, pc: 0x0001def8, module: busybox
+  [276] inode: 49155, pc: 0x0001de90, module: busybox
+  [277] inode: 49155, pc: 0x0001def8, module: busybox
+  [278] inode: 49155, pc: 0x0001de90, module: busybox
+  [279] inode: 49155, pc: 0x0001def8, module: busybox
+  [280] inode: 49155, pc: 0x0001de90, module: busybox
+  [281] inode: 49155, pc: 0x0001def8, module: busybox
+  [282] inode: 49155, pc: 0x0001de90, module: busybox
+  [283] inode: 49155, pc: 0x0001def8, module: busybox
+  [284] inode: 49155, pc: 0x0001de90, module: busybox
+  [285] inode: 49155, pc: 0x0001def8, module: busybox
+  [286] inode: 49155, pc: 0x0001de90, module: busybox
+  [287] inode: 49155, pc: 0x0001def8, module: busybox
+  [288] inode: 49155, pc: 0x0001de90, module: busybox
+  [289] inode: 49155, pc: 0x0001def8, module: busybox
+  [290] inode: 49155, pc: 0x0001de90, module: busybox
+  [291] inode: 49155, pc: 0x0001def8, module: busybox
+  [292] inode: 49155, pc: 0x0001de90, module: busybox
+  [293] inode: 49155, pc: 0x0001def8, module: busybox
+  [294] inode: 49155, pc: 0x0001de90, module: busybox
+  [295] inode: 49155, pc: 0x0001def8, module: busybox
+  [296] inode: 49155, pc: 0x0001de90, module: busybox
+  [297] inode: 49155, pc: 0x0001def8, module: busybox
+  [298] inode: 49155, pc: 0x0001de90, module: busybox
+  [299] inode: 49155, pc: 0x0001def8, module: busybox
+Total Parent trace elements: 300
+
+--- Parent PID 1 Trace ---
+  [000] inode: 49155, pc: 0x0004b94c, module: busybox
+  [001] inode: 49155, pc: 0x0004b910, module: busybox
+  [002] inode: 49155, pc: 0x0004b8f8, module: busybox
+  [003] inode: 49155, pc: 0x0004b78c, module: busybox
+  [004] inode: 49155, pc: 0x00054848, module: busybox
+  [005] inode: 49155, pc: 0x00054820, module: busybox
+  [006] inode: 49155, pc: 0x0004b784, module: busybox
+  [007] inode: 49155, pc: 0x0004b7b4, module: busybox
+  [008] inode: 49155, pc: 0x0004b76c, module: busybox
+  [009] inode: 49155, pc: 0x0004b7ac, module: busybox
+  [010] inode: 49155, pc: 0x0004b6b4, module: busybox
+  [011] inode: 49155, pc: 0x0004b718, module: busybox
+  [012] inode: 49155, pc: 0x0004b654, module: busybox
+  [013] inode: 49155, pc: 0x0004b64c, module: busybox
+  [014] inode: 49155, pc: 0x0004b66c, module: busybox
+  [015] inode: 49155, pc: 0x0004b65c, module: busybox
+  [016] inode: 49155, pc: 0x0004b654, module: busybox
+  [017] inode: 49155, pc: 0x0004b630, module: busybox
+  [018] inode: 49155, pc: 0x0004b628, module: busybox
+  [019] inode: 49155, pc: 0x0004b61c, module: busybox
+  [020] inode: 49155, pc: 0x0004b5e0, module: busybox
+  [021] inode: 49155, pc: 0x0004b870, module: busybox
+  [022] inode: 49155, pc: 0x0004b2b0, module: busybox
+  [023] inode: 49155, pc: 0x0004b2a0, module: busybox
+  [024] inode: 49155, pc: 0x00007d70, module: busybox
+  [025] inode: 49155, pc: 0x00007d48, module: busybox
+  [026] inode: 49155, pc: 0x00007d90, module: busybox
+  [027] inode: 49155, pc: 0x00007d60, module: busybox
+  [028] inode: 49155, pc: 0x00007e00, module: busybox
+  [029] inode: 49155, pc: 0x00007de8, module: busybox
+  [030] inode: 49155, pc: 0x00007da4, module: busybox
+  [031] inode: 49155, pc: 0x00007d50, module: busybox
+  [032] inode: 49155, pc: 0x00007d20, module: busybox
+  [033] inode: 49155, pc: 0x0004b294, module: busybox
+  [034] inode: 49155, pc: 0x0004b288, module: busybox
+  [035] inode: 49155, pc: 0x0004b23c, module: busybox
+  [036] inode: 49155, pc: 0x0004b22c, module: busybox
+  [037] inode: 49155, pc: 0x0004b1e4, module: busybox
+  [038] inode: 49155, pc: 0x0004b84c, module: busybox
+  [039] inode: 49155, pc: 0x0004b844, module: busybox
+  [040] inode: 49155, pc: 0x0004b7e8, module: busybox
+  [041] inode: 49155, pc: 0x0004b7e0, module: busybox
+  [042] inode: 49155, pc: 0x0004b5ac, module: busybox
+  [043] inode: 49155, pc: 0x0004b5d8, module: busybox
+  [044] inode: 49155, pc: 0x0004b07c, module: busybox
+  [045] inode: 49155, pc: 0x00007c00, module: busybox
+  [046] inode: 49155, pc: 0x0004b000, module: busybox
+  [047] inode: 49155, pc: 0x0004afec, module: busybox
+  [048] inode: 49155, pc: 0x0004b5d0, module: busybox
+  [049] inode: 49155, pc: 0x0004b540, module: busybox
+  [050] inode: 49155, pc: 0x0004b7cc, module: busybox
+  [051] inode: 49155, pc: 0x0004b7c4, module: busybox
+  [052] inode: 49155, pc: 0x00054848, module: busybox
+  [053] inode: 49155, pc: 0x00054820, module: busybox
+  [054] inode: 49155, pc: 0x0004b18c, module: busybox
+  [055] inode: 49155, pc: 0x000548b0, module: busybox
+  [056] inode: 49155, pc: 0x00054880, module: busybox
+  [057] inode: 49155, pc: 0x000548a4, module: busybox
+  [058] inode: 49155, pc: 0x00054894, module: busybox
+  [059] inode: 49155, pc: 0x00054888, module: busybox
+  [060] inode: 49155, pc: 0x00054880, module: busybox
+  [061] inode: 49155, pc: 0x000548a4, module: busybox
+  [062] inode: 49155, pc: 0x00054894, module: busybox
+  [063] inode: 49155, pc: 0x00054888, module: busybox
+  [064] inode: 49155, pc: 0x00054880, module: busybox
+  [065] inode: 49155, pc: 0x000548a4, module: busybox
+  [066] inode: 49155, pc: 0x00054888, module: busybox
+  [067] inode: 49155, pc: 0x00054880, module: busybox
+  [068] inode: 49155, pc: 0x000548a4, module: busybox
+  [069] inode: 49155, pc: 0x00054888, module: busybox
+  [070] inode: 49155, pc: 0x00054880, module: busybox
+  [071] inode: 49155, pc: 0x000548a4, module: busybox
+  [072] inode: 49155, pc: 0x00054888, module: busybox
+  [073] inode: 49155, pc: 0x00054880, module: busybox
+  [074] inode: 49155, pc: 0x000548a4, module: busybox
+  [075] inode: 49155, pc: 0x00054888, module: busybox
+  [076] inode: 49155, pc: 0x00054880, module: busybox
+  [077] inode: 49155, pc: 0x000548a4, module: busybox
+  [078] inode: 49155, pc: 0x00054888, module: busybox
+  [079] inode: 49155, pc: 0x00054880, module: busybox
+  [080] inode: 49155, pc: 0x000548a4, module: busybox
+  [081] inode: 49155, pc: 0x00054894, module: busybox
+  [082] inode: 49155, pc: 0x00054888, module: busybox
+  [083] inode: 49155, pc: 0x00054880, module: busybox
+  [084] inode: 49155, pc: 0x000548a4, module: busybox
+  [085] inode: 49155, pc: 0x00054894, module: busybox
+  [086] inode: 49155, pc: 0x00054888, module: busybox
+  [087] inode: 49155, pc: 0x00054880, module: busybox
+  [088] inode: 49155, pc: 0x000548a4, module: busybox
+  [089] inode: 49155, pc: 0x00054894, module: busybox
+  [090] inode: 49155, pc: 0x00054888, module: busybox
+  [091] inode: 49155, pc: 0x00054880, module: busybox
+  [092] inode: 49155, pc: 0x000548a4, module: busybox
+  [093] inode: 49155, pc: 0x00054888, module: busybox
+  [094] inode: 49155, pc: 0x00054880, module: busybox
+  [095] inode: 49155, pc: 0x000548a4, module: busybox
+  [096] inode: 49155, pc: 0x00054888, module: busybox
+  [097] inode: 49155, pc: 0x00054880, module: busybox
+  [098] inode: 49155, pc: 0x000548a4, module: busybox
+  [099] inode: 49155, pc: 0x00054888, module: busybox
+  [100] inode: 49155, pc: 0x00054880, module: busybox
+  [101] inode: 49155, pc: 0x000548a4, module: busybox
+  [102] inode: 49155, pc: 0x00054888, module: busybox
+  [103] inode: 49155, pc: 0x00054880, module: busybox
+  [104] inode: 49155, pc: 0x000548a4, module: busybox
+  [105] inode: 49155, pc: 0x00054888, module: busybox
+  [106] inode: 49155, pc: 0x00054880, module: busybox
+  [107] inode: 49155, pc: 0x000548a4, module: busybox
+  [108] inode: 49155, pc: 0x00054888, module: busybox
+  [109] inode: 49155, pc: 0x00054880, module: busybox
+  [110] inode: 49155, pc: 0x000548a4, module: busybox
+  [111] inode: 49155, pc: 0x00054888, module: busybox
+  [112] inode: 49155, pc: 0x00054880, module: busybox
+  [113] inode: 49155, pc: 0x000548a4, module: busybox
+  [114] inode: 49155, pc: 0x00054888, module: busybox
+  [115] inode: 49155, pc: 0x00054880, module: busybox
+  [116] inode: 49155, pc: 0x000548a4, module: busybox
+  [117] inode: 49155, pc: 0x00054888, module: busybox
+  [118] inode: 49155, pc: 0x00054880, module: busybox
+  [119] inode: 49155, pc: 0x000548a4, module: busybox
+  [120] inode: 49155, pc: 0x00054888, module: busybox
+  [121] inode: 49155, pc: 0x00054880, module: busybox
+  [122] inode: 49155, pc: 0x000548a4, module: busybox
+  [123] inode: 49155, pc: 0x00054888, module: busybox
+  [124] inode: 49155, pc: 0x00054880, module: busybox
+  [125] inode: 49155, pc: 0x000548a4, module: busybox
+  [126] inode: 49155, pc: 0x00054894, module: busybox
+  [127] inode: 49155, pc: 0x00054888, module: busybox
+  [128] inode: 49155, pc: 0x00054880, module: busybox
+  [129] inode: 49155, pc: 0x000548a4, module: busybox
+  [130] inode: 49155, pc: 0x00054894, module: busybox
+  [131] inode: 49155, pc: 0x00054888, module: busybox
+  [132] inode: 49155, pc: 0x00054880, module: busybox
+  [133] inode: 49155, pc: 0x000548a4, module: busybox
+  [134] inode: 49155, pc: 0x00054894, module: busybox
+  [135] inode: 49155, pc: 0x00054888, module: busybox
+  [136] inode: 49155, pc: 0x00054880, module: busybox
+  [137] inode: 49155, pc: 0x000548a4, module: busybox
+  [138] inode: 49155, pc: 0x00054888, module: busybox
+  [139] inode: 49155, pc: 0x00054858, module: busybox
+  [140] inode: 49155, pc: 0x0004b174, module: busybox
+  [141] inode: 49155, pc: 0x0004b7bc, module: busybox
+  [142] inode: 49155, pc: 0x0004b7b4, module: busybox
+  [143] inode: 49155, pc: 0x0004b76c, module: busybox
+  [144] inode: 49155, pc: 0x0004b7ac, module: busybox
+  [145] inode: 49155, pc: 0x0004b7a4, module: busybox
+  [146] inode: 49155, pc: 0x0004b748, module: busybox
+  [147] inode: 49155, pc: 0x00054848, module: busybox
+  [148] inode: 49155, pc: 0x00054820, module: busybox
+  [149] inode: 49155, pc: 0x0004b72c, module: busybox
+  [150] inode: 49155, pc: 0x0004b8f0, module: busybox
+  [151] inode: 49155, pc: 0x0004b8e4, module: busybox
+  [152] inode: 49155, pc: 0x0004b8ac, module: busybox
+  [153] inode: 49155, pc: 0x0004b884, module: busybox
+  [154] inode: 49155, pc: 0x0004bfcc, module: busybox
+  [155] inode: 49155, pc: 0x00054938, module: busybox
+  [156] inode: 49155, pc: 0x00054908, module: busybox
+  [157] inode: 49155, pc: 0x0005492c, module: busybox
+  [158] inode: 49155, pc: 0x00054818, module: busybox
+  [159] inode: 49155, pc: 0x0005491c, module: busybox
+  [160] inode: 49155, pc: 0x00054910, module: busybox
+  [161] inode: 49155, pc: 0x00054908, module: busybox
+  [162] inode: 49155, pc: 0x0005492c, module: busybox
+  [163] inode: 49155, pc: 0x00054910, module: busybox
+  [164] inode: 49155, pc: 0x000548cc, module: busybox
+  [165] inode: 49155, pc: 0x0004bfc0, module: busybox
+  [166] inode: 49155, pc: 0x00054938, module: busybox
+  [167] inode: 49155, pc: 0x00054908, module: busybox
+  [168] inode: 49155, pc: 0x0005492c, module: busybox
+  [169] inode: 49155, pc: 0x00054818, module: busybox
+  [170] inode: 49155, pc: 0x0005491c, module: busybox
+  [171] inode: 49155, pc: 0x00054910, module: busybox
+  [172] inode: 49155, pc: 0x00054908, module: busybox
+  [173] inode: 49155, pc: 0x0005492c, module: busybox
+  [174] inode: 49155, pc: 0x00054910, module: busybox
+  [175] inode: 49155, pc: 0x00054908, module: busybox
+  [176] inode: 49155, pc: 0x0005492c, module: busybox
+  [177] inode: 49155, pc: 0x00054910, module: busybox
+  [178] inode: 49155, pc: 0x000548cc, module: busybox
+  [179] inode: 49155, pc: 0x0004bfb4, module: busybox
+  [180] inode: 49155, pc: 0x00054818, module: busybox
+  [181] inode: 49155, pc: 0x0004bfa8, module: busybox
+  [182] inode: 49155, pc: 0x00054818, module: busybox
+  [183] inode: 49155, pc: 0x0004bf8c, module: busybox
+  [184] inode: 49155, pc: 0x0004bf60, module: busybox
+  [185] inode: 49155, pc: 0x0004bf50, module: busybox
+  [186] inode: 49155, pc: 0x000548b0, module: busybox
+  [187] inode: 49155, pc: 0x00054880, module: busybox
+  [188] inode: 49155, pc: 0x000548a4, module: busybox
+  [189] inode: 49155, pc: 0x00054894, module: busybox
+  [190] inode: 49155, pc: 0x00054888, module: busybox
+  [191] inode: 49155, pc: 0x00054880, module: busybox
+  [192] inode: 49155, pc: 0x000548a4, module: busybox
+  [193] inode: 49155, pc: 0x00054894, module: busybox
+  [194] inode: 49155, pc: 0x00054888, module: busybox
+  [195] inode: 49155, pc: 0x00054880, module: busybox
+  [196] inode: 49155, pc: 0x000548a4, module: busybox
+  [197] inode: 49155, pc: 0x00054894, module: busybox
+  [198] inode: 49155, pc: 0x00054888, module: busybox
+  [199] inode: 49155, pc: 0x00054880, module: busybox
+  [200] inode: 49155, pc: 0x000548a4, module: busybox
+  [201] inode: 49155, pc: 0x00054888, module: busybox
+  [202] inode: 49155, pc: 0x00054880, module: busybox
+  [203] inode: 49155, pc: 0x000548a4, module: busybox
+  [204] inode: 49155, pc: 0x00054888, module: busybox
+  [205] inode: 49155, pc: 0x00054880, module: busybox
+  [206] inode: 49155, pc: 0x000548a4, module: busybox
+  [207] inode: 49155, pc: 0x00054888, module: busybox
+  [208] inode: 49155, pc: 0x00054880, module: busybox
+  [209] inode: 49155, pc: 0x000548a4, module: busybox
+  [210] inode: 49155, pc: 0x00054888, module: busybox
+  [211] inode: 49155, pc: 0x00054880, module: busybox
+  [212] inode: 49155, pc: 0x000548a4, module: busybox
+  [213] inode: 49155, pc: 0x00054888, module: busybox
+  [214] inode: 49155, pc: 0x00054880, module: busybox
+  [215] inode: 49155, pc: 0x000548a4, module: busybox
+  [216] inode: 49155, pc: 0x00054888, module: busybox
+  [217] inode: 49155, pc: 0x00054880, module: busybox
+  [218] inode: 49155, pc: 0x000548a4, module: busybox
+  [219] inode: 49155, pc: 0x00054888, module: busybox
+  [220] inode: 49155, pc: 0x00054880, module: busybox
+  [221] inode: 49155, pc: 0x000548a4, module: busybox
+  [222] inode: 49155, pc: 0x00054888, module: busybox
+  [223] inode: 49155, pc: 0x00054880, module: busybox
+  [224] inode: 49155, pc: 0x000548a4, module: busybox
+  [225] inode: 49155, pc: 0x00054888, module: busybox
+  [226] inode: 49155, pc: 0x00054880, module: busybox
+  [227] inode: 49155, pc: 0x000548a4, module: busybox
+  [228] inode: 49155, pc: 0x00054888, module: busybox
+  [229] inode: 49155, pc: 0x00054880, module: busybox
+  [230] inode: 49155, pc: 0x000548a4, module: busybox
+  [231] inode: 49155, pc: 0x00054888, module: busybox
+  [232] inode: 49155, pc: 0x00054880, module: busybox
+  [233] inode: 49155, pc: 0x000548a4, module: busybox
+  [234] inode: 49155, pc: 0x00054888, module: busybox
+  [235] inode: 49155, pc: 0x00054880, module: busybox
+  [236] inode: 49155, pc: 0x000548a4, module: busybox
+  [237] inode: 49155, pc: 0x00054888, module: busybox
+  [238] inode: 49155, pc: 0x00054880, module: busybox
+  [239] inode: 49155, pc: 0x000548a4, module: busybox
+  [240] inode: 49155, pc: 0x00054888, module: busybox
+  [241] inode: 49155, pc: 0x00054880, module: busybox
+  [242] inode: 49155, pc: 0x000548a4, module: busybox
+  [243] inode: 49155, pc: 0x00054888, module: busybox
+  [244] inode: 49155, pc: 0x00054858, module: busybox
+  [245] inode: 49155, pc: 0x0004bf40, module: busybox
+  [246] inode: 49155, pc: 0x0004be80, module: busybox
+  [247] inode: 49155, pc: 0x0004bea8, module: busybox
+  [248] inode: 49155, pc: 0x0004be98, module: busybox
+  [249] inode: 49155, pc: 0x0004be90, module: busybox
+  [250] inode: 49155, pc: 0x0004be7c, module: busybox
+  [251] inode: 49155, pc: 0x0004be68, module: busybox
+  [252] inode: 49155, pc: 0x0004be5c, module: busybox
+  [253] inode: 49155, pc: 0x0004b414, module: busybox
+  [254] inode: 49155, pc: 0x0004b4ac, module: busybox
+  [255] inode: 49155, pc: 0x000519c0, module: busybox
+  [256] inode: 49155, pc: 0x000519b4, module: busybox
+  [257] inode: 49155, pc: 0x000519a8, module: busybox
+  [258] inode: 49155, pc: 0x0005199c, module: busybox
+  [259] inode: 49155, pc: 0x00051988, module: busybox
+  [260] inode: 49155, pc: 0x0004b4a4, module: busybox
+  [261] inode: 49155, pc: 0x0004b474, module: busybox
+  [262] inode: 49155, pc: 0x00051a28, module: busybox
+  [263] inode: 49155, pc: 0x00051aa4, module: busybox
+  [264] inode: 49155, pc: 0x00051a9c, module: busybox
+  [265] inode: 49155, pc: 0x00051a8c, module: busybox
+  [266] inode: 49155, pc: 0x00051a5c, module: busybox
+  [267] inode: 49155, pc: 0x000519e4, module: busybox
+  [268] inode: 49155, pc: 0x0004b45c, module: busybox
+  [269] inode: 49155, pc: 0x0004b520, module: busybox
+  [270] inode: 49155, pc: 0x00054654, module: busybox
+  [271] inode: 49155, pc: 0x00054644, module: busybox
+  [272] inode: 49155, pc: 0x0004b0ec, module: busybox
+  [273] inode: 49155, pc: 0x00054654, module: busybox
+  [274] inode: 49155, pc: 0x00054644, module: busybox
+  [275] inode: 49155, pc: 0x0004b0d0, module: busybox
+  [276] inode: 49155, pc: 0x0005721c, module: busybox
+  [277] inode: 49155, pc: 0x00057208, module: busybox
+  [278] inode: 49155, pc: 0x000571a8, module: busybox
+  [279] inode: 49155, pc: 0x00057190, module: busybox
+  [280] inode: 49155, pc: 0x0005717c, module: busybox
+  [281] inode: 49155, pc: 0x000571f4, module: busybox
+  [282] inode: 49155, pc: 0x0004b0c8, module: busybox
+  [283] inode: 49155, pc: 0x0004b0c0, module: busybox
+  [284] inode: 49155, pc: 0x0004b15c, module: busybox
+  [285] inode: 49155, pc: 0x0004b120, module: busybox
+  [286] inode: 49155, pc: 0x0004b118, module: busybox
+  [287] inode: 49155, pc: 0x0004b0c0, module: busybox
+  [288] inode: 49155, pc: 0x0004b15c, module: busybox
+  [289] inode: 49155, pc: 0x0004b120, module: busybox
+  [290] inode: 49155, pc: 0x0004b118, module: busybox
+  [291] inode: 49155, pc: 0x0004b08c, module: busybox
+  [292] inode: 49155, pc: 0x0004b50c, module: busybox
+  [293] inode: 49155, pc: 0x0004b4e0, module: busybox
+  [294] inode: 49155, pc: 0x0004b4c8, module: busybox
+  [295] inode: 49155, pc: 0x0004b4c0, module: busybox
+  [296] inode: 49155, pc: 0x0004c7c0, module: busybox
+  [297] inode: 49155, pc: 0x0004c7e4, module: busybox
+  [298] inode: 49155, pc: 0x0004c7dc, module: busybox
+  [299] inode: 49155, pc: 0x0004c7ac, module: busybox
+Total Parent trace elements: 300
+
+--- Parent PID 0 Trace ---
+Total Parent trace elements: 0
+
+Children: 294(sh) 297(sh) 
+

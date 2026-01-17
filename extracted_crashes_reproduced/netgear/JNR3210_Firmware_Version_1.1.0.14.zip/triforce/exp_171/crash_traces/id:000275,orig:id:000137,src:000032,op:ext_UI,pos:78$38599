@@ -1,0 +1,8 @@
+=== Trace 1 ===
+Process: rc
+  [00] inode: 41331, pc: 0x00006364, module: rc
+  [01] inode: 41331, pc: 0x0000a700, module: rc
+  [02] inode: 41331, pc: 0x00006338, module: rc
+  [03] inode: 41331, pc: 0x000062ec, module: rc
+  [04] inode: 41331, pc: 0x000062d4, module: rc
+

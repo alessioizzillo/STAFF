@@ -16,6 +16,7 @@ STAFF_DIR = os.getcwd()
 FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 
 SKIP_MODULES = {}
+SKIP_MODULES = {("any", "aflnet_base", "any")}
 SKIP_MODULES = {("any", "aflnet_base", "any"), ("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
                 ("dap2310_v1.00_o772.bin", "any", "ethlink"), ("dap2310_v1.00_o772.bin", "any", "aparraymsg"),
                 ("dir300_v1.03_7c.bin", "any", "ethlink"), ("dir300_v1.03_7c.bin", "any", "aparraymsg"), 
@@ -27,6 +28,7 @@ SKIP_MODULES = {("any", "aflnet_base", "any"), ("dap2310_v1.00_o772.bin", "any",
                 ("FW_TV-IP651WI_V1_1.07.01.zip", "aflnet_state_aware", "alphapd"), ("JNR3210_Firmware_Version_1.1.0.14.zip", "any", "rc"),
                 ("dir300_v1.03_7c.bin", "triforce", "xmldb"), ("TL-WPA8630_US__V2_171011.zip", "triforce", "ledschd"), 
                 ("DGN3500-V1.1.00.30_NA.zip", "triforce", "setup.cgi"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "triforce", "setup.cgi")}
+
 
 # DEFAULT_METHODS = ["triforce", "aflnet_state_aware", "aflnet_base", "staff_state_aware"]
 # COMPETITORS = ["triforce", "aflnet_state_aware", "aflnet_base"]
@@ -45,6 +47,8 @@ ALLOWED_TOOLS = set(DEFAULT_METHODS) | {"all"}
 
 FILTER_METRIC_CHOICE = "recall"
 DEDUP_METRIC_CHOICE = "recall"
+
+OUTPUT_DIR = "analysis_results"
 
 MAX_EXP_NUM = None
 
@@ -123,48 +127,36 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
         print(f"[INFO] reading PC ranges from: {csv_path}")
 
     with open(csv_path, newline="", encoding="utf-8") as fh:
-        reader = csv.reader(fh)
+        reader = csv.DictReader(fh)
         row_no = 0
         for raw in reader:
             row_no += 1
-            if not raw or all(not (c and c.strip()) for c in raw):
-                continue
-            first = raw[0].strip() if raw else ""
-            if first.startswith("#"):
+            if not raw:
                 continue
 
-            cols = [c.strip() for c in raw if c is not None]
+            firmware = raw.get("firmware", "").strip()
+            module = raw.get("module", "").strip()
+            start_tok = raw.get("start_pc", "").strip()
+            end_tok = raw.get("end_pc", "").strip()
+            func_tok = raw.get("function_name", "").strip()
+            category = raw.get("analysis_result", "").strip()
+            cve_id = raw.get("cve", "").strip()
+            bug_id = raw.get("bug_id", "").strip()
 
-            if len(cols) < 4:
+            if not firmware or not module or not start_tok or not end_tok:
                 if verbose:
-                    print(f"[WARN] row {row_no}: not enough columns -> {cols}")
+                    print(f"[WARN] row {row_no}: missing required fields")
                 continue
 
-            firmware = cols[0]
-            module = cols[1]
-            start_tok = cols[2]
-            end_tok = cols[3]
-
-            func_tok = None
-            if len(cols) >= 5:
-                func_tok = cols[4]
-            else:
-                m = re.search(r'\(([^)]+)\)', cols[3])
-                if m:
-                    func_tok = m.group(0)
-
-            category = None
-            if len(cols) >= 6:
-                category = cols[5].strip()
-
-            cve_id = None
-            if len(cols) >= 7:
-                cve_id = cols[6].strip()
-                if cve_id == "":
-                    cve_id = None
+            if not category:
+                category = None
+            if not cve_id or cve_id == "???":
+                cve_id = None
+            if not bug_id:
+                bug_id = None
 
             func_name = None
-            if func_tok is not None:
+            if func_tok:
                 fn = str(func_tok).strip()
                 fn = fn.strip().lstrip(",").strip()
                 if fn.startswith("(") and fn.endswith(")"):
@@ -193,9 +185,9 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
                 if verbose:
                     old = pc_ranges[firmware][module][func_name]
                     print(f"[WARN] row {row_no}: duplicate function '{func_name}' for {firmware}/{module}; "
-                          f"old={old} -> new={(s_int,e_int,category,cve_id)} (overwriting)")
+                          f"old={old} -> new={(s_int,e_int,category,cve_id,bug_id)} (overwriting)")
 
-            pc_ranges[firmware][module][func_name] = (s_int, e_int, category, cve_id)
+            pc_ranges[firmware][module][func_name] = (s_int, e_int, category, cve_id, bug_id)
             if verbose:
                 print(f"[ROW {row_no}] {firmware} / {module} -> {func_name}: "
                       f"0x{s_int:08x}-0x{e_int:08x} [{category}]")
@@ -209,10 +201,11 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
         lines.append(f"    {fw!r}: {{")
         for mod, funcs in sorted(mods.items()):
             lines.append(f"        {mod!r}: {{")
-            for fname, (s, e, cat, cve_id) in sorted(funcs.items()):
+            for fname, (s, e, cat, cve_id, bug_id) in sorted(funcs.items()):
                 cat_repr = repr(cat) if cat is not None else "None"
                 cve_repr = repr(cve_id) if cve_id is not None else "None"
-                lines.append(f"            {fname!r}: (0x{s:08x}, 0x{e:08x}, {cat_repr}, {cve_repr}),")
+                bug_repr = repr(bug_id) if bug_id is not None else "None"
+                lines.append(f"            {fname!r}: (0x{s:08x}, 0x{e:08x}, {cat_repr}, {cve_repr}, {bug_repr}),")
             lines.append("        },")
         lines.append("    },")
     lines.append("}")
@@ -228,6 +221,29 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
             print(f"[ERROR] cannot write {output_py}: {ex}")
 
     return pc_ranges
+
+
+def get_firmware_order_from_csv(csv_path: str = "crashes.csv") -> list:
+    """
+    Extract firmware names from crashes.csv in the order they appear.
+    Returns a list of unique firmware names preserving order.
+    """
+    firmware_order = []
+    seen = set()
+
+    if not os.path.isfile(csv_path):
+        return []
+
+    with open(csv_path, newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        for row in reader:
+            firmware = row.get("firmware", "").strip()
+            if firmware and firmware not in seen:
+                firmware_order.append(firmware)
+                seen.add(firmware)
+
+    return firmware_order
+
 
 def chmod_recursive(path, mode):
     for root, dirs, files in os.walk(path):
@@ -300,10 +316,15 @@ def safe_rename(src: str, dst: str, overwrite: bool=True):
     os.rename(src, dst)
 
 def make_tte_suffix(filename: str, tte: int) -> str:
-    if re.search(r'\$\d+$', filename):
-        return re.sub(r'\$\d+$', f'${tte}', filename)
+    if re.search(r'\$\d+', filename):
+        return re.sub(r'\$\d+', f'${tte}', filename)
+
+    if "." in filename:
+        base, ext = filename.rsplit(".", 1)
+        return f"{base}${tte}.{ext}"
     else:
-        return filename + f'${tte}'
+        return f"{filename}${tte}"
+
 
 def unify_crash_and_trace_filenames(extracted_root="extracted_crashes", verbose=True):
     if not os.path.isdir(extracted_root):
@@ -741,15 +762,20 @@ def map_key_by_range_and_groups_standalone(fw, module, pc_str, pc_ranges):
         if pc_int is None:
             continue
         for fun_name, tpl in ranges.items():
-            if len(tpl) == 4:
+            if len(tpl) == 5:
+                start, end, category, cve_id, bug_id = tpl
+            elif len(tpl) == 4:
                 start, end, category, cve_id = tpl
+                bug_id = None
             elif len(tpl) == 3:
                 start, end, category = tpl
                 cve_id = None
+                bug_id = None
             else:
                 start, end = tpl
                 category = None
                 cve_id = None
+                bug_id = None
             try:
                 s = int(start)
                 e = int(end)
@@ -1199,24 +1225,28 @@ def build_agg_from_extracted(extracted_root="extracted_crashes", verbose=False):
                             if os.path.isfile(succ_file_path):
                                 crash_seed_path = succ_file_path
                             else:
-                                regular_seed_path = os.path.join(crashes_dir, seed_name)
-                                if os.path.isfile(regular_seed_path):
-                                    crash_seed_path = regular_seed_path
+                                fail_file_path = os.path.join(crashes_dir, seed_name + ".fail")
+                                if os.path.isfile(fail_file_path):
+                                    crash_seed_path = fail_file_path
                                 else:
-                                    if verbose:
-                                        print(f"[SKIP] No seed file found for {bname}")
-                                    continue
+                                    regular_seed_path = os.path.join(crashes_dir, seed_name)
+                                    if os.path.isfile(regular_seed_path):
+                                        crash_seed_path = regular_seed_path
+                                    else:
+                                        crash_seed_path = None
+                                        if verbose:
+                                            print(f"[INFO] No seed file found for {bname}, including crash without seed path")
 
                         pc, module = _parse_first_frame_pc_module(tf)
+
                         if pc is None and module is None:
                             if verbose:
                                 print(f"[SKIP] cannot parse first frame from {tf}")
                             continue
 
                         module_norm = (module or "(unknown_module)")
-                        pc_norm = pc or "(unknown_pc)"
+                        pc_norm = (pc or "(unknown_pc)")
                         raw_key = (firmware, module_norm, pc_norm)
-
                         tte_val, taint_val = parse_suffixes(bname)
 
                         prev = per_exp_info.get(raw_key)
@@ -1252,6 +1282,7 @@ def build_agg_from_extracted(extracted_root="extracted_crashes", verbose=False):
                         }
 
     return agg
+
 
 def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte_table=False, add_category_col=False, add_taint_col=False):
     def latex_escape(s):
@@ -1431,16 +1462,31 @@ def write_csv_and_latex(headers, rows, csv_path, tex_path, caption="", count_tte
     print(f"[WRITE] CSV -> {csv_path} ; LaTeX -> {tex_path}")
 
 
-def build_three_tables_and_write_consistent(
+def build_crash_level_tables(
         extracted_root="extracted_crashes",
-        out1_csv="out1.csv", out1_tex="out1.tex",
-        out2_csv="out2.csv", out2_tex="out2.tex",
-        out3_csv="out3.csv", out3_tex="out3.tex",
+        out_count_csv=None, out_count_tex=None,
+        out_tte_csv=None, out_tte_tex=None,
+        out_causality_csv=None, out_causality_tex=None,
         firmwares_csv="analysis/fw_names.csv",
         verbose=True,
         show_exp_count=False,
         experiments_dir=None,
         include_zero_crashes=False):
+
+    if out_count_csv is None:
+        out_count_csv = os.path.join(OUTPUT_DIR, "out_count_crashes.csv")
+    if out_count_tex is None:
+        out_count_tex = os.path.join(OUTPUT_DIR, "out_count_crashes.tex")
+    if out_tte_csv is None:
+        out_tte_csv = os.path.join(OUTPUT_DIR, "out_tte_crashes.csv")
+    if out_tte_tex is None:
+        out_tte_tex = os.path.join(OUTPUT_DIR, "out_tte_crashes.tex")
+    if out_causality_csv is None:
+        out_causality_csv = os.path.join(OUTPUT_DIR, "out_causality_crashes.csv")
+    if out_causality_tex is None:
+        out_causality_tex = os.path.join(OUTPUT_DIR, "out_causality_crashes.tex")
+
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     def load_firmware_map_triplet(path):
         mapping = {}
@@ -1517,15 +1563,20 @@ def build_three_tables_and_write_consistent(
                 if pc_int is None:
                     continue
             for fun_name, tpl in ranges.items():
-                if len(tpl) == 4:
+                if len(tpl) == 5:
+                    start, end, category, cve_id, bug_id = tpl
+                elif len(tpl) == 4:
                     start, end, category, cve_id = tpl
+                    bug_id = None
                 elif len(tpl) == 3:
                     start, end, category = tpl
                     cve_id = None
+                    bug_id = None
                 else:
                     start, end = tpl
                     category = None
                     cve_id = None
+                    bug_id = None
                 try:
                     s = int(start)
                     e = int(end)
@@ -1542,6 +1593,8 @@ def build_three_tables_and_write_consistent(
     agg = defaultdict(lambda: defaultdict(dict))
     for (fw, module, pc_key), method_dict in agg_raw.items():
         mapped_key = map_key_by_range_and_groups(fw, module, pc_key)
+        if mapped_key[3] == None:
+            continue
         for method_name, exp_map in method_dict.items():
             if should_skip(fw, method_name, module):
                 continue
@@ -1557,10 +1610,19 @@ def build_three_tables_and_write_consistent(
                         agg[mapped_key][method_name][exp] = {"tte": tte, "taint": taint, "crash_seed_path": crash_seed_path}
 
     # ---------- Table1: Number of crashes ----------
-    firmware_set = sorted({k[0] for k in agg.keys()})
+    csv_firmware_order = get_firmware_order_from_csv(firmwares_csv.replace("fw_names.csv", "crashes.csv"))
+    firmware_set_unsorted = {k[0] for k in agg.keys()}
 
     if include_zero_crashes and all_firmwares_from_experiments:
-        firmware_set = sorted(set(firmware_set) | all_firmwares_from_experiments)
+        firmware_set_unsorted = firmware_set_unsorted | all_firmwares_from_experiments
+
+    firmware_set = []
+    for fw in csv_firmware_order:
+        if fw in firmware_set_unsorted:
+            firmware_set.append(fw)
+    
+    for fw in sorted(firmware_set_unsorted - set(firmware_set)):
+        firmware_set.append(fw)
 
     table1_rows = []
 
@@ -1572,7 +1634,6 @@ def build_three_tables_and_write_consistent(
         for m in DEFAULT_METHODS:
             per_run_crashes = defaultdict(set)
             for key, method_dict in agg.items():
-                # Unpack key with backward compatibility
                 if len(key) == 5:
                     f, module, pc, category, cve_id = key
                 elif len(key) == 4:
@@ -1582,16 +1643,14 @@ def build_three_tables_and_write_consistent(
 
                 if f != fw:
                     continue
-                for exp, tte in method_dict.get(m, {}).items():
-                    if tte is not None:
-                        per_run_crashes[exp].add((f, module, pc))
+
             mean_crashes = (
                 sum(len(s) for s in per_run_crashes.values()) / len(per_run_crashes)
                 if per_run_crashes else 0.0
             )
             col_name = f"{METHOD_ABBR.get(m, m)}_mean_cnt"
             row[col_name] = round(mean_crashes, 3)
-  
+
             if show_exp_count:
                 exp_count_col = f"{METHOD_ABBR.get(m, m)}_exp_cnt"
                 if total_experiments:
@@ -1599,23 +1658,6 @@ def build_three_tables_and_write_consistent(
                 else:
                     row[exp_count_col] = len(per_run_crashes)
 
-        # rare crashes
-        rare_cnt = 0
-        for key, method_dict in agg.items():
-            if len(key) == 5:
-                f, module, pc, category, cve_id = key
-            elif len(key) == 4:
-                f, module, pc, category = key
-            else:
-                f, module, pc = key
-
-            if f != fw:
-                continue
-            staff_found = "staff_state_aware" in method_dict and len(method_dict["staff_state_aware"]) > 0
-            competitor_found = any(len(method_dict.get(c, {})) > 0 for c in COMPETITORS)
-            if staff_found and not competitor_found:
-                rare_cnt += 1
-        row["rare_crashes"] = rare_cnt
         table1_rows.append(row)
 
     headers1 = ["firmware"]
@@ -1624,13 +1666,19 @@ def build_three_tables_and_write_consistent(
         if show_exp_count:
             headers1.append(f"{METHOD_ABBR.get(m, m)}_exp_cnt")
 
-    # ---------- Table2 & Table3 ----------
-    table2_rows = []
-    table3_rows = []
+    write_csv_and_latex(headers1, table1_rows, out_count_csv, out_count_tex, caption="Number of crashes")
 
-    for key, method_dict in sorted(
-        agg.items(), key=lambda x: (x[0][0], x[0][1], str(x[0][2]))
-    ):
+    # ---------- Table2 (TTE) ----------
+    fw_order_map = {fw: idx for idx, fw in enumerate(csv_firmware_order)}
+    def crash_sort_key(item):
+        key = item[0]
+        fw = key[0]
+        fw_idx = fw_order_map.get(fw, 999999)
+        return (fw_idx, key[1], str(key[2]))
+
+    table2_rows = []
+
+    for key, method_dict in sorted(agg.items(), key=crash_sort_key):
         if len(key) == 5:
             fw, module, func_or_pc, category, cve_id = key
         elif len(key) == 4:
@@ -1679,40 +1727,18 @@ def build_three_tables_and_write_consistent(
 
         table2_rows.append(row)
 
-        staff_found = "staff_state_aware" in method_dict and len(method_dict["staff_state_aware"]) > 0
-        competitor_found = any(len(method_dict.get(c, {})) > 0 for c in COMPETITORS)
-        if staff_found and not competitor_found:
-            rare_row = {
-                "brand": brand,
-                "firmware": name,
-                "version": version,
-                "module": module,
-                "function": func_or_pc,
-                "category": category or "",
-            }
-            table3_rows.append(rare_row)
-
     headers2 = ["firmware", "module", "function", "category", "cve_id", "num_requests"]
     for m in DEFAULT_METHODS:
         headers2.append(f"{METHOD_ABBR.get(m, m)}_cnt")
         headers2.append(f"{METHOD_ABBR.get(m, m)}_avg_tte")
-    headers3 = ["firmware", "module", "function", "category"]
 
-    write_csv_and_latex(headers1, table1_rows, out1_csv, out1_tex, caption="Number of crashes")
-    write_csv_and_latex(headers2, table2_rows, out2_csv, out2_tex, caption="TTE crashes", count_tte_table=True, add_category_col=True, add_taint_col=True)
-    write_csv_and_latex(headers3, table3_rows, out3_csv, out3_tex, caption="Rare crashes", add_category_col=True)
+    write_csv_and_latex(headers2, table2_rows, out_tte_csv, out_tte_tex, caption="TTE crashes", count_tte_table=True, add_category_col=True, add_taint_col=True)
 
-    return (table1_rows, table2_rows, table3_rows), agg
-
-def build_taint_causality_table(
-        agg,
-        out_csv: str = "out_taint_causality.csv",
-        out_tex: str = "out_taint_causality.tex",
-        verbose: bool = True):
+    # ---------- Table3 (Causality) ----------
 
     staff_method = "staff_state_aware"
 
-    bug_causality = {}
+    crash_causality = {}
 
     for key, method_dict in agg.items():
         if len(key) == 5:
@@ -1743,145 +1769,145 @@ def build_taint_causality_table(
 
         if causality_scores:
             avg_causality = sum(causality_scores) / len(causality_scores)
-            bug_key = (fw, module, func_or_pc, category)
-            bug_causality[bug_key] = avg_causality
+            crash_key = (fw, module, func_or_pc, category)
+            crash_causality[crash_key] = avg_causality
 
-    category_stats = defaultdict(lambda: {"bugs": [], "causality_scores": [], "full_causality_count": 0})
+    category_stats = defaultdict(lambda: {"crashes": [], "causality_scores": [], "full_causality_count": 0})
 
-    for (fw, module, func_or_pc, category), causality in bug_causality.items():
-        category_stats[category]["bugs"].append((fw, module, func_or_pc))
+    for (fw, module, func_or_pc, category), causality in crash_causality.items():
+        category_stats[category]["crashes"].append((fw, module, func_or_pc))
         category_stats[category]["causality_scores"].append(causality)
 
         if causality == 1.0:
             category_stats[category]["full_causality_count"] += 1
 
-    rows = []
-    total_bugs = 0
-    total_causality_weighted = 0.0
+    table3_rows = []
+    total_crashes = 0
     total_full_causality = 0
+    all_causality_scores = []
 
     for category in sorted(category_stats.keys()):
         stats = category_stats[category]
-        num_bugs = len(stats["bugs"])
+        num_crashes = len(stats["crashes"])
         avg_causality = sum(stats["causality_scores"]) / len(stats["causality_scores"]) if stats["causality_scores"] else 0.0
         full_causality_count = stats["full_causality_count"]
 
-        rows.append({
+        table3_rows.append({
             "category": category,
-            "num_bugs": num_bugs,
-            "full_causality_bugs": full_causality_count,
+            "num_crashes": num_crashes,
+            "full_causality_crashes": full_causality_count,
             "causality_score": round(avg_causality, 2)
         })
 
-        total_bugs += num_bugs
-        total_causality_weighted += avg_causality * num_bugs
+        total_crashes += num_crashes
+        all_causality_scores.extend(stats["causality_scores"])
         total_full_causality += full_causality_count
 
-    if total_bugs > 0:
-        overall_causality = total_causality_weighted / total_bugs
-        rows.append({
+    if total_crashes > 0:
+        overall_causality = sum(all_causality_scores) / len(all_causality_scores) if all_causality_scores else 0.0
+        table3_rows.append({
             "category": "ALL",
-            "num_bugs": total_bugs,
-            "full_causality_bugs": total_full_causality,
+            "num_crashes": total_crashes,
+            "full_causality_crashes": total_full_causality,
             "causality_score": round(overall_causality, 2)
         })
 
-    headers = ["category", "num_bugs", "full_causality_bugs", "causality_score"]
-    with open(out_csv, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=headers)
-        writer.writeheader()
-        writer.writerows(rows)
+    headers3 = ["category", "num_crashes", "full_causality_crashes", "causality_score"]
+    write_csv_and_latex(headers3, table3_rows, out_causality_csv, out_causality_tex, caption="Causality of crashes")
 
-    if verbose:
-        print(f"[INFO] Wrote taint causality CSV: {out_csv}")
+    # Write detailed crash causality scores
+    detailed_causality_rows = []
+    for (fw, module, func_or_pc, category), causality in sorted(crash_causality.items()):
+        detailed_causality_rows.append({
+            "firmware": fw,
+            "module": module,
+            "function": func_or_pc,
+            "category": category,
+            "causality_score": round(causality, 3)
+        })
 
-    def latex_escape(s):
-        if s is None:
-            return ""
-        s = str(s)
-        s = s.replace("\\", "\\textbackslash{}")
-        s = s.replace("_", "\\_")
-        s = s.replace("%", "\\%")
-        s = s.replace("&", "\\&")
-        s = s.replace("#", "\\#")
-        s = s.replace("{", "\\{")
-        s = s.replace("}", "\\}")
-        return s
+    if detailed_causality_rows:
+        detailed_csv = out_causality_csv.replace(".csv", "_detailed.csv")
+        with open(detailed_csv, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=["firmware", "module", "function", "category", "causality_score"])
+            writer.writeheader()
+            writer.writerows(detailed_causality_rows)
+        if verbose:
+            print(f"[INFO] Wrote detailed crash causality to: {detailed_csv}")
 
-    with open(out_tex, "w", encoding="utf-8") as fh:
-        fh.write("\\begin{tabular}{|l|c|c|c|}\n")
-        fh.write("\\hline\n")
-        fh.write("{\\sc Bug Category} & {\\sc \\# Found Bugs} & {\\sc \\# Full Causality} & {\\sc Causality Score} \\\\\n")
-        fh.write("\\hline\\hline\n")
+    return (table1_rows, table2_rows, table3_rows), agg
 
-        for row in rows:
-            category = row["category"]
-            num_bugs = row["num_bugs"]
-            full_causality_bugs = row["full_causality_bugs"]
-            causality = row["causality_score"]
+def build_bug_level_tables(
+        extracted_root="extracted_crashes",
+        agg_raw=None,
+        out_count_csv=None, out_count_tex=None,
+        out_tte_csv=None, out_tte_tex=None,
+        out_causality_csv=None, out_causality_tex=None,
+        firmwares_csv="analysis/fw_names.csv",
+        verbose=True,
+        show_exp_count=False,
+        experiments_dir=None,
+        include_zero_bugs=False):
 
-            if category == "ALL":
-                fh.write(f"\\textbf{{{latex_escape(category)}}} & \\textbf{{{num_bugs}}} & \\textbf{{{full_causality_bugs}}} & \\textbf{{{causality}}} \\\\\n")
-            else:
-                fh.write(f"{latex_escape(category)} & {num_bugs} & {full_causality_bugs} & {causality} \\\\\n")
+    if out_count_csv is None:
+        out_count_csv = os.path.join(OUTPUT_DIR, "out_count_bugs.csv")
+    if out_count_tex is None:
+        out_count_tex = os.path.join(OUTPUT_DIR, "out_count_bugs.tex")
+    if out_tte_csv is None:
+        out_tte_csv = os.path.join(OUTPUT_DIR, "out_tte_bugs.csv")
+    if out_tte_tex is None:
+        out_tte_tex = os.path.join(OUTPUT_DIR, "out_tte_bugs.tex")
+    if out_causality_csv is None:
+        out_causality_csv = os.path.join(OUTPUT_DIR, "out_causality_bugs.csv")
+    if out_causality_tex is None:
+        out_causality_tex = os.path.join(OUTPUT_DIR, "out_causality_bugs.tex")
 
-        fh.write("\\hline\n")
-        fh.write("\\end{tabular}\n")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    
+    def load_firmware_map_triplet(path):
+        mapping = {}
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            for row in reader:
+                fw_file = row["firmware"].strip()
+                brand = row.get("brand", "").strip()
+                name = row.get("name", "").strip()
+                version = row.get("version", "").strip()
+                mapping[fw_file] = (brand, name, version)
+        return mapping
 
-    if verbose:
-        print(f"[INFO] Wrote taint causality LaTeX: {out_tex}")
+    fw_map = load_firmware_map_triplet(firmwares_csv)
 
-    return rows
+    total_experiments = defaultdict(lambda: defaultdict(int))
+    all_firmwares_from_experiments = set()
+    if (show_exp_count or include_zero_bugs) and experiments_dir and os.path.isdir(experiments_dir):
+        for sub_exp in sorted(os.listdir(experiments_dir)):
+            sub_path = os.path.join(experiments_dir, sub_exp)
+            if not os.path.isdir(sub_path) or not sub_exp.startswith("exp_"):
+                continue
+            if not should_include_experiment(sub_exp):
+                continue
 
-def build_detection_efficiency_table(
-        experiments_dir: str,
-        extracted_root: str,
-        fw_names_csv: str,
-        out_csv: str = "out4.csv",
-        out_tex: str = "out4.tex",
-        verbose: bool = True,
-        tool_filter: str = None
-    ):
-    if tool_filter is None:
-        tool_filter = TOOL_FILTER
-    tool_filter = str(tool_filter).strip().lower()
-    if tool_filter not in ALLOWED_TOOLS:
-        raise ValueError(f"tool_filter must be one of {sorted(ALLOWED_TOOLS)}; got: {tool_filter}")
+            config_path = os.path.join(sub_path, "outputs", "config.ini")
+            if not os.path.isfile(config_path):
+                continue
 
-    ALLOWED_METRICS = {"precision", "recall", "f1", "accuracy"}
-    fm_choice = str(FILTER_METRIC_CHOICE).strip().lower() if "FILTER_METRIC_CHOICE" in globals() else "precision"
-    dm_choice = str(DEDUP_METRIC_CHOICE).strip().lower() if "DEDUP_METRIC_CHOICE" in globals() else "precision"
-    if fm_choice not in ALLOWED_METRICS:
-        raise ValueError(f"FILTER_METRIC_CHOICE must be one of {sorted(ALLOWED_METRICS)}; got: {fm_choice}")
-    if dm_choice not in ALLOWED_METRICS:
-        raise ValueError(f"DEDUP_METRIC_CHOICE must be one of {sorted(ALLOWED_METRICS)}; got: {dm_choice}")
-
-    def parse_fuzzer_stats_file(path: str):
-        out = {}
-        if not os.path.isfile(path):
-            return out
-        with open(path, "r", encoding="utf-8", errors="replace") as fh:
-            for ln in fh:
-                ln = ln.strip()
-                if not ln or ":" not in ln:
-                    continue
-                k, v = ln.split(":", 1)
-                out[k.strip()] = v.strip()
-        return out
-
-    def safe_int(s):
-        if s is None:
-            return None
-        s = str(s).strip()
-        if s == "":
-            return None
-        try:
-            return int(s)
-        except Exception:
+            cfg = configparser.ConfigParser()
             try:
-                return int(float(s))
+                cfg.read(config_path)
+                mode = cfg.get("GENERAL", "mode")
+                firmware_path = cfg.get("GENERAL", "firmware")
+                if os.path.dirname(firmware_path):
+                    firmware_with_brand = firmware_path
+                else:
+                    firmware_with_brand = os.path.basename(firmware_path)
+                total_experiments[firmware_with_brand][mode] += 1
+                all_firmwares_from_experiments.add(firmware_with_brand)
             except Exception:
-                return None
+                continue
+
+    if agg_raw is None:
+        agg_raw = build_agg_from_extracted(extracted_root=extracted_root, verbose=verbose)
 
     def pc_to_int(pc_str):
         if pc_str is None:
@@ -1892,262 +1918,298 @@ def build_detection_efficiency_table(
         except Exception:
             m = re.search(r"(0x[0-9a-fA-F]+)", s)
             if m:
-                try:
-                    return int(m.group(1), 16)
-                except Exception:
-                    pass
+                return int(m.group(1), 16)
             m2 = re.search(r"(\d+)", s)
             if m2:
-                try:
-                    return int(m2.group(1), 10)
-                except Exception:
-                    pass
+                return int(m2.group(1), 10)
         return None
 
-    def map_raw_to_mapped_key_and_flag(fw: str, module: str, pc_str: str):
-        raw = (fw, module, pc_str)
+    def map_key_by_range_and_groups(fw, module, pc_str):
+        raw = (fw, module, pc_str, None, None, None)
         pc_int = pc_to_int(pc_str)
+
         for fw_key, modmap in PC_RANGES.items():
-            fw_match = (fw_key == fw) or (fw_key.lower() == fw.lower()) or (fw_key in fw) or (fw.lower() in fw_key.lower())
-            if not fw_match:
+            if fw_key.lower() != fw.lower() and fw_key not in fw and fw not in fw_key:
                 continue
             ranges = modmap.get(module) or modmap.get(module.lower())
             if not ranges:
                 continue
             if pc_int is None:
-                pc_int = pc_to_int(pc_str)
-                if pc_int is None:
-                    continue
-            for fun_name, rng in ranges.items():
+                continue
+            for fun_name, tpl in ranges.items():
+                if len(tpl) == 5:
+                    start, end, category, cve_id, bug_id = tpl
+                elif len(tpl) == 4:
+                    start, end, category, cve_id = tpl
+                    bug_id = None
+                elif len(tpl) == 3:
+                    start, end, category = tpl
+                    cve_id = None
+                    bug_id = None
+                else:
+                    start, end = tpl
+                    category = None
+                    cve_id = None
+                    bug_id = None
+
                 try:
-                    s = int(rng[0])
-                    e = int(rng[1])
+                    s = int(start)
+                    e = int(end)
                 except Exception:
                     continue
+
                 if s <= pc_int <= e:
-                    return (fw, module, fun_name), True
-        return raw, False
+                    return (fw, module, fun_name, category, cve_id, bug_id)
 
-    def latex_escape(s):
-        if s is None:
-            return ""
-        s = str(s)
-        s = s.replace("\\", "\\textbackslash{}")
-        s = s.replace("_", "\\_")
-        s = s.replace("%", "\\%")
-        s = s.replace("&", "\\&")
-        s = s.replace("#", "\\#")
-        s = s.replace("{", "\\{")
-        s = s.replace("}", "\\}")
-        return s
+        return raw
 
-    fw_map = {}
-    if os.path.isfile(fw_names_csv):
-        with open(fw_names_csv, newline="", encoding="utf-8") as fh:
-            rdr = csv.DictReader(fh)
-            for r in rdr:
-                key = r.get("firmware", "").strip()
-                if not key:
-                    continue
-                fw_map[key] = (r.get("brand", "").strip(), r.get("name", "").strip(), r.get("version", "").strip())
+    def should_skip(fw, method, module):
+        fw_name_only = os.path.basename(fw)
+        return ((fw_name_only, method, module) in SKIP_MODULES or
+                (fw_name_only, "any", module) in SKIP_MODULES or
+                ("any", method, "any") in SKIP_MODULES)
 
-    per_fw_metrics = defaultdict(lambda: {
-        "n_exps": 0,
-        "filtering_values": [],
-        "dedup_values": [],
-    })
-
-    if not os.path.isdir(experiments_dir):
-        raise FileNotFoundError(f"experiments_dir not found: {experiments_dir}")
-
-    def safe_metrics(TP, FP, FN, TN):
-        denom_p = TP + FP
-        denom_r = TP + FN
-        denom_acc = TP + TN + FP + FN
-        precision = (TP / denom_p) if denom_p > 0 else None
-        recall = (TP / denom_r) if denom_r > 0 else None
-        f1 = (2 * precision * recall / (precision + recall)) if (precision is not None and recall is not None and (precision + recall) > 0) else None
-        accuracy = ((TP + TN) / denom_acc) if denom_acc > 0 else None
-        return {"precision": precision, "recall": recall, "f1": f1, "accuracy": accuracy,
-                "TP": TP, "FP": FP, "FN": FN, "TN": TN}
-
-    for sub in sorted(os.listdir(experiments_dir)):
-        if not sub.startswith("exp_"):
+    agg_mapped = defaultdict(lambda: defaultdict(dict))
+    for (fw, module, pc_key), method_dict in agg_raw.items():
+        mapped_key = map_key_by_range_and_groups(fw, module, pc_key)  # 6-tuple
+        if mapped_key[3] == None:
             continue
-        exp_dir = os.path.join(experiments_dir, sub)
-        if not os.path.isdir(exp_dir):
-            continue
-
-        if not should_include_experiment(sub):
-            continue
-
-        config_path = os.path.join(exp_dir, "outputs", "config.ini")
-        mode_val = None
-        firmware_with_brand = None
-        if os.path.isfile(config_path):
-            cfg = configparser.ConfigParser()
-            try:
-                cfg.read(config_path)
-                mode_val = cfg.get("GENERAL", "mode", fallback=None)
-                firmware_path = cfg.get("GENERAL", "firmware", fallback=None)
-                if firmware_path:
-                    if os.path.dirname(firmware_path):
-                        firmware_with_brand = firmware_path
-                    else:
-                        firmware_with_brand = os.path.basename(firmware_path)
-            except Exception:
-                pass
-
-        mode_norm = mode_val.strip().lower() if (mode_val is not None) else None
-
-        if tool_filter != "all":
-            if mode_norm is None:
-                if verbose:
-                    print(f"[SKIP] {sub}: no mode in config.ini but tool_filter={tool_filter}")
+        for method_name, exp_map in method_dict.items():
+            if should_skip(fw, method_name, module):
                 continue
-            if mode_norm != tool_filter:
-                if verbose:
-                    print(f"[SKIP] {sub}: mode={mode_norm} != tool_filter={tool_filter}")
-                continue
+            for exp, d in exp_map.items():
+                tte = d.get("tte")
+                taint = d.get("taint")
+                crash_seed_path = d.get("crash_seed_path")
 
-        if firmware_with_brand is None:
-            firmware_with_brand = sub
+                prev = agg_mapped[mapped_key][method_name].get(exp)
+                if prev is None:
+                    agg_mapped[mapped_key][method_name][exp] = {
+                        "tte": tte, "taint": taint, "crash_seed_path": crash_seed_path
+                    }
+                elif tte is not None and (prev.get("tte") is None or tte < prev["tte"]):
+                    agg_mapped[mapped_key][method_name][exp] = {
+                        "tte": tte, "taint": taint, "crash_seed_path": crash_seed_path
+                    }
 
-        fuzzer_stats_path = os.path.join(exp_dir, "outputs", "fuzzer_stats")
-        if not os.path.isfile(fuzzer_stats_path):
-            if verbose:
-                print(f"[INFO] skipping {sub}: no fuzzer_stats")
-            continue
+    bug_agg = defaultdict(lambda: defaultdict(dict))
+    bug_sites = defaultdict(set)
 
-        stats = parse_fuzzer_stats_file(fuzzer_stats_path)
-        unique = safe_int(stats.get("unique_crashes")) or 0
-        dedup = safe_int(stats.get("deduplicated_crashes")) or 0
-        filt = safe_int(stats.get("filtered_crashes")) or 0
+    for key, method_dict in agg_mapped.items():
+        fw, module, func_or_pc, category, cve_id, bug_id = (key + (None,) * 6)[:6]
 
-        extracted_exp_dir = os.path.join(extracted_root, firmware_with_brand, mode_norm if mode_norm else "", sub)
-        if not os.path.isdir(extracted_exp_dir):
-            extracted_exp_dir = None
-            fw_dir = os.path.join(extracted_root, firmware_with_brand)
-            if os.path.isdir(fw_dir):
-                for method in sorted(os.listdir(fw_dir)):
-                    candidate = os.path.join(fw_dir, method, sub)
-                    if os.path.isdir(candidate):
-                        extracted_exp_dir = candidate
-                        break
+        if not bug_id:
+            bug_id = f"Unknown-{os.path.basename(fw)}"
 
-        skipped_by_modules = 0
-        dedup_savings_total = 0
-        funcs = defaultdict(int)
-        skipped = defaultdict(int)
+        bug_key = (fw, bug_id, category, cve_id)
+        bug_sites[bug_key].add((module, func_or_pc))
 
-        if extracted_exp_dir and os.path.isdir(extracted_exp_dir):
-            traces_dir = os.path.join(extracted_exp_dir, "crash_traces")
-            if os.path.isdir(traces_dir):
-                method_for_skip = mode_norm if mode_norm else ""
-                for entry in sorted(os.listdir(traces_dir)):
-                    tpath = os.path.join(traces_dir, entry)
-                    if not os.path.isfile(tpath):
-                        continue
-                    try:
-                        pc, module = _parse_first_frame_pc_module(tpath)
-                    except Exception:
-                        pc, module = (None, None)
-                    module_norm = module or "(unknown)"
-                    pc_norm = pc or "(unknown)"
-
-                    fw_name_only = os.path.basename(firmware_with_brand)
-                    if (fw_name_only, method_for_skip, module_norm) in SKIP_MODULES or \
-                       (fw_name_only, "any", module_norm) in SKIP_MODULES or \
-                       ("any", method_for_skip, "any") in SKIP_MODULES:
-                        skipped_by_modules += 1
-                        if not skipped[(firmware_with_brand, module_norm)]:
-                            skipped[(firmware_with_brand, module_norm)] = 1
+        for method, exp_map in method_dict.items():
+            for exp, data in exp_map.items():
+                prev = bug_agg[bug_key][method].get(exp)
+                if prev is None:
+                    bug_agg[bug_key][method][exp] = {
+                        "min_tte": data.get("tte"),
+                        "taints": ([data["taint"]] if data.get("taint") is not None else []),
+                        "sites": { (module, func_or_pc) },
+                    }
+                else:
+                    tte = data.get("tte")
+                    if tte is not None:
+                        if prev["min_tte"] is None:
+                            prev["min_tte"] = tte
                         else:
-                            dedup_savings_total += 1
-                        continue
+                            prev["min_tte"] = min(prev["min_tte"], tte)
 
-                    mapped_key, mapped_flag = map_raw_to_mapped_key_and_flag(firmware_with_brand, module_norm, pc_norm)
+                    if data.get("taint") is not None:
+                        prev["taints"].append(data["taint"])
 
-                    if not funcs[mapped_key]:
-                        funcs[mapped_key] = 1
-                    else:
-                        dedup_savings_total += 1
+                    prev["sites"].add((module, func_or_pc))
 
-        filt_TP = filt
-        filt_FN = skipped_by_modules
-        filt_TN = unique + dedup # Not exactly correct
-        filt_FP = 0
+    # ---------- Table1-bug: mean #bugs ----------
+    # Get firmware order from crashes.csv to preserve order
+    csv_firmware_order = get_firmware_order_from_csv(firmwares_csv.replace("fw_names.csv", "crashes.csv"))
+    firmware_set_unsorted = {k[0] for k in bug_agg.keys()}
 
-        dedup_TP = dedup
-        dedup_FN = dedup_savings_total
-        dedup_TN = len(funcs.keys())
-        dedup_FP = 0
+    if include_zero_bugs and all_firmwares_from_experiments:
+        firmware_set_unsorted = firmware_set_unsorted | all_firmwares_from_experiments
 
-        filt_metrics = safe_metrics(filt_TP, filt_FP, filt_FN, filt_TN)
-        dedup_metrics = safe_metrics(dedup_TP, dedup_FP, dedup_FN, dedup_TN)
+    # Order firmware according to crashes.csv, then add any additional ones
+    firmware_set = []
+    for fw in csv_firmware_order:
+        if fw in firmware_set_unsorted:
+            firmware_set.append(fw)
+    # Add any remaining firmware not in crashes.csv (sorted alphabetically)
+    for fw in sorted(firmware_set_unsorted - set(firmware_set)):
+        firmware_set.append(fw)
 
-        f_val = filt_metrics.get(fm_choice)
-        d_val = dedup_metrics.get(dm_choice)
-        per_fw_metrics[firmware_with_brand]["n_exps"] += 1
-        if f_val is not None:
-            per_fw_metrics[firmware_with_brand]["filtering_values"].append(f_val)
-        if d_val is not None:
-            per_fw_metrics[firmware_with_brand]["dedup_values"].append(d_val)
+    table1_rows = []
+    for fw in firmware_set:
+        fw_name_only = os.path.basename(fw)
+        brand, name, version = fw_map.get(fw_name_only, ("", fw_name_only, ""))
+        row = {"firmware": name}
 
-        if verbose:
-            print(f"[EXP] {sub} fw={firmware_with_brand}")
+        for m in DEFAULT_METHODS:
+            per_run_bugs = defaultdict(set)
+            for (f, bug_id, category, cve_id), method_dict in bug_agg.items():
+                if f != fw:
+                    continue
+                for exp, data in method_dict.get(m, {}).items():
+                    if data is not None and (data.get("sites") or data.get("min_tte") is not None):
+                        per_run_bugs[exp].add(bug_id)
 
-    out_rows = []
-    for fw_basename, vals in sorted(per_fw_metrics.items()):
-        n = vals["n_exps"]
-        mean_filter = None
-        mean_dedup = None
-        if vals["filtering_values"]:
-            mean_filter = sum(vals["filtering_values"]) / len(vals["filtering_values"])
-        if vals["dedup_values"]:
-            mean_dedup = sum(vals["dedup_values"]) / len(vals["dedup_values"])
+            mean_bugs = (
+                sum(len(s) for s in per_run_bugs.values()) / len(per_run_bugs)
+                if per_run_bugs else 0.0
+            )
+            row[f"{METHOD_ABBR.get(m, m)}_mean_cnt"] = round(mean_bugs, 3)
 
-        col_filter_name = f"mean_filtering_{fm_choice}"
-        col_dedup_name = f"mean_deduplication_{dm_choice}"
+            if show_exp_count:
+                exp_count_col = f"{METHOD_ABBR.get(m, m)}_exp_cnt"
+                if total_experiments:
+                    row[exp_count_col] = total_experiments.get(fw, {}).get(m, 0)
+                else:
+                    row[exp_count_col] = len(per_run_bugs)
 
-        fw_name_only = os.path.basename(fw_basename)
-        fw_info = fw_map.get(fw_name_only, ("", fw_name_only, ""))
+        table1_rows.append(row)
 
-        out_rows.append({
-            "firmware": fw_info[1],
-            "n_experiments": n,
-            col_filter_name: round(mean_filter, 4) if mean_filter is not None else "",
-            col_dedup_name: round(mean_dedup, 4) if mean_dedup is not None else ""
+    headers1 = ["firmware"]
+    for m in DEFAULT_METHODS:
+        headers1.append(f"{METHOD_ABBR.get(m, m)}_mean_cnt")
+        if show_exp_count:
+            headers1.append(f"{METHOD_ABBR.get(m, m)}_exp_cnt")
+
+    write_csv_and_latex(headers1, table1_rows, out_count_csv, out_count_tex, caption="Number of bugs")
+
+    # ---------- Table2-bug (TTE): one row per bug ----------
+    # Create firmware order mapping for sorting bugs
+    fw_order_map = {fw: idx for idx, fw in enumerate(csv_firmware_order)}
+    def bug_sort_key(item):
+        fw = item[0][0]
+        bug_id = item[0][1]
+        # Use firmware order from crashes.csv, fallback to very high number for unlisted
+        fw_idx = fw_order_map.get(fw, 999999)
+        return (fw_idx, str(bug_id))  # fw_order, bug_id
+
+    table2_rows = []
+    for (fw, bug_id, category, cve_id), method_dict in sorted(bug_agg.items(), key=bug_sort_key):
+        fw_name_only = os.path.basename(fw)
+        brand, name, version = fw_map.get(fw_name_only, ("", fw_name_only, ""))
+        out_cve = (cve_id or "").strip()
+        if not out_cve:
+            out_cve = str(bug_id).strip()
+
+        row = {
+            "firmware": name,
+            "category": category or "",
+            "cve_id": out_cve,
+            "num_sites": len(bug_sites[(fw, bug_id, category, cve_id)]),
+        }
+
+        for m in DEFAULT_METHODS:
+            entries = method_dict.get(m, {})
+            row[f"{METHOD_ABBR.get(m, m)}_cnt"] = len(entries)
+
+            ttes = [v.get("min_tte") for v in entries.values() if v and v.get("min_tte") is not None]
+            avg_tte = (sum(ttes) / len(ttes)) if ttes else None
+            row[f"{METHOD_ABBR.get(m, m)}_avg_tte"] = format_time_hm(avg_tte) if avg_tte is not None else ""
+
+            all_taints = []
+            for v in entries.values():
+                if v and v.get("taints"):
+                    all_taints.extend([t for t in v["taints"] if t is not None])
+            avg_taint = (sum(all_taints) / len(all_taints)) if all_taints else None
+            row[f"{METHOD_ABBR.get(m, m)}_avg_taint"] = (round(avg_taint, 3) if avg_taint is not None else "")
+
+        table2_rows.append(row)
+
+    headers2 = ["firmware", "category", "cve_id", "num_sites"]
+    for m in DEFAULT_METHODS:
+        headers2.append(f"{METHOD_ABBR.get(m, m)}_cnt")
+        headers2.append(f"{METHOD_ABBR.get(m, m)}_avg_tte")
+        headers2.append(f"{METHOD_ABBR.get(m, m)}_avg_taint")
+
+    write_csv_and_latex(headers2, table2_rows, out_tte_csv, out_tte_tex,
+                        caption="TTE bugs", count_tte_table=False)
+
+    staff_method = "staff_state_aware"
+    bug_causality = {}
+
+    for (fw, bug_id, category, cve_id), method_dict in bug_agg.items():
+        cat = category or "Unknown"
+        if staff_method not in method_dict:
+            continue
+        entries = method_dict[staff_method]
+        if not entries:
+            continue
+
+        scores = []
+        for exp, data in entries.items():
+            taints = data.get("taints") or []
+            scores.append(1.0 if any((t is not None and t > 0) for t in taints) else 0.0)
+
+        if scores:
+            bug_causality[(fw, bug_id, cat)] = sum(scores) / len(scores)
+
+    category_stats = defaultdict(lambda: {"bugs": [], "scores": [], "full": 0})
+    for (fw, bug_id, cat), sc in bug_causality.items():
+        category_stats[cat]["bugs"].append((fw, bug_id))
+        category_stats[cat]["scores"].append(sc)
+        if sc == 1.0:
+            category_stats[cat]["full"] += 1
+
+    table3_rows = []
+    total_bugs = 0
+    total_full = 0
+    all_bug_scores = []
+
+    for cat in sorted(category_stats.keys()):
+        num = len(category_stats[cat]["bugs"])
+        avg_sc = (sum(category_stats[cat]["scores"]) / len(category_stats[cat]["scores"])) if category_stats[cat]["scores"] else 0.0
+        full = category_stats[cat]["full"]
+        table3_rows.append({
+            "category": cat,
+            "num_bugs": num,
+            "full_causality_bugs": full,
+            "causality_score": round(avg_sc, 2),
+        })
+        total_bugs += num
+        all_bug_scores.extend(category_stats[cat]["scores"])
+        total_full += full
+
+    if total_bugs > 0:
+        overall_bug_causality = sum(all_bug_scores) / len(all_bug_scores) if all_bug_scores else 0.0
+        table3_rows.append({
+            "category": "ALL",
+            "num_bugs": total_bugs,
+            "full_causality_bugs": total_full,
+            "causality_score": round(overall_bug_causality, 2),
         })
 
-    csv_fields = ["firmware", "n_experiments", f"mean_filtering_{fm_choice}", f"mean_deduplication_{dm_choice}"]
-    with open(out_csv, "w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=csv_fields)
-        w.writeheader()
-        for r in out_rows:
-            w.writerow({k: r.get(k, "") for k in csv_fields})
+    headers3 = ["category", "num_bugs", "full_causality_bugs", "causality_score"]
+    write_csv_and_latex(headers3, table3_rows, out_causality_csv, out_causality_tex, caption="Causality of bugs")
 
-    with open(out_tex, "w", encoding="utf-8") as fh:
-        fh.write("\\begin{table*}[ht]\n\\centering\n")
-        fh.write("\\renewcommand{\\arraystretch}{1.06}\n\\setlength{\\tabcolsep}{4pt}\n")
-        headers = ["Firmware", "#Exps", f"mean_filtering_{fm_choice}", f"mean_deduplication_{dm_choice}"]
-        colfmt = "|l|r|r|r|\n"
-        fh.write(f"\\begin{{tabular}}{{{colfmt}}}")
-        fh.write("\\hline\n")
-        fh.write(" & ".join("{\sc " + latex_escape(h) + "}" for h in headers) + " \\\\\n")
-        fh.write("\\hline\n")
-        for r in out_rows:
-            vals = [r["firmware"], r["n_experiments"], r[csv_fields[2]], r[csv_fields[3]]]
-            vals = [latex_escape(v) for v in vals]
-            fh.write(" & ".join(vals) + " \\\\\n")
-            fh.write("\\hline\n")
-        fh.write("\\end{tabular}\n")
-        fh.write(f"\\caption{{Per-firmware mean metrics (filtering/deduplication). FILTER_METRIC_CHOICE={fm_choice}, DEDUP_METRIC_CHOICE={dm_choice}.}}\n")
-        fh.write("\\end{table*}\n")
+    # Write detailed bug causality scores
+    detailed_bug_causality_rows = []
+    for (fw, bug_id, cat), sc in sorted(bug_causality.items()):
+        detailed_bug_causality_rows.append({
+            "firmware": fw,
+            "bug_id": bug_id,
+            "category": cat,
+            "causality_score": round(sc, 3)
+        })
 
-    if verbose:
-        print(f"[WRITE] CSV -> {out_csv} ; LaTeX -> {out_tex} (tool_filter={tool_filter})")
-    return out_rows
+    if detailed_bug_causality_rows:
+        detailed_csv = out_causality_csv.replace(".csv", "_detailed.csv")
+        with open(detailed_csv, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=["firmware", "bug_id", "category", "causality_score"])
+            writer.writeheader()
+            writer.writerows(detailed_bug_causality_rows)
+        if verbose:
+            print(f"[INFO] Wrote detailed bug causality to: {detailed_csv}")
+
+    return (table1_rows, table2_rows, table3_rows), bug_agg
+
 
 
 if __name__ == "__main__":
@@ -2169,7 +2231,7 @@ if __name__ == "__main__":
     parser.add_argument("--show-exp-count", action="store_true",
                         help="Add columns showing the number of experiments per (firmware, tool) pair in Table 1")
     parser.add_argument("--include-zero-crashes", action="store_true",
-                        help="Include (firmware, tool) pairs in Table 1 even when no bugs were found")
+                        help="Include (firmware, tool) pairs in Table 1 even when no crashes were found")
     parser.add_argument("--max-exp", type=int, default=None,
                         help="Maximum experiment number to consider (e.g., --max-exp 5 only considers exp_1 through exp_5)")
     parser.add_argument("--include-not-succ", action="store_true",
@@ -2215,31 +2277,21 @@ if __name__ == "__main__":
         if verbose:
             print("[INFO] skipping annotation step")
 
-    tables, agg = build_three_tables_and_write_consistent(
+    tables, agg = build_crash_level_tables(
         extracted_root="extracted_crashes",
-        out1_csv="out1.csv", out1_tex="out1.tex",
-        out2_csv="out2.csv", out2_tex="out2.tex",
-        out3_csv="out3.csv", out3_tex="out3.tex",
         verbose=True,
         show_exp_count=args.show_exp_count,
         experiments_dir=args.experiments_dir,
         include_zero_crashes=args.include_zero_crashes
     )
 
-    build_taint_causality_table(
-        agg=agg,
-        out_csv="out_taint_causality.csv",
-        out_tex="out_taint_causality.tex",
-        verbose=True
-    )
-
-    build_detection_efficiency_table(
+    bug_tables, bug_agg = build_bug_level_tables(
+        extracted_root="extracted_crashes",
+        firmwares_csv="analysis/fw_names.csv",
+        verbose=True,
+        show_exp_count=args.show_exp_count,
         experiments_dir=args.experiments_dir,
-        extracted_root=args.extracted_root,
-        fw_names_csv=args.crashes_csv if False else "analysis/fw_names.csv",
-        out_csv="out4.csv",
-        out_tex="out4.tex",
-        verbose=not args.quiet
+        include_zero_bugs=args.include_zero_crashes,
     )
 
     chmod_recursive(args.extracted_root, 0o777)
@@ -2253,7 +2305,7 @@ if __name__ == "__main__":
 
     chmod_recursive(args.extract_unique, 0o777)
 
-    print_seed_status_statistics(extracted_root=args.extracted_root, verbose=verbose)
+    # print_seed_status_statistics(extracted_root=args.extracted_root, verbose=verbose)
 
-    print_unprocessed_seed_paths(extracted_root=args.extracted_root)
+    # print_unprocessed_seed_paths(extracted_root=args.extracted_root)
 

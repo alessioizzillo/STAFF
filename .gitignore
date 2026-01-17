@@ -18,8 +18,6 @@ experiments_to_do.csv
 schedule.csv
 config.ini
 plot_params.ini
-extracted
-extracted_crashes
 cpu_ids.csv
 evaluation_precision.csv
 schedule.csv
@@ -35,6 +33,8 @@ out2.csv
 out2.tex
 out3.csv
 out3.tex
-extracted_crashes*
-extracted_crashes*
 pc_ranges_generated.py
+warnings.log
+crash_reports_analysis/*
+analysis_results*
+unique_crashes/
