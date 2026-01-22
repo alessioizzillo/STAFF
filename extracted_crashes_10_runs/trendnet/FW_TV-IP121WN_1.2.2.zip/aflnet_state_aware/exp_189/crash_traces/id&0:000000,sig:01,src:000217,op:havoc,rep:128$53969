@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: view.cgi
+  [00] inode: 41469, pc: 0x00000e74, module: view.cgi
+  [01] inode: 41469, pc: 0x00000e54, module: view.cgi
+  [02] inode: 41469, pc: 0x00000e2c, module: view.cgi
+  [03] inode: 41469, pc: 0x00000cf4, module: view.cgi
+  [04] inode: 41469, pc: 0x00000cec, module: view.cgi
+

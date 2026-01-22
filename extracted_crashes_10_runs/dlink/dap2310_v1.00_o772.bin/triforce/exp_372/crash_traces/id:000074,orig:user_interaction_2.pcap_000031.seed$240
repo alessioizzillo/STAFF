@@ -1,0 +1,16 @@
+=== Trace 0 ===
+Process: aparraymsg
+  [00] inode: 24644, pc: 0x0000336c, module: aparraymsg
+  [01] inode: 24644, pc: 0x00003350, module: aparraymsg
+  [02] inode: 24644, pc: 0x00003334, module: aparraymsg
+  [03] inode: 24644, pc: 0x00003318, module: aparraymsg
+  [04] inode: 24644, pc: 0x000032fc, module: aparraymsg
+
+=== Trace 1 ===
+Process: ethlink
+  [00] inode: 24664, pc: 0x00000b88, module: ethlink
+  [01] inode: 24664, pc: 0x00000b68, module: ethlink
+  [02] inode: 24664, pc: 0x00000b58, module: ethlink
+  [03] inode: 24664, pc: 0x00000b38, module: ethlink
+  [04] inode: 24664, pc: 0x00000b20, module: ethlink
+

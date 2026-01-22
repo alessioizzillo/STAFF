@@ -1,0 +1,24 @@
+=== Trace 0 ===
+Process: potcounter
+  [00] inode: 24728, pc: 0x00000714, module: potcounter
+  [01] inode: 24728, pc: 0x000006d0, module: potcounter
+  [02] inode: 24728, pc: 0x000007c4, module: potcounter
+  [03] inode: 24728, pc: 0x00000984, module: potcounter
+  [04] inode: 24728, pc: 0x00000a04, module: potcounter
+
+=== Trace 1 ===
+Process: setup.cgi
+  [00] inode: 24746, pc: 0x0001d5fc, module: setup.cgi
+  [01] inode: 24746, pc: 0x0001d5dc, module: setup.cgi
+  [02] inode: 24746, pc: 0x0001d5d4, module: setup.cgi
+  [03] inode: 24746, pc: 0x0001d5e4, module: setup.cgi
+  [04] inode: 24746, pc: 0x0001d5c4, module: setup.cgi
+
+=== Trace 3 ===
+Process: setup.cgi
+  [00] inode: 24746, pc: 0x00012234, module: setup.cgi
+  [01] inode: 24746, pc: 0x00008384, module: setup.cgi
+  [02] inode: 24746, pc: 0x000106d8, module: setup.cgi
+  [03] inode: 24746, pc: 0x000106cc, module: setup.cgi
+  [04] inode: 24746, pc: 0x00011d10, module: setup.cgi
+

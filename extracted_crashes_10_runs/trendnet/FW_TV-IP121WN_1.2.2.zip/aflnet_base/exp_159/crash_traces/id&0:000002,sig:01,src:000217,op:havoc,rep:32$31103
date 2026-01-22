@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: watch.cgi
+  [00] inode: 41472, pc: 0x00000d14, module: watch.cgi
+  [01] inode: 41472, pc: 0x00000cf0, module: watch.cgi
+  [02] inode: 41472, pc: 0x00000c08, module: watch.cgi
+  [03] inode: 41472, pc: 0x00000bfc, module: watch.cgi
+  [04] inode: 41472, pc: 0x00000bf4, module: watch.cgi
+

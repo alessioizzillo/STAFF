@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: upnp
+  [00] inode: 24667, pc: 0x00012054, module: upnp
+  [01] inode: 24667, pc: 0x00012028, module: upnp
+  [02] inode: 24667, pc: 0x00012004, module: upnp
+  [03] inode: 24667, pc: 0x00011fec, module: upnp
+  [04] inode: 24667, pc: 0x00011fc0, module: upnp
+

@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: xmldb
+  [00] inode: 24720, pc: 0x000087ec, module: xmldb
+  [01] inode: 24720, pc: 0x000055ec, module: xmldb
+  [02] inode: 24720, pc: 0x000055d4, module: xmldb
+  [03] inode: 24720, pc: 0x000055c4, module: xmldb
+  [04] inode: 24720, pc: 0x000055b4, module: xmldb
+

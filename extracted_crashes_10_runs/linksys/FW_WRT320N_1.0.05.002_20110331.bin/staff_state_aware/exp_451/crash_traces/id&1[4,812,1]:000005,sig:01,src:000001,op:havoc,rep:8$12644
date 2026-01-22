@@ -1,0 +1,8 @@
+=== Trace 2 ===
+Process: httpd
+  [00] inode: 24643, pc: 0x0001996c, module: httpd
+  [01] inode: 24643, pc: 0x00019928, module: httpd
+  [02] inode: 24643, pc: 0x0002a334, module: httpd
+  [03] inode: 24643, pc: 0x0002a44c, module: httpd
+  [04] inode: 24643, pc: 0x0002a55c, module: httpd
+

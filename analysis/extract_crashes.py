@@ -17,7 +17,7 @@ FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 
 SKIP_MODULES = {}
 SKIP_MODULES = {("any", "aflnet_base", "any")}
-SKIP_MODULES = {("any", "aflnet_base", "any"), ("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
+SKIP_MODULES = {("FW_TV-IP121WN_1.2.2.zip", "any", "setup.cgi"), ("any", "any", "FP"), ("any", "aflnet_base", "any"), ("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
                 ("dap2310_v1.00_o772.bin", "any", "ethlink"), ("dap2310_v1.00_o772.bin", "any", "aparraymsg"),
                 ("dir300_v1.03_7c.bin", "any", "ethlink"), ("dir300_v1.03_7c.bin", "any", "aparraymsg"), 
                 ("FW_RT_N10U_B1_30043763754.zip", "any", "u2ec"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "any", "potcounter"),
@@ -1560,7 +1560,7 @@ def build_crash_level_tables(
 
     def should_skip(fw, method, module):
         fw_name_only = os.path.basename(fw)
-        return (fw_name_only, method, module) in SKIP_MODULES or (fw_name_only, "any", module) in SKIP_MODULES or ("any", method, "any") in SKIP_MODULES
+        return (fw_name_only, method, module) in SKIP_MODULES or (fw_name_only, "any", module) in SKIP_MODULES or ("any", method, "any") in SKIP_MODULES or ("any", "any", module) in SKIP_MODULES
 
     agg = defaultdict(lambda: defaultdict(dict))
     for (fw, module, pc_key), method_dict in agg_raw.items():
@@ -1775,10 +1775,6 @@ def build_crash_level_tables(
         }
         cve_cwe_rows.append(row)
 
-    cve_cwe_csv = os.path.join(OUTPUT_DIR, "out_cve_cwe_summary.csv")
-    cve_cwe_tex = os.path.join(OUTPUT_DIR, "out_cve_cwe_summary.tex")
-    cve_cwe_headers = ["firmware", "module", "function", "CVE", "CWE"]
-    write_csv_and_latex(cve_cwe_headers, cve_cwe_rows, cve_cwe_csv, cve_cwe_tex, caption="CVE and CWE Summary")
 
     # ---------- Table3 (Causality) ----------
 
@@ -2013,7 +2009,7 @@ def build_bug_level_tables(
         fw_name_only = os.path.basename(fw)
         return ((fw_name_only, method, module) in SKIP_MODULES or
                 (fw_name_only, "any", module) in SKIP_MODULES or
-                ("any", method, "any") in SKIP_MODULES)
+                ("any", method, "any") in SKIP_MODULES) or ("any", "any", module) in SKIP_MODULES
 
     agg_mapped = defaultdict(lambda: defaultdict(dict))
     for (fw, module, pc_key), method_dict in agg_raw.items():
@@ -2056,6 +2052,7 @@ def build_bug_level_tables(
                         "min_tte": data.get("tte"),
                         "taints": ([data["taint"]] if data.get("taint") is not None else []),
                         "sites": { (module, func_or_pc) },
+                        "crash_seed_paths": ([data["crash_seed_path"]] if data.get("crash_seed_path") else []),
                     }
                 else:
                     tte = data.get("tte")
@@ -2069,6 +2066,9 @@ def build_bug_level_tables(
                         prev["taints"].append(data["taint"])
 
                     prev["sites"].add((module, func_or_pc))
+
+                    if data.get("crash_seed_path"):
+                        prev["crash_seed_paths"].append(data["crash_seed_path"])
 
     # ---------- Table1-bug: mean #bugs ----------
     csv_firmware_order = get_firmware_order_from_csv(firmwares_csv.replace("fw_names.csv", "crashes.csv"))
@@ -2247,8 +2247,212 @@ def build_bug_level_tables(
         if verbose:
             print(f"[INFO] Wrote detailed bug causality to: {detailed_csv}")
 
-    return (table1_rows, table2_rows, table3_rows), bug_agg
+    return (table1_rows, table2_rows, table3_rows), bug_agg, bug_sites
 
+
+def generate_cve_cwe_summary_table(bug_agg, bug_sites, fw_map, crashes_csv_path="analysis/crashes.csv",
+                                     output_dir=".", verbose=False):
+    cve_cwe_lookup = {}
+    if os.path.isfile(crashes_csv_path):
+        try:
+            with open(crashes_csv_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    csv_fw = row.get('firmware', '').strip()
+                    csv_mod = row.get('module', '').strip()
+                    csv_func = row.get('function_name', '').strip()
+
+                    if csv_func.startswith('(') and csv_func.endswith(')'):
+                        csv_func = csv_func[1:-1].strip()
+
+                    csv_cve = row.get('cve', '').strip()
+                    csv_cwe = row.get('cwe', '').strip()
+
+                    key = (csv_fw.lower(), csv_mod.lower(), csv_func.lower())
+                    cve_cwe_lookup[key] = {
+                        'cve': csv_cve if csv_cve and csv_cve != '???' else '',
+                        'cwe': csv_cwe if csv_cwe and csv_cwe != '???' else ''
+                    }
+        except Exception as e:
+            if verbose:
+                print(f"[WARN] Could not read crashes.csv: {e}")
+
+    bug_info = {}
+    for (fw, bug_id, category, cve_id), method_dict in bug_agg.items():
+        if cve_id and cve_id != '???':
+            bug_identifier = cve_id
+        else:
+            bug_identifier = "likely 0-day"
+
+        fw_name_only = os.path.basename(fw)
+        brand, name, version = fw_map.get(fw_name_only, ("", fw_name_only, ""))
+        fw_display = name if name else fw
+
+        sites = bug_sites.get((fw, bug_id, category, cve_id), set())
+
+        methods_found = set()
+        for method_name in method_dict:
+            if method_dict[method_name]:
+                methods_found.add(method_name)
+
+        staff_found = "staff_state_aware" in methods_found
+        other_methods_found = bool(methods_found - {"staff_state_aware"})
+
+        if staff_found and not other_methods_found:
+            discovery_status = "Only"
+        elif staff_found:
+            discovery_status = "Yes"
+        else:
+            discovery_status = "No"
+
+        modules = set()
+        functions = set()
+        for module, func in sites:
+            modules.add(module)
+            functions.add(func)
+
+        all_crash_seed_paths = []
+        for method_name, exp_map in method_dict.items():
+            for exp, data in exp_map.items():
+                if data and "crash_seed_paths" in data:
+                    all_crash_seed_paths.extend(data["crash_seed_paths"])
+
+        min_requests = None
+        succ_paths = [p for p in all_crash_seed_paths if p and p.endswith(".succ")]
+        if succ_paths:
+            for seed_path in succ_paths:
+                num_req = count_requests_in_seed(seed_path)
+                if num_req > 0:
+                    if min_requests is None:
+                        min_requests = num_req
+                    else:
+                        min_requests = min(min_requests, num_req)
+
+        cwe_value = ''
+        for module, func in sites:
+            for (lookup_fw, lookup_mod, lookup_func), info in cve_cwe_lookup.items():
+                fw_match = (lookup_fw in fw.lower() or fw.lower() in lookup_fw)
+                mod_match = (lookup_mod == module.lower())
+                func_match = (lookup_func == func.lower())
+
+                if fw_match and mod_match and func_match:
+                    if info['cwe']:
+                        cwe_value = info['cwe']
+                        break
+            if cwe_value:
+                break
+
+        bug_key = (fw_display, bug_identifier, category)
+
+        if bug_key not in bug_info:
+            bug_info[bug_key] = {
+                'firmware': fw_display,
+                'firmware_path': fw,
+                'module': ', '.join(sorted(modules)),
+                'functions': ', '.join(sorted(functions)),
+                'bug_id': bug_identifier,
+                'category': category if category else '',
+                'CVE': bug_identifier if bug_identifier != "likely 0-day" else '',
+                'CWE': cwe_value,
+                'min_requests': min_requests if min_requests is not None else '',
+                'discovery_status': discovery_status
+            }
+        else:
+            existing_funcs = set(bug_info[bug_key]['functions'].split(', '))
+            existing_funcs.update(functions)
+            bug_info[bug_key]['functions'] = ', '.join(sorted(existing_funcs))
+
+            existing_mods = set(bug_info[bug_key]['module'].split(', '))
+            existing_mods.update(modules)
+            bug_info[bug_key]['module'] = ', '.join(sorted(existing_mods))
+
+            if not bug_info[bug_key]['CWE'] and cwe_value:
+                bug_info[bug_key]['CWE'] = cwe_value
+
+            if min_requests is not None:
+                if bug_info[bug_key]['min_requests'] == '':
+                    bug_info[bug_key]['min_requests'] = min_requests
+                else:
+                    bug_info[bug_key]['min_requests'] = min(bug_info[bug_key]['min_requests'], min_requests)
+
+    csv_firmware_order = get_firmware_order_from_csv(crashes_csv_path)
+
+    fw_order_map = {}
+    for idx, fw in enumerate(csv_firmware_order):
+        fw_order_map[fw] = idx
+        fw_order_map[os.path.basename(fw)] = idx
+
+    def bug_sort_key(bug_dict):
+        fw_path = bug_dict.get('firmware_path', '')
+        fw_idx = fw_order_map.get(fw_path, 999999)
+        if fw_idx == 999999:
+            fw_idx = fw_order_map.get(os.path.basename(fw_path), 999999)
+        return (fw_idx, str(bug_dict['bug_id']))
+
+    sorted_bugs = sorted(bug_info.values(), key=bug_sort_key)
+
+    cve_cwe_rows = []
+    for idx, bug in enumerate(sorted_bugs):
+        row = {
+            '#': idx,
+            'Firmware': bug['firmware'],
+            'Category': bug['category'],
+            'Binary': bug['module'],
+            'Functions': bug['functions'],
+            '# Min Reqs': bug['min_requests'],
+            'CVE': bug['CVE'],
+            'CWE': bug['CWE'],
+            'STAFF Discovery': bug['discovery_status']
+        }
+        cve_cwe_rows.append(row)
+
+    cve_cwe_csv = os.path.join(output_dir, "out_cve_cwe_summary.csv")
+    cve_cwe_headers = ['#', 'Firmware', 'Category', 'Binary', 'Functions', '# Min Reqs', 'CVE', 'CWE', 'STAFF Discovery']
+
+    with open(cve_cwe_csv, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=cve_cwe_headers)
+        writer.writeheader()
+        writer.writerows(cve_cwe_rows)
+
+    if verbose:
+        print(f"[INFO] Wrote CVE/CWE summary to: {cve_cwe_csv}")
+
+    cve_cwe_tex = os.path.join(output_dir, "out_cve_cwe_summary.tex")
+    with open(cve_cwe_tex, 'w', encoding='utf-8') as f:
+        f.write("\\begin{table*}[h]\n")
+        f.write("\\centering\n")
+        f.write("\\begin{tabular}{|c|l|l|l|l|c|l|l|l|}\n")
+        f.write("\\hline\n")
+        f.write("{\\sc \\#} & {\\sc Firmware} & {\\sc Category} & {\\sc Module} & {\\sc Functions} & {\\sc \\# Min Reqs} & {\\sc CVE} & {\\sc CWE} & {\\sc STAFF discovery} \\\\\n")
+        f.write("\\hline\n")
+
+        for row in cve_cwe_rows:
+            def escape(s):
+                s = str(s)
+                s = s.replace('\\', '\\textbackslash{}')
+                s = s.replace('&', '\\&')
+                s = s.replace('%', '\\%')
+                s = s.replace('$', '\\$')
+                s = s.replace('#', '\\#')
+                s = s.replace('_', '\\_')
+                s = s.replace('{', '\\{')
+                s = s.replace('}', '\\}')
+                s = s.replace('~', '\\textasciitilde{}')
+                s = s.replace('^', '\\textasciicircum{}')
+                return s
+
+            f.write(f"{row['#']} & {escape(row['Firmware'])} & {escape(row['Category'])} & {escape(row['Binary'])} & {escape(row['Functions'])} & ")
+            f.write(f"{escape(row['# Min Reqs'])} & {escape(row['CVE'])} & {escape(row['CWE'])} & {escape(row['STAFF Discovery'])} \\\\\n")
+            f.write("\\hline\n")
+
+        f.write("\\end{tabular}\n")
+        f.write("\\caption{CVE and CWE Summary}\n")
+        f.write("\\end{table*}\n")
+
+    if verbose:
+        print(f"[INFO] Wrote LaTeX table to: {cve_cwe_tex}")
+
+    return cve_cwe_rows
 
 
 if __name__ == "__main__":
@@ -2324,13 +2528,36 @@ if __name__ == "__main__":
         include_zero_crashes=args.include_zero_crashes
     )
 
-    bug_tables, bug_agg = build_bug_level_tables(
+    bug_tables, bug_agg, bug_sites = build_bug_level_tables(
         extracted_root=args.extracted_root,
         firmwares_csv="analysis/fw_names.csv",
         verbose=True,
         show_exp_count=args.show_exp_count,
         experiments_dir=args.experiments_dir,
         include_zero_bugs=args.include_zero_crashes,
+    )
+
+    def load_firmware_map_triplet(path):
+        mapping = {}
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            for row in reader:
+                fw_file = row.get("firmware", "").strip()
+                brand = row.get("brand", "").strip()
+                name = row.get("name", "").strip()
+                version = row.get("version", "").strip()
+                mapping[fw_file] = (brand, name, version)
+        return mapping
+
+    fw_map = load_firmware_map_triplet("analysis/fw_names.csv")
+
+    generate_cve_cwe_summary_table(
+        bug_agg=bug_agg,
+        bug_sites=bug_sites,
+        fw_map=fw_map,
+        crashes_csv_path="analysis/crashes.csv",
+        output_dir=OUTPUT_DIR,
+        verbose=True
     )
 
     chmod_recursive(args.extracted_root, 0o777)

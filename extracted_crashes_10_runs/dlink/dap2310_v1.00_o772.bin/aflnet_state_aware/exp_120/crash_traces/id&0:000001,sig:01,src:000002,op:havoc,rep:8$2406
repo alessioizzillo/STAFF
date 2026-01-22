@@ -1,0 +1,8 @@
+=== Trace 2 ===
+Process: neaps_array
+  [00] inode: 24681, pc: 0x000035f0, module: neaps_array
+  [01] inode: 24681, pc: 0x000035d4, module: neaps_array
+  [02] inode: 24681, pc: 0x000035b8, module: neaps_array
+  [03] inode: 24681, pc: 0x0000359c, module: neaps_array
+  [04] inode: 24681, pc: 0x00003580, module: neaps_array
+

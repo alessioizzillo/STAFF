@@ -1,0 +1,382 @@
+GET / HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858803846 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_top.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/GW/ENU/msg.xml?timestamp=1748858804373 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_top.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1747070168899 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/WA_wan_h.htm8804473 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_top.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858804584 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */@
+Referer: http://192.168.1.1/BRS_01_checkNet_trigger.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/GW/ENU/msg.xml?timestamp=1748858805076 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_01_checkNet_trigger.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/GW/ENU/ui.xml?timestamp=1748858805150 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_01_checkNet_trigger.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_fCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCodo=brs_ping HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.if,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.1.1/BRS_01_checkNet_trigger.html
+Accept-Encoding: gzip, deflate
+Accept-Language: e]-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858806013 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/setup.cgi?next_file=BRS_01_checkNet_ping.html&todo=brs_ping
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/GW/ENU/msg.xml?timestamp=1748858806217 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/setup.cgi?next_file=BRS_01_checkNet_ping.html&todo=brs_ping
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/GW/ENU/ui.xml?timestamp=1748858806297 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/setup.cgi?next_file=BRS_01_checkNet_ping.html&todo=brs_ping
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /BRS_02_genieHelp.html HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.1.1/setup.cgi?next_file=BRS_01_checkNet_ping.html&todo=brs_ping
+Accept-Encoding: gzip, deflate
+Accept-Langudge: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858809962 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_02_genieHelp.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/GW/ENU/msg.xml?timestamp=1748858810161 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_02_genieHelp.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/GW/ENU/ui.xml?timestamp=1748858810351 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-aliveö
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_02_genieHelp.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858827239 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/Ü.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/index.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/msg.xml?timestamp=1748858827644 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/index.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/ui.xml?timestamp=1748858827745 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/index.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858828905 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/basic_wait.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/msg.xml?timestamp=1748858829113 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/basic_wait.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/ui.xml?timestamp=1748858829232 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Ref   : http://192.168.1.1/basic_wait.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858829814 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/top.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/msg.xml?timestamp=1748858830140 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/top.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/ui.xml?timestamp=1748858830232 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/top.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858831100 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/basic_wait.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/msg.xml?timestamp=1748858831276 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent:5Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/basic_wait.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/GW/ENU/ui.xml?timestamp=1747070126569 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agezywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywnt: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/5€7.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_top.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/ui.xml?timestamp=1748858831365 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/basic_wait.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858837047 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/basic_home.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/msg.xml?timestamp=1748858837235 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/basic_home.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1747070 6845 HTTP/1.1
+Host:  en-192.168.1.1
+n;q=0.9
+
+GET /langs/lang*/*
+RefeConnection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)<Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/update_setting.htm
+Accept-Encoding: gzip, deflate
+Accept-L guage: en-US,en;q=0.9
+
+GET /langs/language/ui.xml?timÙstamp=1747069954294 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://19on/system2.168.1.1/setup.cgi?next_fiTe=WLG_wireless2.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/ui.xml?timestamp=1748858986717 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/setup.cgi?id=50e9ab2a
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /UPNP_upnp_h.htm HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.1.1/setup.cgi?id=50e9ab2a
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748858809962 HTTP/1.1
+Host: 192.16;.1.1
+Connection: keep-alive
+Userzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyw-Agent: MoafarizywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywZywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyw/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_02_genieHelp.html
+Accept-Encoding: gzip, def te
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=-748858809962 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/437@36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/BRS_02_genieHelp.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/ui.xml?timestamp=1748859029198 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/update_setting.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748859059721 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/traffic_meter.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/msg.xml?timestamp=1748859060082 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/traffic_meter.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /langs/language/ui.xml?timestamp=1748859060209 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/traffic_meter.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=common/system.xml&timestamp=1748859060575 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/traffic_meter_h.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+

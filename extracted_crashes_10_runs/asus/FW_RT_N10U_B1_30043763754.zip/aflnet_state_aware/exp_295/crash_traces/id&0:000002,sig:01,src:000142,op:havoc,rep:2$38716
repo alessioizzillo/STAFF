@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: watchdog
+  [00] inode: 41031, pc: 0x00048b1c, module: FP
+  [01] inode: 41031, pc: 0x00048b14, module: FP
+  [02] inode: 41031, pc: 0x00048b00, module: FP
+  [03] inode: 41031, pc: 0x00048aec, module: FP
+  [04] inode: 41031, pc: 0x00048abc, module: FP
+

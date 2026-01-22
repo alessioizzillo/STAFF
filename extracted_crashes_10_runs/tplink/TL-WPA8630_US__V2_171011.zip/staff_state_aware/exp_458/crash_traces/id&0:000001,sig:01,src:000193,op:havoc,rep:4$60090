@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: wifiSched
+  [00] inode: 32816, pc: 0x0000c27c, module: wifiSched
+  [01] inode: 32816, pc: 0x00005940, module: wifiSched
+  [02] inode: 32816, pc: 0x00005924, module: wifiSched
+  [03] inode: 32816, pc: 0x000058dc, module: wifiSched
+  [04] inode: 32816, pc: 0x00005bf8, module: wifiSched
+

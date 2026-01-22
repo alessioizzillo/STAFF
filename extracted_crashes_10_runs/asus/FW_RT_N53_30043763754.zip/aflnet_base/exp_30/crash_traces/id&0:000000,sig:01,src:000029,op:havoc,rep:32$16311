@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: wanduck
+  [00] inode: 24645, pc: 0x0006878c, module: rc
+  [01] inode: 24645, pc: 0x00068634, module: rc
+  [02] inode: 24645, pc: 0x00068604, module: rc
+  [03] inode: 24645, pc: 0x000685e8, module: rc
+  [04] inode: 24645, pc: 0x000685d8, module: rc
+

@@ -1,0 +1,390 @@
+POST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=toggleGET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /admin/wireless?form=region HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 14
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+operation=readPOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+operation=read&enable=togglePOST /admin/cloud_account?form=check_cloud_version HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 14
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+operation=readPOST /admin/cloud_account?form=check_upgrade HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 14
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+operation=readPOST /admin/firmware?form=upgrade HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 14
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+operation=readGET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A0cc175b9c0f1b6a831c399e269772661
+
+GET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+POST /admin/wireless?form=region HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 14
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=readPOST /admin/ledSettings?form=enable HTTP/1.1
+HostÃ 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.30.0.0 Safari/53€.36
+Accept: application/json, text/javascript, */*; q=0/help/WzdAccessCtrlSchedAddHelpEpm.htm.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/cloud_account?form=check_cloud_version HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 14
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=readPOST /admin/cloud_account?form=check_upgrade HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 14
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript,0*/*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Acce  ÿanguage: en-US,en;q=0.a57a5a743894a0e4a801fc3
+
+operation=readPOST /admin/wireless?form=statistics HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 14
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-T@pe: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=loadPOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.2µ4
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/53 Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Languag €ÿÿn-US,en;q=0.9
+Cookie: Authorization=Basec%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.harset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=tog ePOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=togglePOST /admin/ledSettiMgs?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Conte ÿ-Length: 28
+X-Requested-With: XML=ttpRequest
+User-Agent: Mozilla/5.0;(X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Cont/data/basic.network.internet.jsonent-Type: rer: http://192.Basic%2Kadmin%3A2/help/StatusHelpRpm.htm1232f 7a57a5a743894a0e4a801fc3
+
+operation=read&enable=toggleGET / HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: hÿÿÿ//192.168.0.254/
+Accept-Encoding: gzip, deflateÿÿÿÿept-Language: en-US,en;q=0.9
+
+POST /admin/ledSettings?form=enable HTTP/1.1
+Host: 192.168.0.254
+Connection: keep-alive
+Content-Length: 28
+X-Requested-With: XMLHttpRequest
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: application/json, text/javascript, */*; q=0.01
+Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+Origin: http://192.168.0.254
+Referer: http://192.168.0.254/
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+Cookie: Authorization=Basic%20admin%3A21232f297a57a5a743894a0e4a801fc3
+
+operation=read&enable=toggle

@@ -1,0 +1,16 @@
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 536
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=routinfo.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+SRouteName=sfasefas&SRouteActive=&SRouteDestAddr1=192&SRouteDestAddr2=168&SRouteDestAddr3=0&SRouteDestAddr4=5&SRouteSubnetMask1=255&SRouteSubnetMask2=255&SRouteSubnetMask3=255&SRouteSubnetMask4=128&SRouteGatewayAddr1=192&SRouteGatewayAddr2=168&SRouteGatewayAddr3=0&SRouteGatewayAddr4=123&SRouteMetric=3&save=Apply&todo=save&this_file=routinfo.htm&next_file=routes.htm&h_ruleSelect=0&edit=0&h_SRoutePrivate=disable&h_SRouteActive=enable&c4_SRouteDestAddr=192.168.0.5&c4_SRouteSubnetMask=255.255.255.128&c4_SRouteGatewayAddr=192.168.0.123

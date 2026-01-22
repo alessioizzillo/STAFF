@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: network.cgi
+  [00] inode: 41408, pc: 0x00000ea4, module: network.cgi
+  [01] inode: 41408, pc: 0x00000e30, module: network.cgi
+  [02] inode: 41408, pc: 0x00001c78, module: network.cgi
+  [03] inode: 41408, pc: 0x00001c64, module: network.cgi
+  [04] inode: 41408, pc: 0x00001c50, module: network.cgi
+

@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: alphapd
+  [00] inode: 16386, pc: 0x000087b0, module: alphapd
+  [01] inode: 16386, pc: 0x000084c4, module: alphapd
+  [02] inode: 16386, pc: 0x00008780, module: alphapd
+  [03] inode: 16386, pc: 0x00008770, module: alphapd
+  [04] inode: 16386, pc: 0x00008760, module: alphapd
+
