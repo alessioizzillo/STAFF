@@ -148,6 +148,7 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
             category = raw.get("analysis_result", "").strip()
             cve_id = raw.get("cve", "").strip()
             bug_id = raw.get("bug_id", "").strip()
+            min_reqs_str = raw.get("min_reqs", "0").strip()
 
             if not firmware or not module or not start_tok or not end_tok:
                 if verbose:
@@ -160,6 +161,10 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
                 cve_id = None
             if not bug_id:
                 bug_id = None
+            try:
+                min_reqs = int(min_reqs_str) if min_reqs_str else 0
+            except ValueError:
+                min_reqs = 0
 
             func_name = None
             if func_tok:
@@ -191,9 +196,9 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
                 if verbose:
                     old = pc_ranges[firmware][module][func_name]
                     print(f"[WARN] row {row_no}: duplicate function '{func_name}' for {firmware}/{module}; "
-                          f"old={old} -> new={(s_int,e_int,category,cve_id,bug_id)} (overwriting)")
+                          f"old={old} -> new={(s_int,e_int,category,cve_id,bug_id,min_reqs)} (overwriting)")
 
-            pc_ranges[firmware][module][func_name] = (s_int, e_int, category, cve_id, bug_id)
+            pc_ranges[firmware][module][func_name] = (s_int, e_int, category, cve_id, bug_id, min_reqs)
             if verbose:
                 print(f"[ROW {row_no}] {firmware} / {module} -> {func_name}: "
                       f"0x{s_int:08x}-0x{e_int:08x} [{category}]")
@@ -207,11 +212,18 @@ def load_pc_ranges_from_csv(csv_path: str = "crashes.csv",
         lines.append(f"    {fw!r}: {{")
         for mod, funcs in sorted(mods.items()):
             lines.append(f"        {mod!r}: {{")
-            for fname, (s, e, cat, cve_id, bug_id) in sorted(funcs.items()):
+            for fname, tpl in sorted(funcs.items()):
+                if len(tpl) == 6:
+                    s, e, cat, cve_id, bug_id, min_reqs = tpl
+                elif len(tpl) == 5:
+                    s, e, cat, cve_id, bug_id = tpl
+                    min_reqs = 0
+                else:
+                    continue
                 cat_repr = repr(cat) if cat is not None else "None"
                 cve_repr = repr(cve_id) if cve_id is not None else "None"
                 bug_repr = repr(bug_id) if bug_id is not None else "None"
-                lines.append(f"            {fname!r}: (0x{s:08x}, 0x{e:08x}, {cat_repr}, {cve_repr}, {bug_repr}),")
+                lines.append(f"            {fname!r}: (0x{s:08x}, 0x{e:08x}, {cat_repr}, {cve_repr}, {bug_repr}, {min_reqs}),")
             lines.append("        },")
         lines.append("    },")
     lines.append("}")
@@ -310,6 +322,258 @@ def parse_plot_changes(plot_path: str) -> List[Tuple[int,int,int]]:
             else:
                 prev = unique_crashes
     return events
+
+def calculate_avg_execs_per_sec(plot_path: str, execs_col_idx: int = 2) -> float:
+    first_row = None
+    last_row = None
+
+    with open(plot_path, "r") as f:
+        for ln in f:
+            ln = ln.strip()
+            if not ln or ln.startswith("#"):
+                continue
+            parts = [p.strip() for p in ln.split(",")]
+            if len(parts) <= max(execs_col_idx, 0):
+                continue
+            try:
+                unix_time = int(parts[0])
+                execs_done = int(parts[execs_col_idx])
+                row = (unix_time, execs_done)
+                if first_row is None:
+                    first_row = row
+                last_row = row
+            except (ValueError, IndexError):
+                continue
+
+    if first_row is None or last_row is None:
+        return None
+
+    first_time, _ = first_row
+    last_time, last_execs = last_row
+
+    time_diff = last_time - first_time
+    if time_diff <= 0:
+        return None
+
+    return (last_execs / time_diff) * 60
+
+def get_total_execs_done(plot_path: str, execs_col_idx: int = 2) -> int:
+    if not os.path.isfile(plot_path):
+        return None
+
+    last_execs = None
+
+    with open(plot_path, "r") as f:
+        for ln in f:
+            ln = ln.strip()
+            if not ln or ln.startswith("#"):
+                continue
+            parts = [p.strip() for p in ln.split(",")]
+            if len(parts) <= max(execs_col_idx, 0):
+                continue
+            try:
+                last_execs = int(parts[execs_col_idx])
+            except (ValueError, IndexError):
+                continue
+
+    return last_execs
+
+def build_execs_per_sec_table(experiments_dir, methods=None, verbose=True):
+    if methods is None:
+        methods = DEFAULT_METHODS
+
+    if not os.path.isdir(experiments_dir):
+        if verbose:
+            print(f"[ERROR] experiments_dir does not exist: {experiments_dir}")
+        return {}, {}
+
+    data_rate = defaultdict(lambda: defaultdict(list))
+    data_total = defaultdict(lambda: defaultdict(list))
+
+    for sub_exp in sorted(os.listdir(experiments_dir)):
+        sub_path = os.path.join(experiments_dir, sub_exp)
+        if not os.path.isdir(sub_path) or not sub_exp.startswith("exp_"):
+            continue
+
+        if not should_include_experiment(sub_exp):
+            continue
+
+        config_path = os.path.join(sub_path, "outputs", "config.ini")
+        if not os.path.isfile(config_path):
+            if verbose:
+                print(f"[INFO] skipping {sub_exp}: no config.ini")
+            continue
+
+        config = configparser.ConfigParser()
+        config.read(config_path)
+        try:
+            mode = config.get("GENERAL", "mode")
+            firmware_path = config.get("GENERAL", "firmware")
+        except Exception as e:
+            if verbose:
+                print(f"[WARN] couldn't read mode/firmware in {config_path}: {e}")
+            continue
+
+        if mode not in methods:
+            continue
+
+        if os.path.dirname(firmware_path):
+            firmware = firmware_path
+        else:
+            firmware = os.path.basename(firmware_path)
+
+        # For triforce, use old_plot_data instead of plot_data
+        if mode == "triforce":
+            plot_candidates = [
+                os.path.join(sub_path, "old_plot_data"),
+                os.path.join(sub_path, "outputs", "old_plot_data"),
+            ]
+        else:
+            plot_candidates = [
+                os.path.join(sub_path, "plot_data"),
+                os.path.join(sub_path, "outputs", "plot_data"),
+            ]
+        plot_path = None
+        for p in plot_candidates:
+            if os.path.isfile(p):
+                plot_path = p
+                break
+
+        if plot_path is None:
+            if verbose:
+                print(f"[INFO] no plot_data for {sub_exp}, skipping")
+            continue
+
+        avg_execs = calculate_avg_execs_per_sec(plot_path)
+        total_execs = get_total_execs_done(plot_path)
+
+        if avg_execs is not None:
+            data_rate[firmware][mode].append(avg_execs)
+        if total_execs is not None:
+            data_total[firmware][mode].append(total_execs)
+
+        if verbose and avg_execs is not None:
+            print(f"[INFO] {sub_exp}: {avg_execs:.2f} execs/min, {total_execs} total execs")
+
+    result_rate = {}
+    for firmware in data_rate:
+        result_rate[firmware] = {}
+        for mode in data_rate[firmware]:
+            values = data_rate[firmware][mode]
+            if values:
+                result_rate[firmware][mode] = sum(values) / len(values)
+
+    result_total = {}
+    for firmware in data_total:
+        result_total[firmware] = {}
+        for mode in data_total[firmware]:
+            values = data_total[firmware][mode]
+            if values:
+                result_total[firmware][mode] = sum(values) / len(values)
+
+    return result_rate, result_total
+
+def write_execs_per_sec_tables(execs_data, methods=None, output_dir=OUTPUT_DIR, output_prefix="out_execs_per_min"):
+    if methods is None:
+        methods = DEFAULT_METHODS
+
+    if not execs_data:
+        print("[WARN] No execs/min data to write")
+        return
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    headers = ["Firmware"] + [METHOD_ABBR.get(m, m) for m in methods]
+    rows = []
+
+    for firmware in sorted(execs_data.keys()):
+        row = {"Firmware": firmware}
+        for method in methods:
+            avg_execs = execs_data[firmware].get(method, None)
+            if avg_execs is not None:
+                row[METHOD_ABBR.get(method, method)] = f"{avg_execs:.2f}"
+            else:
+                row[METHOD_ABBR.get(method, method)] = "-"
+        rows.append(row)
+
+    csv_path = os.path.join(output_dir, f"{output_prefix}.csv")
+    df = pd.DataFrame(rows)
+    df.to_csv(csv_path, index=False, encoding="utf-8")
+    print(f"[INFO] Wrote execs/min CSV to {csv_path}")
+
+    tex_path = os.path.join(output_dir, f"{output_prefix}.tex")
+    with open(tex_path, "w", encoding="utf-8") as f:
+        f.write("\\begin{table}[htbp]\n")
+        f.write("\\centering\n")
+        f.write("\\caption{Average Executions per Minute by Firmware and Method}\n")
+        f.write("\\label{tab:execs_per_min}\n")
+        f.write("\\begin{tabular}{l" + "r" * len(methods) + "}\n")
+        f.write("\\toprule\n")
+        f.write(" & ".join(headers) + " \\\\\n")
+        f.write("\\midrule\n")
+
+        for row in rows:
+            row_values = [row["Firmware"]]
+            for method in methods:
+                row_values.append(row[METHOD_ABBR.get(method, method)])
+            f.write(" & ".join(row_values) + " \\\\\n")
+
+        f.write("\\bottomrule\n")
+        f.write("\\end{tabular}\n")
+        f.write("\\end{table}\n")
+
+    print(f"[INFO] Wrote execs/min LaTeX to {tex_path}")
+
+def write_total_execs_tables(execs_data, methods=None, output_dir=OUTPUT_DIR, output_prefix="out_total_execs"):
+    if methods is None:
+        methods = DEFAULT_METHODS
+
+    if not execs_data:
+        print("[WARN] No total execs data to write")
+        return
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    headers = ["Firmware"] + [METHOD_ABBR.get(m, m) for m in methods]
+    rows = []
+
+    for firmware in sorted(execs_data.keys()):
+        row = {"Firmware": firmware}
+        for method in methods:
+            avg_execs = execs_data[firmware].get(method, None)
+            if avg_execs is not None:
+                row[METHOD_ABBR.get(method, method)] = f"{int(avg_execs)}"
+            else:
+                row[METHOD_ABBR.get(method, method)] = "-"
+        rows.append(row)
+
+    csv_path = os.path.join(output_dir, f"{output_prefix}.csv")
+    df = pd.DataFrame(rows)
+    df.to_csv(csv_path, index=False, encoding="utf-8")
+    print(f"[INFO] Wrote total execs CSV to {csv_path}")
+
+    tex_path = os.path.join(output_dir, f"{output_prefix}.tex")
+    with open(tex_path, "w", encoding="utf-8") as f:
+        f.write("\\begin{table}[htbp]\n")
+        f.write("\\centering\n")
+        f.write("\\caption{Average Total Executions by Firmware and Method}\n")
+        f.write("\\label{tab:total_execs}\n")
+        f.write("\\begin{tabular}{l" + "r" * len(methods) + "}\n")
+        f.write("\\toprule\n")
+        f.write(" & ".join(headers) + " \\\\\n")
+        f.write("\\midrule\n")
+
+        for row in rows:
+            row_values = [row["Firmware"]]
+            for method in methods:
+                row_values.append(row[METHOD_ABBR.get(method, method)])
+            f.write(" & ".join(row_values) + " \\\\\n")
+
+        f.write("\\bottomrule\n")
+        f.write("\\end{tabular}\n")
+        f.write("\\end{table}\n")
+
+    print(f"[INFO] Wrote total execs LaTeX to {tex_path}")
 
 def safe_rename(src: str, dst: str, overwrite: bool=True):
     if os.path.abspath(src) == os.path.abspath(dst):
@@ -734,20 +998,26 @@ def map_key_by_range_and_groups_standalone(fw, module, pc_str, pc_ranges):
         if pc_int is None:
             continue
         for fun_name, tpl in ranges.items():
-            if len(tpl) == 5:
+            if len(tpl) == 6:
+                start, end, category, cve_id, bug_id, min_reqs = tpl
+            elif len(tpl) == 5:
                 start, end, category, cve_id, bug_id = tpl
+                min_reqs = 0
             elif len(tpl) == 4:
                 start, end, category, cve_id = tpl
                 bug_id = None
+                min_reqs = 0
             elif len(tpl) == 3:
                 start, end, category = tpl
                 cve_id = None
                 bug_id = None
+                min_reqs = 0
             else:
                 start, end = tpl
                 category = None
                 cve_id = None
                 bug_id = None
+                min_reqs = 0
             try:
                 s = int(start)
                 e = int(end)
@@ -782,8 +1052,10 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
                 brand = parts[extracted_idx + 1]
             else:
                 firmware = "unknown"
+                brand = "unknown"
         except (ValueError, IndexError):
             firmware = "unknown"
+            brand = "unknown"
 
         for file in files:
             if file.endswith(".lock") or file.endswith(".minimize_test"):
@@ -937,10 +1209,17 @@ def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crash
                 print(f"[WARN] no start_time found in {fuzzer_stats_path}, skipping {sub_exp}")
             continue
 
-        plot_candidates = [
-            os.path.join(sub_path, "plot_data"),
-            os.path.join(sub_path, "outputs", "plot_data"),
-        ]
+        # For triforce, use old_plot_data instead of plot_data
+        if mode == "triforce":
+            plot_candidates = [
+                os.path.join(sub_path, "old_plot_data"),
+                os.path.join(sub_path, "outputs", "old_plot_data"),
+            ]
+        else:
+            plot_candidates = [
+                os.path.join(sub_path, "plot_data"),
+                os.path.join(sub_path, "outputs", "plot_data"),
+            ]
         plot_path = None
         for p in plot_candidates:
             if os.path.isfile(p):
@@ -1535,20 +1814,26 @@ def build_crash_level_tables(
                 if pc_int is None:
                     continue
             for fun_name, tpl in ranges.items():
-                if len(tpl) == 5:
+                if len(tpl) == 6:
+                    start, end, category, cve_id, bug_id, min_reqs = tpl
+                elif len(tpl) == 5:
                     start, end, category, cve_id, bug_id = tpl
+                    min_reqs = 0
                 elif len(tpl) == 4:
                     start, end, category, cve_id = tpl
                     bug_id = None
+                    min_reqs = 0
                 elif len(tpl) == 3:
                     start, end, category = tpl
                     cve_id = None
                     bug_id = None
+                    min_reqs = 0
                 else:
                     start, end = tpl
                     category = None
                     cve_id = None
                     bug_id = None
+                    min_reqs = 0
                 try:
                     s = int(start)
                     e = int(end)
@@ -1967,7 +2252,7 @@ def build_bug_level_tables(
         return None
 
     def map_key_by_range_and_groups(fw, module, pc_str):
-        raw = (fw, module, pc_str, None, None, None)
+        raw = (fw, module, pc_str, None, None, None, 0)
         pc_int = pc_to_int(pc_str)
 
         for fw_key, modmap in PC_RANGES.items():
@@ -1979,20 +2264,26 @@ def build_bug_level_tables(
             if pc_int is None:
                 continue
             for fun_name, tpl in ranges.items():
-                if len(tpl) == 5:
+                if len(tpl) == 6:
+                    start, end, category, cve_id, bug_id, min_reqs = tpl
+                elif len(tpl) == 5:
                     start, end, category, cve_id, bug_id = tpl
+                    min_reqs = 0
                 elif len(tpl) == 4:
                     start, end, category, cve_id = tpl
                     bug_id = None
+                    min_reqs = 0
                 elif len(tpl) == 3:
                     start, end, category = tpl
                     cve_id = None
                     bug_id = None
+                    min_reqs = 0
                 else:
                     start, end = tpl
                     category = None
                     cve_id = None
                     bug_id = None
+                    min_reqs = 0
 
                 try:
                     s = int(start)
@@ -2001,7 +2292,7 @@ def build_bug_level_tables(
                     continue
 
                 if s <= pc_int <= e:
-                    return (fw, module, fun_name, category, cve_id, bug_id)
+                    return (fw, module, fun_name, category, cve_id, bug_id, min_reqs)
 
         return raw
 
@@ -2035,14 +2326,22 @@ def build_bug_level_tables(
     bug_agg = defaultdict(lambda: defaultdict(dict))
     bug_sites = defaultdict(set)
 
+    bug_min_reqs = {}
+
     for key, method_dict in agg_mapped.items():
-        fw, module, func_or_pc, category, cve_id, bug_id = (key + (None,) * 6)[:6]
+        fw, module, func_or_pc, category, cve_id, bug_id, min_reqs = (key + (None,) * 7)[:7]
+        if min_reqs is None:
+            min_reqs = 0
 
         if not bug_id:
             bug_id = f"Unknown-{os.path.basename(fw)}"
 
         bug_key = (fw, bug_id, category, cve_id)
         bug_sites[bug_key].add((module, func_or_pc))
+        if bug_key not in bug_min_reqs:
+            bug_min_reqs[bug_key] = min_reqs
+        else:
+            bug_min_reqs[bug_key] = max(bug_min_reqs[bug_key], min_reqs)
 
         for method, exp_map in method_dict.items():
             for exp, data in exp_map.items():
@@ -2138,11 +2437,18 @@ def build_bug_level_tables(
         if not out_cve:
             out_cve = str(bug_id).strip()
 
+        bug_key = (fw, bug_id, category, cve_id)
+        sites = bug_sites[bug_key]
+        first_module = sorted(sites)[0][0] if sites else ""
+
+        min_reqs_val = bug_min_reqs.get(bug_key, 0)
+
         row = {
             "firmware": name,
-            "category": category or "",
+            "module": first_module,
             "cve_id": out_cve,
-            "num_sites": len(bug_sites[(fw, bug_id, category, cve_id)]),
+            "category": category or "",
+            "min_reqs": min_reqs_val,
         }
 
         for m in DEFAULT_METHODS:
@@ -2153,20 +2459,12 @@ def build_bug_level_tables(
             avg_tte = (sum(ttes) / len(ttes)) if ttes else None
             row[f"{METHOD_ABBR.get(m, m)}_avg_tte"] = format_time_hm(avg_tte) if avg_tte is not None else ""
 
-            all_taints = []
-            for v in entries.values():
-                if v and v.get("taints"):
-                    all_taints.extend([t for t in v["taints"] if t is not None])
-            avg_taint = (sum(all_taints) / len(all_taints)) if all_taints else None
-            row[f"{METHOD_ABBR.get(m, m)}_avg_taint"] = (round(avg_taint, 3) if avg_taint is not None else "")
-
         table2_rows.append(row)
 
-    headers2 = ["firmware", "category", "cve_id", "num_sites"]
+    headers2 = ["firmware", "module", "cve_id", "category", "min_reqs"]
     for m in DEFAULT_METHODS:
         headers2.append(f"{METHOD_ABBR.get(m, m)}_cnt")
         headers2.append(f"{METHOD_ABBR.get(m, m)}_avg_tte")
-        headers2.append(f"{METHOD_ABBR.get(m, m)}_avg_taint")
 
     write_csv_and_latex(headers2, table2_rows, out_tte_csv, out_tte_tex,
                         caption="TTE bugs", count_tte_table=False)
@@ -2247,7 +2545,7 @@ def build_bug_level_tables(
         if verbose:
             print(f"[INFO] Wrote detailed bug causality to: {detailed_csv}")
 
-    return (table1_rows, table2_rows, table3_rows), bug_agg, bug_sites
+    return (table1_rows, table2_rows, table3_rows), bug_agg, bug_sites, bug_min_reqs
 
 
 def generate_cve_cwe_summary_table(bug_agg, bug_sites, fw_map, crashes_csv_path="analysis/crashes.csv",
@@ -2528,7 +2826,7 @@ if __name__ == "__main__":
         include_zero_crashes=args.include_zero_crashes
     )
 
-    bug_tables, bug_agg, bug_sites = build_bug_level_tables(
+    bug_tables, bug_agg, bug_sites, bug_min_reqs = build_bug_level_tables(
         extracted_root=args.extracted_root,
         firmwares_csv="analysis/fw_names.csv",
         verbose=True,
@@ -2558,6 +2856,26 @@ if __name__ == "__main__":
         crashes_csv_path="analysis/crashes.csv",
         output_dir=OUTPUT_DIR,
         verbose=True
+    )
+
+    if verbose:
+        print("\n[INFO] Building executions per minute and total executions comparison tables...")
+    execs_rate_data, execs_total_data = build_execs_per_sec_table(
+        experiments_dir=args.experiments_dir,
+        methods=DEFAULT_METHODS,
+        verbose=verbose
+    )
+    write_execs_per_sec_tables(
+        execs_data=execs_rate_data,
+        methods=DEFAULT_METHODS,
+        output_dir=OUTPUT_DIR,
+        output_prefix="out_execs_per_min"
+    )
+    write_total_execs_tables(
+        execs_data=execs_total_data,
+        methods=DEFAULT_METHODS,
+        output_dir=OUTPUT_DIR,
+        output_prefix="out_total_execs"
     )
 
     chmod_recursive(args.extracted_root, 0o777)

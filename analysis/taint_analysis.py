@@ -2024,15 +2024,23 @@ def build_latex_table(df, caption="Aggregated results", label="tab:results"):
     lines.append(r"\end{table*}")
     return "\n".join(lines)
 
-def aggregate_pre_analysis_metrics(db_dir, mode, metric_name, max_runs=None,
-                                   output_csv="out.csv", output_tex="out.tex",
-                                   mapping_csv="analysis/fw_names.csv"):
+def aggregate_pre_analysis_metrics(db_dir, mode, metric_name, max_runs=None, max_experiments=None,
+                                   output_csv=None, output_tex=None,
+                                   mapping_csv="analysis/fw_names.csv",
+                                   output_dir="analysis_results"):
     metric_name = metric_name.lower()
     mode = mode.lower()
     if mode not in ("min_vs_orig", "heu_vs_taint"):
         raise ValueError("mode must be one of 'min_vs_orig' or 'heu_vs_taint'")
     if metric_name not in ("precision", "recall", "f1", "accuracy", "time"):
         raise ValueError("metric must be one of precision, recall, f1, accuracy, time")
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    if output_csv is None:
+        output_csv = os.path.join(output_dir, f"out_taint_{mode}_{metric_name}.csv")
+    if output_tex is None:
+        output_tex = os.path.join(output_dir, f"out_taint_{mode}_{metric_name}.tex")
 
     if not os.path.exists(mapping_csv):
         raise FileNotFoundError(f"Firmware mapping CSV not found: {mapping_csv}")
@@ -2069,6 +2077,24 @@ def aggregate_pre_analysis_metrics(db_dir, mode, metric_name, max_runs=None,
                     continue
 
                 run_dirs = [d for d in sorted(os.listdir(fw_path)) if d.startswith("pre_analysis_")]
+
+                if max_experiments is not None:
+                    exp_ids_seen = set()
+                    filtered_dirs = []
+                    for d in run_dirs:
+                        parts = d.split("_")
+                        if len(parts) >= 3:
+                            try:
+                                exp_id = int(parts[2])
+                                if exp_id < max_experiments:
+                                    filtered_dirs.append(d)
+                                    exp_ids_seen.add(exp_id)
+                            except (ValueError, IndexError):
+                                filtered_dirs.append(d)
+                        else:
+                            filtered_dirs.append(d)
+                    run_dirs = filtered_dirs
+
                 if max_runs is not None:
                     run_dirs = run_dirs[:max_runs]
                 if not run_dirs:
@@ -2278,12 +2304,17 @@ def aggregate_pre_analysis_metrics(db_dir, mode, metric_name, max_runs=None,
 
 def print_usage():
     print("Usage:")
-    print("  python3 aggregate_metrics.py -d <parent_dir> [-d <other_parent>] -M <mode> -m <metric> [-n <max_runs>] [-o <out.csv>] [-t <out.tex>]")
+    print("  python3 taint_analysis.py -d <parent_dir> [-d <other_parent>] -M <mode> -m <metric>")
+    print("                               [-n <max_runs>] [-e <max_experiments>] [-o <out.csv>] [-t <out.tex>] [--output-dir <dir>]")
     print("")
     print("Notes:")
     print("  If a provided -d path contains child directories named like 'pre_analysis_*', those child directories")
     print("  will be expanded and used as the actual DB directories to aggregate. Otherwise the provided path is")
     print("  used directly as a DB dir.")
+    print("")
+    print("  If -o or -t are not specified, default filenames will be generated based on mode and metric:")
+    print("    out_taint_{mode}_{metric}.csv and out_taint_{mode}_{metric}.tex")
+    print("  Files will be saved in --output-dir (default: analysis_results/)")
     print("")
     print("Mode:")
     print("  min_vs_orig   Compare minimized runs vs original")
@@ -2291,9 +2322,37 @@ def print_usage():
     print("")
     print("Metric:")
     print("  precision | recall | f1 | accuracy | time")
+    print("")
+    print("Filtering Options:")
+    print("  -e <max_experiments>  Limit the number of experiment IDs to consider.")
+    print("                        Directory naming: pre_analysis_{exp_id}_{run_idx}")
+    print("                        For example, with -e 2, only experiments 0 and 1 are considered:")
+    print("                          pre_analysis_0_*, pre_analysis_1_*  (included)")
+    print("                          pre_analysis_2_*, pre_analysis_3_*  (excluded)")
+    print("")
+    print("  -n <max_runs>         Limit the number of runs to consider (after filtering by -e).")
+    print("                        For example, with -n 2, only the first 2 runs are considered:")
+    print("                          pre_analysis_0_0, pre_analysis_0_1  (included)")
+    print("                          pre_analysis_0_2, pre_analysis_0_3  (excluded)")
+    print("")
+    print("  Note: Both filters can be combined. Example: -e 2 -n 3 will consider")
+    print("        at most 3 runs from experiments 0 and 1 only.")
+    print("")
     print("Examples:")
+    print("  # Consider only first 5 runs (across all experiments)")
     print("  python3 aggregate_metrics.py -d pre_analysis_parent -M min_vs_orig -m precision -n 5")
+    print("")
+    print("  # Consider only experiments 0, 1, 2 (all runs within those experiments)")
+    print("  python3 aggregate_metrics.py -d pre_analysis_parent -M min_vs_orig -m precision -e 3")
+    print("")
+    print("  # Consider experiments 0 and 1, with at most 2 runs each")
+    print("  python3 aggregate_metrics.py -d pre_analysis_parent -M min_vs_orig -m precision -e 2 -n 6")
+    print("")
+    print("  # Multiple databases")
     print("  python3 aggregate_metrics.py -d db_parent1 db_parent2 -M heu_vs_taint -m f1")
+    print("")
+    print("  # Custom output directory")
+    print("  python3 aggregate_metrics.py -d pre_analysis_parent -M min_vs_orig -m recall --output-dir results/")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
@@ -2301,9 +2360,14 @@ if __name__ == "__main__":
                         help="One or more parent directories (space-separated). If a parent contains children 'pre_analysis_*', they are expanded.")
     parser.add_argument("-M", dest="mode", required=True)
     parser.add_argument("-m", dest="metric", required=True)
-    parser.add_argument("-n", dest="max_runs", type=int, default=None)
-    parser.add_argument("-o", dest="output_csv", default="out.csv")
-    parser.add_argument("-t", dest="output_tex", default="out.tex")
+    parser.add_argument("-n", dest="max_runs", type=int, default=None,
+                        help="Maximum number of runs to consider per firmware (limits pre_analysis_X_0, pre_analysis_X_1, etc.)")
+    parser.add_argument("-e", dest="max_experiments", type=int, default=None,
+                        help="Maximum number of experiment IDs to consider (limits pre_analysis_0, pre_analysis_1, etc.)")
+    parser.add_argument("-o", dest="output_csv", default=None)
+    parser.add_argument("-t", dest="output_tex", default=None)
+    parser.add_argument("--output-dir", dest="output_dir", default="analysis_results",
+                        help="Output directory for CSV and TEX files (default: analysis_results)")
     parser.add_argument("-h", "--help", action="store_true")
     args = parser.parse_args()
 
@@ -2367,8 +2431,10 @@ if __name__ == "__main__":
                                         args.mode,
                                         args.metric,
                                         max_runs=args.max_runs,
+                                        max_experiments=args.max_experiments,
                                         output_csv=args.output_csv,
-                                        output_tex=args.output_tex)
+                                        output_tex=args.output_tex,
+                                        output_dir=args.output_dir)
 
     print(df)
 
