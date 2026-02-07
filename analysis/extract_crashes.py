@@ -2779,9 +2779,16 @@ if __name__ == "__main__":
                         help="Include seeds without .succ flag (default: only include .succ seeds)")
     parser.add_argument("--extract-unique", metavar="OUTPUT_DIR",
                         help="Extract one representative crash seed per firmware/module/function to OUTPUT_DIR")
+    parser.add_argument("--output-dir", default="analysis_results",
+                        help="Directory to write analysis results (CSV and LaTeX files). Default: analysis_results")
 
     args = parser.parse_args()
     verbose = not args.quiet
+
+    OUTPUT_DIR = args.output_dir
+    if verbose:
+        print(f"[INFO] Output directory: {OUTPUT_DIR}")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     MAX_EXP_NUM = args.max_exp
     if MAX_EXP_NUM is not None and verbose:
