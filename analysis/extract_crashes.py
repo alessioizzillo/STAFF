@@ -17,7 +17,7 @@ FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 
 SKIP_MODULES = {}
 SKIP_MODULES = {("any", "aflnet_base", "any")}
-SKIP_MODULES = {("FW_RT_N10U_B1_30043763754.zip,", "any", "rc"),("FW_TV-IP121WN_1.2.2.zip", "any", "setup.cgi"), ("any", "any", "FP"), ("any", "aflnet_base", "any"), ("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
+SKIP_MODULES = {("FW_RT_N10U_B1_30043763754.zip", "any", "rc"),("FW_TV-IP121WN_1.2.2.zip", "any", "setup.cgi"), ("any", "any", "FP"), ("any", "aflnet_base", "any"), ("dap2310_v1.00_o772.bin", "any", "neaps_array"), ("dap2310_v1.00_o772.bin", "any", "neapc"),
                 ("dap2310_v1.00_o772.bin", "any", "ethlink"), ("dap2310_v1.00_o772.bin", "any", "aparraymsg"),
                 ("dir300_v1.03_7c.bin", "any", "ethlink"), ("dir300_v1.03_7c.bin", "any", "aparraymsg"), 
                 ("FW_RT_N10U_B1_30043763754.zip", "any", "u2ec"), ("DGND3300_Firmware_Version_1.1.00.22__North_America_.zip", "any", "potcounter"),
