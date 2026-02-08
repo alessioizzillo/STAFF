@@ -2548,6 +2548,230 @@ def build_bug_level_tables(
     return (table1_rows, table2_rows, table3_rows), bug_agg, bug_sites, bug_min_reqs
 
 
+def generate_bugs_per_category_by_approach_table(bug_agg, output_dir=".", verbose=False):
+    output_csv = os.path.join(output_dir, "out_bugs_per_category_by_approach.csv")
+    output_tex = os.path.join(output_dir, "out_bugs_per_category_by_approach.tex")
+
+    bugs_by_category = defaultdict(lambda: defaultdict(set))
+
+    for (fw, bug_id, category, cve_id), method_dict in bug_agg.items():
+        cat = category or "Unknown"
+
+        for method_name in DEFAULT_METHODS:
+            if method_name in method_dict and method_dict[method_name]:
+                bugs_by_category[cat][method_name].add((fw, bug_id))
+
+    rows = []
+    total_bugs_per_method = defaultdict(int)
+
+    for cat in CAUSALITY_CATEGORY_ORDER:
+        row = {"category": cat}
+        row_has_bugs = False
+        for method in DEFAULT_METHODS:
+            count = len(bugs_by_category[cat][method])
+            abbr = METHOD_ABBR.get(method, method)
+            row[abbr] = count
+            total_bugs_per_method[method] += count
+            if count > 0:
+                row_has_bugs = True
+        if row_has_bugs:
+            rows.append(row)
+
+    if "Unknown" in bugs_by_category:
+        row = {"category": "Unknown"}
+        row_has_bugs = False
+        for method in DEFAULT_METHODS:
+            count = len(bugs_by_category["Unknown"][method])
+            abbr = METHOD_ABBR.get(method, method)
+            row[abbr] = count
+            total_bugs_per_method[method] += count
+            if count > 0:
+                row_has_bugs = True
+        if row_has_bugs:
+            rows.append(row)
+
+    total_row = {"category": "Total"}
+    for method in DEFAULT_METHODS:
+        abbr = METHOD_ABBR.get(method, method)
+        total_row[abbr] = total_bugs_per_method[method]
+    rows.append(total_row)
+
+    headers = ["category"] + [METHOD_ABBR.get(m, m) for m in DEFAULT_METHODS]
+
+    with open(output_csv, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    if verbose:
+        print(f"[INFO] Wrote bugs per category by approach CSV to {output_csv}")
+
+    def latex_escape(s):
+        s = str(s)
+        s = s.replace("\\", "\\textbackslash{}")
+        s = s.replace("&", "\\&")
+        s = s.replace("%", "\\%")
+        s = s.replace("$", "\\$")
+        s = s.replace("#", "\\#")
+        s = s.replace("_", "\\_")
+        s = s.replace("{", "\\{")
+        s = s.replace("}", "\\}")
+        s = s.replace("~", "\\textasciitilde{}")
+        s = s.replace("^", "\\textasciicircum{}")
+        return s
+
+    with open(output_tex, 'w', encoding='utf-8') as f:
+        f.write("\\begin{table}[ht]\n")
+        f.write("\\centering\n")
+        f.write("\\renewcommand{\\arraystretch}{1.1}\n")
+
+        col_format = "|l||" + "|".join("c" for _ in DEFAULT_METHODS) + "|"
+        f.write(f"\\begin{{tabular}}{{{col_format}}}\n")
+        f.write("\\hline\n")
+
+        header_cells = ["{\\sc Category}"] + [
+            f"{{\\sc {latex_escape(METHOD_ABBR.get(m, m))}}}"
+            for m in DEFAULT_METHODS
+        ]
+        f.write(" & ".join(header_cells) + " \\\\\n")
+        f.write("\\hline\\hline\n")
+
+        for row in rows:
+            if row["category"] == "Total":
+                f.write("\\hline\n")
+
+            cells = [latex_escape(row["category"])]
+            for method in DEFAULT_METHODS:
+                abbr = METHOD_ABBR.get(method, method)
+                cells.append(str(row[abbr]))
+
+            f.write(" & ".join(cells) + " \\\\\n")
+
+        f.write("\\hline\n")
+        f.write("\\end{tabular}\n")
+        f.write("\\caption{Number of bugs per category found by each approach}\n")
+        f.write("\\label{tab:bugs_per_category_by_approach}\n")
+        f.write("\\end{table}\n")
+
+    if verbose:
+        print(f"[INFO] Wrote bugs per category by approach TEX to {output_tex}")
+
+
+def generate_detection_consistency_table(bug_agg, experiments_dir=None, total_experiments=None, output_dir=".", verbose=False):
+    output_csv = os.path.join(output_dir, "out_detection_consistency.csv")
+    output_tex = os.path.join(output_dir, "out_detection_consistency.tex")
+
+    if total_experiments is None:
+        total_experiments = defaultdict(lambda: defaultdict(int))
+        if experiments_dir and os.path.isdir(experiments_dir):
+            for sub_exp in sorted(os.listdir(experiments_dir)):
+                sub_path = os.path.join(experiments_dir, sub_exp)
+                if not os.path.isdir(sub_path) or not sub_exp.startswith("exp_"):
+                    continue
+                if not should_include_experiment(sub_exp):
+                    continue
+                config_path = os.path.join(sub_path, "outputs", "config.ini")
+                if not os.path.isfile(config_path):
+                    continue
+                cfg = configparser.ConfigParser()
+                try:
+                    cfg.read(config_path)
+                    mode = cfg.get("GENERAL", "mode")
+                    firmware_path = cfg.get("GENERAL", "firmware")
+                    if os.path.dirname(firmware_path):
+                        firmware_with_brand = firmware_path
+                    else:
+                        firmware_with_brand = os.path.basename(firmware_path)
+                    total_experiments[firmware_with_brand][mode] += 1
+                except Exception:
+                    continue
+
+    numerators = defaultdict(lambda: defaultdict(int))
+    denominators = defaultdict(lambda: defaultdict(int))
+
+    for (fw, bug_id, category, cve_id), method_dict in bug_agg.items():
+        cat = category or "Unknown"
+        for method in DEFAULT_METHODS:
+            fw_total = total_experiments.get(fw, {}).get(method, 0)
+            detections = len(method_dict.get(method, {}))
+            numerators[cat][method] += detections
+            if detections > 0:
+                denominators[cat][method] += fw_total
+
+    rows = []
+    for cat in CAUSALITY_CATEGORY_ORDER:
+        if not any(denominators[cat][m] > 0 or numerators[cat][m] > 0 for m in DEFAULT_METHODS):
+            continue
+        row = {"category": cat}
+        for method in DEFAULT_METHODS:
+            abbr = METHOD_ABBR.get(method, method)
+            num = numerators[cat][method]
+            den = round(denominators[cat][method], -1)
+            row[abbr] = f"{num / den:.2f}" if den > 0 else "-"
+        rows.append(row)
+
+    if any(numerators["Unknown"][m] > 0 or denominators["Unknown"][m] > 0 for m in DEFAULT_METHODS):
+        row = {"category": "Unknown"}
+        for method in DEFAULT_METHODS:
+            abbr = METHOD_ABBR.get(method, method)
+            num = numerators["Unknown"][method]
+            den = round(denominators["Unknown"][method], -1)
+            row[abbr] = f"{num / den:.2f}" if den > 0 else "-"
+        rows.append(row)
+
+    headers = ["category"] + [METHOD_ABBR.get(m, m) for m in DEFAULT_METHODS]
+
+    with open(output_csv, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    if verbose:
+        print(f"[INFO] Wrote detection consistency CSV to {output_csv}")
+
+    def latex_escape(s):
+        s = str(s)
+        s = s.replace("\\", "\\textbackslash{}")
+        s = s.replace("&", "\\&")
+        s = s.replace("%", "\\%")
+        s = s.replace("$", "\\$")
+        s = s.replace("#", "\\#")
+        s = s.replace("_", "\\_")
+        s = s.replace("{", "\\{")
+        s = s.replace("}", "\\}")
+        s = s.replace("~", "\\textasciitilde{}")
+        s = s.replace("^", "\\textasciicircum{}")
+        return s
+
+    with open(output_tex, 'w', encoding='utf-8') as f:
+        f.write("\\begin{table}[ht]\n")
+        f.write("\\centering\n")
+        f.write("\\renewcommand{\\arraystretch}{1.1}\n")
+        col_format = "|l||" + "|".join("c" for _ in DEFAULT_METHODS) + "|"
+        f.write(f"\\begin{{tabular}}{{{col_format}}}\n")
+        f.write("\\hline\n")
+        header_cells = ["{\\sc Category}"] + [
+            f"{{\\sc {latex_escape(METHOD_ABBR.get(m, m))}}}"
+            for m in DEFAULT_METHODS
+        ]
+        f.write(" & ".join(header_cells) + " \\\\\n")
+        f.write("\\hline\\hline\n")
+        for row in rows:
+            cells = [latex_escape(row["category"])]
+            for method in DEFAULT_METHODS:
+                abbr = METHOD_ABBR.get(method, method)
+                cells.append(latex_escape(row[abbr]))
+            f.write(" & ".join(cells) + " \\\\\n")
+        f.write("\\hline\n")
+        f.write("\\end{tabular}\n")
+        f.write("\\caption{Bug Detection Consistency Rate (detections / total experiments) per category by approach}\n")
+        f.write("\\label{tab:detection_consistency}\n")
+        f.write("\\end{table}\n")
+
+    if verbose:
+        print(f"[INFO] Wrote detection consistency TEX to {output_tex}")
+
+
 def generate_cve_cwe_summary_table(bug_agg, bug_sites, fw_map, crashes_csv_path="analysis/crashes.csv",
                                      output_dir=".", verbose=False):
     cve_cwe_lookup = {}
@@ -2640,7 +2864,7 @@ def generate_cve_cwe_summary_table(bug_agg, bug_sites, fw_map, crashes_csv_path=
             if cwe_value:
                 break
 
-        bug_key = (fw_display, bug_identifier, category)
+        bug_key = (fw_display, bug_id, category)
 
         if bug_key not in bug_info:
             bug_info[bug_key] = {
@@ -2810,7 +3034,11 @@ if __name__ == "__main__":
         import pprint
         pprint.pprint(PC_RANGES)
 
-    unify_crash_and_trace_filenames()
+    try:
+        unify_crash_and_trace_filenames()
+    except Exception as e:
+        if verbose:
+            print(f"[WARN] Error during unify_crash_and_trace_filenames: {e}")
 
     if args.update:
         update_extracted_root_from_experiments(args.experiments_dir, extracted_root=args.extracted_root, verbose=verbose)
@@ -2840,6 +3068,19 @@ if __name__ == "__main__":
         show_exp_count=args.show_exp_count,
         experiments_dir=args.experiments_dir,
         include_zero_bugs=args.include_zero_crashes,
+    )
+
+    generate_bugs_per_category_by_approach_table(
+        bug_agg=bug_agg,
+        output_dir=OUTPUT_DIR,
+        verbose=True
+    )
+
+    generate_detection_consistency_table(
+        bug_agg=bug_agg,
+        experiments_dir=args.experiments_dir,
+        output_dir=OUTPUT_DIR,
+        verbose=True
     )
 
     def load_firmware_map_triplet(path):
