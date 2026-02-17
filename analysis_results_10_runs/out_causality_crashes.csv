@@ -1,0 +1,6 @@
+category,num_crashes,full_causality_crashes,causality_score
+OIB,12,7,0.69
+OID,5,2,0.62
+MID,23,15,0.8
+MII,7,4,0.57
+ALL,47,28,0.72

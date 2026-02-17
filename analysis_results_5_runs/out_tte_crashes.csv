@@ -1,0 +1,52 @@
+firmware,module,function,category,cve_id,num_requests,TRI_cnt,TRI_avg_tte,ASA_cnt,ASA_avg_tte,STAFF_cnt,STAFF_avg_tte
+DGN3500,mini_httpd,FUN_00410e6c,OIB,,,5,4h25m,5,0h58m,5,2h22m
+DGN3500,rc,get_sd_info,MII,,,0,,4,3h32m,5,5h34m
+DGN3500,setup.cgi,addkeyword,MID,,,0,,0,,3,16h39m
+DGN3500,setup.cgi,delete,MID,,,0,,2,7h1m,0,
+DGN3500,setup.cgi,find_val,MID,,,0,,2,10h18m,1,22h31m
+DGN3500,setup.cgi,html_parser,MID,,,0,,5,1h33m,5,1h3m
+DGN3500,setup.cgi,save,MID,,,0,,0,,2,19h27m
+DGN3500,setup.cgi,set_SRouteMetric,MID,,,0,,0,,5,6h3m
+DGN3500,setup.cgi,set_TimeZone,MID,,,0,,1,4h17m,0,
+DGN3500,setup.cgi,set_rule_out,MID,,,0,,1,10h50m,0,
+DGND3300,mini_httpd,FUN_004036e8,OIB,,,2,0h34m,0,,0,
+DGND3300,mini_httpd,FUN_0040427c,OIB,,,5,0h56m,2,11h4m,2,19h29m
+DGND3300,setup.cgi,addkeyword,MID,,,0,,1,13h19m,3,12h53m
+DGND3300,setup.cgi,del_list,MID,,,0,,3,2h20m,3,13h56m
+DGND3300,setup.cgi,find_val,MID,,,0,,0,,1,22h27m
+DGND3300,setup.cgi,get_WAN_ipType,MID,,,0,,1,17h51m,1,18h47m
+DGND3300,setup.cgi,html_parser,MID,,,0,,5,0h35m,5,0h57m
+DGND3300,setup.cgi,save,MID,,,0,,2,14h29m,2,5h19m
+DGND3300,setup.cgi,set_SRouteMetric,MID,,,0,,0,,5,4h15m
+DGND3300,setup.cgi,set_TimeZone,MID,,,0,,1,0h19m,1,17h41m
+DGND3300,setup.cgi,set_WAN_ipType,MID,,,0,,1,4h37m,0,
+DGND3300,setup.cgi,set_rule_in,MID,,,0,,2,7h44m,0,
+DGND3300,setup.cgi,set_rule_out,MID,,,0,,1,0h45m,3,9h47m
+TV-IP121WN,network.cgi,main,OID,CVE-2018-19240,,0,,0,,5,0h33m
+TV-IP121WN,view.cgi,main,OID,,,0,,1,14h59m,0,
+TV-IP651WI,alphapd,websCgibinProcessor,MID,,,0,,0,,3,1h13m
+WRT320N,httpd,get_cgi,OIB,,,5,16h30m,0,,4,4h29m
+WRT320N,httpd,valid_hwaddr,OIB,,,0,,5,4h49m,5,1h14m
+WRT320N,httpd,validate_cgi,OIB,,,5,16h21m,0,,5,2h56m
+WRT320N,httpd,validate_forward_single,OIB,,,0,,2,6h55m,5,2h17m
+WRT320N,httpd,validate_merge_ipaddrs,OIB,,,4,16h38m,0,,5,0h52m
+JNR3210,mini_httpd,FUN_00403acc,OIB,,,0,,0,,3,9h35m
+JNR3210,mini_httpd,FUN_00405c88,OIB,,,5,1h1m,5,0h30m,5,2h25m
+JNR3210,setup.cgi,html_parser,OID,,,5,0h34m,5,1h31m,5,7h37m
+JNR3210,setup.cgi,upgrade_main,OID,,,0,,0,,5,4h28m
+TL-WPA8630 (US),httpd,FUN_004057d0,OIB,CVE-2024-57357,,0,,1,2h2m,5,13h49m
+TL-WPA8630 (US),httpd,FUN_0040edfc,OIB,CVE-2023-27837,,0,,2,4h38m,4,10h55m
+TL-WPA8630 (US),httpd,FUN_0041685c,OIB,CVE-2024-57357,,0,,1,4h36m,0,
+TL-WPA8630 (US),httpd,FUN_00425f90,OIB,CVE-2023-27837,,5,0h0m,0,,0,
+TL-WPA8630 (US),ledschd,FUN_00402320,MII,,,0,,2,4h11m,1,6h2m
+DAP-2310,atp,ExeShell,MID,CVE-2016-1558,,0,,0,,2,8h56m
+DAP-2310,atp,redirect_htm,MID,,,0,,0,,5,3h4m
+DAP-2310,atp,rpsubname,MID,,,0,,0,,1,23h20m
+DAP-2310,udhcpd,FUN_00403448,MII,,,0,,2,6h58m,2,3h23m
+DAP-2310,xmldb,FUN_00408618,MII,,,0,,0,,5,2h31m
+DAP-2310,xmldb,FUN_00408b50,MII,,,0,,0,,1,17h8m
+DIR-300,atp,ExeShell,MID,,,0,,0,,3,9h5m
+DIR-300,atp,do_xgi,MID,,,0,,0,,5,1h43m
+DIR-300,atp,redirect_htm,MID,,,0,,1,11h34m,5,1h19m
+DIR-300,udhcpd,FUN_00402f70,MII,,,0,,0,,4,4h17m
+DIR-300,xmldb,FUN_0040b7e4,MII,,,0,,0,,5,1h20m

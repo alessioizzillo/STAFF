@@ -1,0 +1,26 @@
+#,Firmware,Category,Binary,Functions,# Min Reqs,CVE,CWE,STAFF Discovery
+0,DGN3500,OIB,mini_httpd,FUN_00410e6c,,,CWE-476,Yes
+1,DGN3500,MID,setup.cgi,"addkeyword, delete, find_val, html_parser, save, set_SRouteMetric, set_TimeZone, set_rule_out",,,CWE-476,Yes
+2,DGN3500,MII,rc,get_sd_info,,,CWE-119,Yes
+3,DGND3300,OIB,mini_httpd,"FUN_004036e8, FUN_0040427c",,,CWE-787,Yes
+4,DGND3300,MID,setup.cgi,"addkeyword, del_list, find_val, get_WAN_ipType, html_parser, save, set_SRouteMetric, set_TimeZone, set_WAN_ipType, set_rule_in, set_rule_out",,,CWE-119,Yes
+5,TV-IP121WN,OID,network.cgi,main,,CVE-2018-19240,CWE-119,Only
+6,TV-IP121WN,OID,view.cgi,main,,,CWE-476,No
+7,TV-IP651WI,MID,alphapd,websCgibinProcessor,,,CWE-119,Only
+8,WRT320N,OIB,httpd,"get_cgi, valid_hwaddr, validate_cgi, validate_forward_single, validate_merge_ipaddrs",,,CWE-119,Yes
+9,JNR3210,OID,setup.cgi,html_parser,,,CWE-476,Yes
+10,JNR3210,OIB,mini_httpd,FUN_00405c88,,,CWE-476,Yes
+11,JNR3210,OIB,mini_httpd,FUN_00403acc,,,CWE-476,Only
+12,JNR3210,OID,setup.cgi,upgrade_main,,,CWE-476,Only
+13,TL-WPA8630 (US),OIB,httpd,"FUN_0040edfc, FUN_00425f90",,CVE-2023-27837,CWE-77,Yes
+14,TL-WPA8630 (US),OIB,httpd,"FUN_004057d0, FUN_0041685c",,CVE-2024-57357,CWE-78,Yes
+15,TL-WPA8630 (US),MII,ledschd,FUN_00402320,,,CWE-119,Yes
+16,DAP-2310,MID,atp,ExeShell,,CVE-2016-1558,CWE-119,Only
+17,DAP-2310,MII,udhcpd,FUN_00403448,,,CWE-476,Yes
+18,DAP-2310,MID,atp,"redirect_htm, rpsubname",,,CWE-119,Only
+19,DAP-2310,MII,xmldb,FUN_00408618,,,CWE-119,Only
+20,DAP-2310,MII,xmldb,FUN_00408b50,,,CWE-119,Only
+21,DIR-300,MII,xmldb,FUN_0040b7e4,,,CWE-119,Only
+22,DIR-300,MID,atp,"ExeShell, redirect_htm",,,CWE-119,Yes
+23,DIR-300,MID,atp,do_xgi,,,CWE-119,Only
+24,DIR-300,MII,udhcpd,FUN_00402f70,,,CWE-476,Only

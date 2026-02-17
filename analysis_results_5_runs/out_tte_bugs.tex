@@ -1,0 +1,62 @@
+\begin{table*}[ht]
+\centering
+\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{|l||c|c|c|c|c|c|c|c|c|c|}
+\hline
+{\sc firmware} & {\sc module} & {\sc cve\_id} & {\sc category} & {\sc min\_reqs} & {\sc TRI\_cnt} & {\sc TRI\_avg\_tte} & {\sc ASA\_cnt} & {\sc ASA\_avg\_tte} & {\sc STAFF\_cnt} & {\sc STAFF\_avg\_tte} \\
+\toprule
+\hline
+DGN3500 & mini\_httpd & 0 & OIB & 0 & 5 & 4h25m & 5 & 0h58m & 5 & 2h22m \\
+\hline
+DGN3500 & rc & 1 & MII & 0 & 0 &  & 4 & 3h32m & 5 & 5h34m \\
+\hline
+DGN3500 & setup.cgi & 2 & MID & 0 & 0 &  & 5 & 1h33m & 5 & 1h3m \\
+\hline
+DGND3300 & mini\_httpd & 3 & OIB & 0 & 5 & 0h56m & 2 & 11h4m & 2 & 19h29m \\
+\hline
+DGND3300 & setup.cgi & 4 & MID & 0 & 0 &  & 5 & 0h35m & 5 & 0h57m \\
+\hline
+TV-IP121WN & network.cgi & CVE-2018-19240 & OID & 0 & 0 &  & 0 &  & 5 & 0h33m \\
+\hline
+TV-IP121WN & view.cgi & 6 & OID & 0 & 0 &  & 1 & 14h59m & 0 &  \\
+\hline
+TV-IP651WI & alphapd & 8 & MID & 0 & 0 &  & 0 &  & 3 & 1h13m \\
+\hline
+WRT320N & httpd & 9 & OIB & 0 & 5 & 16h21m & 5 & 4h22m & 5 & 0h47m \\
+\hline
+JNR3210 & mini\_httpd & 10 & OIB & 0 & 0 &  & 0 &  & 3 & 9h35m \\
+\hline
+JNR3210 & mini\_httpd & 11 & OIB & 0 & 5 & 1h1m & 5 & 0h30m & 5 & 2h25m \\
+\hline
+JNR3210 & setup.cgi & 12 & OID & 0 & 5 & 0h34m & 5 & 1h31m & 5 & 7h37m \\
+\hline
+JNR3210 & setup.cgi & 13 & OID & 0 & 0 &  & 0 &  & 5 & 4h28m \\
+\hline
+TL-WPA8630 (US) & httpd & CVE-2024-57357 & OIB & 0 & 0 &  & 2 & 3h19m & 5 & 13h49m \\
+\hline
+TL-WPA8630 (US) & httpd & CVE-2023-27837 & OIB & 0 & 5 & 0h0m & 2 & 4h38m & 4 & 10h55m \\
+\hline
+TL-WPA8630 (US) & ledschd & 16 & MII & 0 & 0 &  & 2 & 4h11m & 1 & 6h2m \\
+\hline
+DAP-2310 & atp & 17 & MID & 0 & 0 &  & 0 &  & 5 & 3h4m \\
+\hline
+DAP-2310 & atp & CVE-2016-1558 & MID & 0 & 0 &  & 0 &  & 2 & 8h56m \\
+\hline
+DAP-2310 & udhcpd & 20 & MII & 0 & 0 &  & 2 & 6h58m & 2 & 3h23m \\
+\hline
+DAP-2310 & xmldb & 21 & MII & 0 & 0 &  & 0 &  & 5 & 2h31m \\
+\hline
+DAP-2310 & xmldb & 22 & MII & 0 & 0 &  & 0 &  & 1 & 17h8m \\
+\hline
+DIR-300 & atp & 23 & MID & 0 & 0 &  & 0 &  & 5 & 1h43m \\
+\hline
+DIR-300 & atp & 24 & MID & 0 & 0 &  & 1 & 11h34m & 5 & 1h19m \\
+\hline
+DIR-300 & udhcpd & 25 & MII & 0 & 0 &  & 0 &  & 4 & 4h17m \\
+\hline
+DIR-300 & xmldb & 26 & MII & 0 & 0 &  & 0 &  & 5 & 1h20m \\
+\hline
+\end{tabular}
+\caption{TTE bugs}
+\end{table*}

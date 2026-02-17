@@ -1,0 +1,143 @@
+\begin{table*}[ht]
+\centering
+\renewcommand{\arraystretch}{1.06}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{|l||c|c|c|c|c|c|c|c|c|c|}
+\hline
+{\sc Firmware} & {\sc Binary} & {\sc Function} & {\sc Category} & \multicolumn{2}{c|}{\sc {triforce}} & \multicolumn{2}{c|}{\sc {aflnet\_state\_aware}} & \multicolumn{3}{c|}{\sc {staff\_state\_aware}} \\
+ &  &  &  & {\sc cnt} & {\sc TTE} & {\sc cnt} & {\sc TTE} & {\sc cnt} & {\sc TTE} & {\sc taint} \\
+\hline
+\multirow{10}{*}{DGN3500} & \multirow{1}{*}{\texttt{mini\_httpd}} & \texttt{FUN\_00410e6c} & OIB & 5 & 4h25m & 5 & 0h58m & 5 & 2h22m & 0.0 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{1}{*}{\texttt{rc}} & \texttt{get\_sd\_info} & MII & 0 &  & 4 & 3h32m & 5 & 5h34m & 0.0 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{8}{*}{\texttt{setup.cgi}} & \texttt{addkeyword} & MID & 0 &  & 0 &  & 3 & 16h39m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{delete} & MID & 0 &  & 2 & 7h1m & 0 &  &  \\
+\cline{3-11}
+ &  & \texttt{find\_val} & MID & 0 &  & 2 & 10h18m & 1 & 22h31m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{html\_parser} & MID & 0 &  & 5 & 1h33m & 5 & 1h3m & 0.6 \\
+\cline{3-11}
+ &  & \texttt{save} & MID & 0 &  & 0 &  & 2 & 19h27m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{set\_SRouteMetric} & MID & 0 &  & 0 &  & 5 & 6h3m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{set\_TimeZone} & MID & 0 &  & 1 & 4h17m & 0 &  &  \\
+\cline{3-11}
+ &  & \texttt{set\_rule\_out} & MID & 0 &  & 1 & 10h50m & 0 &  &  \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\multirow{13}{*}{DGND3300} & \multirow{2}{*}{\texttt{mini\_httpd}} & \texttt{FUN\_004036e8} & OIB & 2 & 0h34m & 0 &  & 0 &  &  \\
+\cline{3-11}
+ &  & \texttt{FUN\_0040427c} & OIB & 5 & 0h56m & 2 & 11h4m & 2 & 19h29m & 0.5 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{11}{*}{\texttt{setup.cgi}} & \texttt{addkeyword} & MID & 0 &  & 1 & 13h19m & 3 & 12h53m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{del\_list} & MID & 0 &  & 3 & 2h20m & 3 & 13h56m & 0.333 \\
+\cline{3-11}
+ &  & \texttt{find\_val} & MID & 0 &  & 0 &  & 1 & 22h27m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{get\_WAN\_ipType} & MID & 0 &  & 1 & 17h51m & 1 & 18h47m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{html\_parser} & MID & 0 &  & 5 & 0h35m & 5 & 0h57m & 0.6 \\
+\cline{3-11}
+ &  & \texttt{save} & MID & 0 &  & 2 & 14h29m & 2 & 5h19m & 0.5 \\
+\cline{3-11}
+ &  & \texttt{set\_SRouteMetric} & MID & 0 &  & 0 &  & 5 & 4h15m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{set\_TimeZone} & MID & 0 &  & 1 & 0h19m & 1 & 17h41m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{set\_WAN\_ipType} & MID & 0 &  & 1 & 4h37m & 0 &  &  \\
+\cline{3-11}
+ &  & \texttt{set\_rule\_in} & MID & 0 &  & 2 & 7h44m & 0 &  &  \\
+\cline{3-11}
+ &  & \texttt{set\_rule\_out} & MID & 0 &  & 1 & 0h45m & 3 & 9h47m & 0.0 \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\multirow{2}{*}{TV-IP121WN} & \multirow{1}{*}{\texttt{network.cgi}} & \texttt{main} & OID & 0 &  & 0 &  & 5 & 0h33m & 1.0 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{1}{*}{\texttt{view.cgi}} & \texttt{main} & OID & 0 &  & 1 & 14h59m & 0 &  &  \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\multirow{1}{*}{TV-IP651WI} & \multirow{1}{*}{\texttt{alphapd}} & \texttt{websCgibinProcessor} & MID & 0 &  & 0 &  & 3 & 1h13m & 0.333 \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\multirow{5}{*}{WRT320N} & \multirow{5}{*}{\texttt{httpd}} & \texttt{get\_cgi} & OIB & 5 & 16h30m & 0 &  & 4 & 4h29m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{valid\_hwaddr} & OIB & 0 &  & 5 & 4h49m & 5 & 1h14m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{validate\_cgi} & OIB & 5 & 16h21m & 0 &  & 5 & 2h56m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{validate\_forward\_single} & OIB & 0 &  & 2 & 6h55m & 5 & 2h17m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{validate\_merge\_ipaddrs} & OIB & 4 & 16h38m & 0 &  & 5 & 0h52m & 1.0 \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\multirow{4}{*}{JNR3210} & \multirow{2}{*}{\texttt{mini\_httpd}} & \texttt{FUN\_00403acc} & OIB & 0 &  & 0 &  & 3 & 9h35m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{FUN\_00405c88} & OIB & 5 & 1h1m & 5 & 0h30m & 5 & 2h25m & 0.0 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{2}{*}{\texttt{setup.cgi}} & \texttt{html\_parser} & OID & 5 & 0h34m & 5 & 1h31m & 5 & 7h37m & 0.4 \\
+\cline{3-11}
+ &  & \texttt{upgrade\_main} & OID & 0 &  & 0 &  & 5 & 4h28m & 1.0 \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\multirow{5}{*}{TL-WPA8630 (US)} & \multirow{4}{*}{\texttt{httpd}} & \texttt{FUN\_004057d0} & OIB & 0 &  & 1 & 2h2m & 5 & 13h49m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{FUN\_0040edfc} & OIB & 0 &  & 2 & 4h38m & 4 & 10h55m & 0.0 \\
+\cline{3-11}
+ &  & \texttt{FUN\_0041685c} & OIB & 0 &  & 1 & 4h36m & 0 &  &  \\
+\cline{3-11}
+ &  & \texttt{FUN\_00425f90} & OIB & 5 & 0h0m & 0 &  & 0 &  &  \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{1}{*}{\texttt{ledschd}} & \texttt{FUN\_00402320} & MII & 0 &  & 2 & 4h11m & 1 & 6h2m & 0.0 \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\multirow{6}{*}{DAP-2310} & \multirow{3}{*}{\texttt{atp}} & \texttt{ExeShell} & MID & 0 &  & 0 &  & 2 & 8h56m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{redirect\_htm} & MID & 0 &  & 0 &  & 5 & 3h4m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{rpsubname} & MID & 0 &  & 0 &  & 1 & 23h20m & 1.0 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{1}{*}{\texttt{udhcpd}} & \texttt{FUN\_00403448} & MII & 0 &  & 2 & 6h58m & 2 & 3h23m & 0.0 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{2}{*}{\texttt{xmldb}} & \texttt{FUN\_00408618} & MII & 0 &  & 0 &  & 5 & 2h31m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{FUN\_00408b50} & MII & 0 &  & 0 &  & 1 & 17h8m & 1.0 \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\multirow{5}{*}{DIR-300} & \multirow{3}{*}{\texttt{atp}} & \texttt{ExeShell} & MID & 0 &  & 0 &  & 3 & 9h5m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{do\_xgi} & MID & 0 &  & 0 &  & 5 & 1h43m & 1.0 \\
+\cline{3-11}
+ &  & \texttt{redirect\_htm} & MID & 0 &  & 1 & 11h34m & 5 & 1h19m & 1.0 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{1}{*}{\texttt{udhcpd}} & \texttt{FUN\_00402f70} & MII & 0 &  & 0 &  & 4 & 4h17m & 1.0 \\
+\cline{3-11}
+\cline{2-11}
+ & \multirow{1}{*}{\texttt{xmldb}} & \texttt{FUN\_0040b7e4} & MII & 0 &  & 0 &  & 5 & 1h20m & 1.0 \\
+\cline{3-11}
+\cline{2-11}
+\cline{1-1}
+\hline
+\end{tabular}
+\caption{TTE crashes}
+\end{table*}

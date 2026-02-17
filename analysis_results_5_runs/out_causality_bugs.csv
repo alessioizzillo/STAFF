@@ -1,0 +1,6 @@
+category,num_bugs,full_causality_bugs,causality_score
+MID,7,6,0.9
+MII,7,4,0.57
+OIB,7,3,0.5
+OID,3,2,0.8
+ALL,24,15,0.68

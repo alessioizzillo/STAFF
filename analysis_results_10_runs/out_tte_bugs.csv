@@ -1,0 +1,28 @@
+firmware,module,cve_id,category,min_reqs,TRI_cnt,TRI_avg_tte,ASA_cnt,ASA_avg_tte,STAFF_cnt,STAFF_avg_tte
+DGN3500,mini_httpd,0,OIB,0,9,4h24m,10,0h54m,10,3h8m
+DGN3500,rc,1,MII,0,0,,8,3h19m,10,5h18m
+DGN3500,setup.cgi,2,MID,0,0,,10,2h18m,10,1h12m
+DGND3300,mini_httpd,3,OIB,0,10,0h35m,5,8h35m,6,14h7m
+DGND3300,setup.cgi,4,MID,0,0,,10,0h36m,10,1h0m
+TV-IP121WN,network.cgi,CVE-2018-19240,OID,0,0,,0,,10,0h32m
+TV-IP121WN,view.cgi,6,OID,0,0,,3,5h26m,2,2h44m
+TV-IP121WN,watch.cgi,7,OID,0,0,,0,,1,4h42m
+TV-IP651WI,alphapd,8,MID,0,0,,0,,8,1h18m
+WRT320N,httpd,9,OIB,0,7,15h35m,10,4h44m,10,0h53m
+JNR3210,mini_httpd,10,OIB,0,2,0h22m,0,,5,10h18m
+JNR3210,mini_httpd,11,OIB,0,9,0h57m,10,0h39m,10,2h14m
+JNR3210,setup.cgi,12,OID,0,9,0h33m,10,3h52m,10,7h33m
+JNR3210,setup.cgi,13,OID,0,1,20h24m,0,,10,5h42m
+TL-WPA8630 (US),httpd,CVE-2024-57357,OIB,0,0,,5,8h2m,9,11h16m
+TL-WPA8630 (US),httpd,CVE-2023-27837,OIB,0,10,0h0m,6,4h29m,7,9h49m
+TL-WPA8630 (US),ledschd,16,MII,0,0,,3,6h50m,4,9h50m
+DAP-2310,atp,17,MID,0,0,,0,,10,2h40m
+DAP-2310,atp,CVE-2016-1558,MID,0,0,,0,,4,9h13m
+DAP-2310,atp,19,OID,0,0,,1,14h17m,0,
+DAP-2310,udhcpd,20,MII,0,0,,2,6h58m,2,3h23m
+DAP-2310,xmldb,21,MII,0,0,,0,,10,2h46m
+DAP-2310,xmldb,22,MII,0,0,,0,,1,17h8m
+DIR-300,atp,23,MID,0,0,,0,,10,1h37m
+DIR-300,atp,24,MID,0,0,,1,11h34m,10,1h19m
+DIR-300,udhcpd,25,MII,0,0,,0,,8,3h38m
+DIR-300,xmldb,26,MII,0,0,,0,,10,1h31m

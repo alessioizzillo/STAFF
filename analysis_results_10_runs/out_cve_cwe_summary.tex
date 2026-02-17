@@ -1,0 +1,63 @@
+\begin{table*}[h]
+\centering
+\begin{tabular}{|c|l|l|l|l|c|l|l|l|}
+\hline
+{\sc \#} & {\sc Firmware} & {\sc Category} & {\sc Module} & {\sc Functions} & {\sc \# Min Reqs} & {\sc CVE} & {\sc CWE} & {\sc STAFF discovery} \\
+\hline
+0 & DGN3500 & OIB & mini\_httpd & FUN\_00410e6c &  &  & CWE-476 & Yes \\
+\hline
+1 & DGN3500 & MID & setup.cgi & addkeyword, delete, find\_val, html\_parser, save, set\_SRouteMetric, set\_TimeZone, set\_WAN\_ipType, set\_rule\_out, wizard &  &  & CWE-476 & Yes \\
+\hline
+2 & DGN3500 & MII & rc & get\_sd\_info &  &  & CWE-119 & Yes \\
+\hline
+3 & DGND3300 & OIB & mini\_httpd & FUN\_004036e8, FUN\_0040427c &  &  & CWE-787 & Yes \\
+\hline
+4 & DGND3300 & MID & setup.cgi & addkeyword, del\_list, find\_val, get\_WAN\_ipType, html\_parser, save, set\_SRouteMetric, set\_TimeZone, set\_WAN\_ipType, set\_rule\_in, set\_rule\_out &  &  & CWE-119 & Yes \\
+\hline
+5 & TV-IP121WN & OID & network.cgi & main &  & CVE-2018-19240 & CWE-119 & Only \\
+\hline
+6 & TV-IP121WN & OID & view.cgi & main &  &  & CWE-476 & Yes \\
+\hline
+7 & TV-IP121WN & OID & watch.cgi & main &  &  & CWE-119 & Only \\
+\hline
+8 & TV-IP651WI & MID & alphapd & websCgibinProcessor &  &  & CWE-119 & Only \\
+\hline
+9 & WRT320N & OIB & httpd & filter\_name, get\_cgi, valid\_hwaddr, validate\_cgi, validate\_forward\_single, validate\_merge\_ipaddrs &  &  & CWE-119 & Yes \\
+\hline
+10 & JNR3210 & OID & setup.cgi & html\_parser &  &  & CWE-476 & Yes \\
+\hline
+11 & JNR3210 & OIB & mini\_httpd & FUN\_00405c88 &  &  & CWE-476 & Yes \\
+\hline
+12 & JNR3210 & OIB & mini\_httpd & FUN\_00403acc &  &  & CWE-476 & Yes \\
+\hline
+13 & JNR3210 & OID & setup.cgi & upgrade\_main &  &  & CWE-476 & Yes \\
+\hline
+14 & TL-WPA8630 (US) & OIB & httpd & FUN\_0040edfc, FUN\_00425f90 &  & CVE-2023-27837 & CWE-77 & Yes \\
+\hline
+15 & TL-WPA8630 (US) & OIB & httpd & FUN\_004057d0, FUN\_0041685c &  & CVE-2024-57357 & CWE-78 & Yes \\
+\hline
+16 & TL-WPA8630 (US) & MII & ledschd & FUN\_00402320 &  &  & CWE-119 & Yes \\
+\hline
+17 & DAP-2310 & MID & atp & ExeShell &  & CVE-2016-1558 & CWE-119 & Only \\
+\hline
+18 & DAP-2310 & MII & udhcpd & FUN\_00403448 &  &  & CWE-476 & Yes \\
+\hline
+19 & DAP-2310 & OID & atp & procPage &  &  & CWE-119 & No \\
+\hline
+20 & DAP-2310 & MID & atp & redirect\_htm, rpsubname &  &  & CWE-119 & Only \\
+\hline
+21 & DAP-2310 & MII & xmldb & FUN\_00408618 &  &  & CWE-119 & Only \\
+\hline
+22 & DAP-2310 & MII & xmldb & FUN\_00408b50 &  &  & CWE-119 & Only \\
+\hline
+23 & DIR-300 & MII & xmldb & FUN\_0040b7e4 &  &  & CWE-119 & Only \\
+\hline
+24 & DIR-300 & MID & atp & ExeShell, redirect\_htm &  &  & CWE-119 & Yes \\
+\hline
+25 & DIR-300 & MID & atp & do\_xgi &  &  & CWE-119 & Only \\
+\hline
+26 & DIR-300 & MII & udhcpd & FUN\_00402f70 &  &  & CWE-476 & Only \\
+\hline
+\end{tabular}
+\caption{CVE and CWE Summary}
+\end{table*}

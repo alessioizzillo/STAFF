@@ -256,7 +256,7 @@ Options:
 
 STAFF organizes outputs in the following directories:
 
-- **extracted_crash_out/**: Extracted and deduplicated crash reports
+- **extracted_crashes/**: Extracted and deduplicated crash reports
 - **FirmAE/scratch/<mode>/<iid>/outputs/**: Per-experiment fuzzing outputs
   - `crashes/`: Raw crash inputs
   - `crash_traces/`: Stack traces and taint information
@@ -708,7 +708,7 @@ To generate the FirmAE image for your firmware:
      - `crash_traces/`: Stack traces with taint information
      - `fuzzer_stats`: Real-time fuzzing statistics
      - `plot_data`: Coverage and crash time-series data
-   - **Extracted crashes** (after running `extract_crashes.py`): `extracted_crash_out/`
+   - **Extracted crashes** (after running `extract_crashes.py`): `extracted_crashes/`
 
 ---
 

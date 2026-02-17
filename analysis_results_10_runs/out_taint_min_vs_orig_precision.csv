@@ -1,0 +1,17 @@
+brand,firmware,version,#taint_hints,#taint_runs,avg_speedup,avg_min_precision,avg_gt_size,avg_pre_size,avg_min_size,_source_db
+TP-Link,Archer C2 (US),1,10.0,5.0,11.7,0.84,16.31,12.68,11.36,pre_analysis_0
+D-Link,DAP-2310,1.00_o772,10.0,5.0,1.65,0.93,159.38,45.42,112.21,pre_analysis_0
+NETGEAR,DGN3500,1.1.00.30,10.0,5.0,8.91,0.88,46.74,29.91,17.44,pre_analysis_0
+NETGEAR,DGND3300,1.1.00.22,10.0,5.0,3.85,0.73,58.54,36.6,9.54,pre_analysis_0
+D-Link,DIR-300,1.03_7c,10.0,5.0,4.46,0.93,114.66,43.32,95.05,pre_analysis_0
+D-Link,DIR-815,A1 1.04b03,10.0,5.0,1.42,0.97,117.98,42.56,53.18,pre_analysis_0
+Linksys,FW_RE1000 (US),1.0.02.001,10.0,5.0,4.84,0.9,20.08,12.05,17.55,pre_analysis_0
+NETGEAR,JNR3210,1.1.0.14,10.0,5.0,9.66,0.95,48.06,35.86,37.04,pre_analysis_0
+ASUS,RT-N10U,B1 3_0.0.4.376.3754,10.0,5.0,10.16,0.91,26.63,16.67,16.87,pre_analysis_0
+ASUS,RT-N53,3_0.0.4.376.3754,10.0,5.0,7.9,0.87,21.14,13.62,15.66,pre_analysis_0
+TRENDnet,TEW-652BRU,1.00b12,10.0,5.0,6.76,0.91,1.96,1.24,1.35,pre_analysis_0
+TP-Link,TL-WPA8630 (US),2,10.0,5.0,16.45,0.93,19.38,14.05,17.12,pre_analysis_0
+TRENDnet,TV-IP121WN,1.2.2,10.0,5.0,14.07,0.95,189.11,32.09,143.23,pre_analysis_0
+TRENDnet,TV-IP651WI,1_1.07.01,10.0,5.0,1.32,0.93,18.89,60.15,16.8,pre_analysis_0
+Linksys,WRT320N,1.0.05.002,10.0,5.0,3.64,0.91,20.93,11.48,16.82,pre_analysis_0
+Geom. Mean,Geom. Mean,Geom. Mean,10.0,5.0,5.47,0.9,35.06,20.4,22.34,Geom. Mean
