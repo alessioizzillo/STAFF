@@ -1,0 +1,15 @@
+{
+  "pre_analysis_id": 0,
+  "experiment_index": 2,
+  "user_interaction_id": "user_interaction_0.pcap",
+  "taint_hint_id": 2,
+  "target_region": 20,
+  "target_offset": 21,
+  "target_len": 1,
+  "kept_region_ids": [
+    20
+  ],
+  "num_gt_runs": 5,
+  "stabilized_gt": false,
+  "gt_stability": 0.0
+}
