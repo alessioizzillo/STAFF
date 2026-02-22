@@ -114,7 +114,7 @@ DEFAULT_CONFIG = {
 
 STAFF_DIR = os.getcwd()
 EXPERIMENTS_DIR_0 = os.path.join(STAFF_DIR, "experiments_0")
-CRASH_DIR = os.path.join(STAFF_DIR, "extracted_crashes")
+CRASH_DIR = os.path.join(STAFF_DIR, "unique_crashes")
 FIRMAE_DIR = os.path.join(STAFF_DIR, "FirmAE")
 PCAP_DIR = os.path.join(STAFF_DIR, "pcap")
 TAINT_DIR = os.path.join(STAFF_DIR, "pre_analysis_db")
@@ -1283,6 +1283,68 @@ def minimize_crash_seed(container_name, firmware_name, seed_path, port=80, timeo
     current_requests = list(original_requests)
     removed_indices = []
     iterations = 0
+    temp_seed_path = seed_path + ".minimize_test"
+
+    print(f"[\033[36m*\033[0m] Finding crash point (testing from end)...")
+
+    i = len(current_requests) - 1
+
+    while i > 0:
+        iterations += 1
+
+        test_requests = current_requests[:i]
+        print(f"[\033[90m→\033[0m] Testing with first {i}/{len(current_requests)} requests...", end=" ")
+
+        with open(temp_seed_path, 'wb') as f:
+            f.write(delimiter.join(test_requests))
+
+        result = send_and_monitor_seed(
+            container_name,
+            firmware_name,
+            temp_seed_path,
+            port=port,
+            timeout=timeout,
+            check_crashes=True,
+            output_minimized=None,
+            process_name=process_name
+        )
+
+        send_signal_recursive(result["qemu_pid"], signal.SIGINT)
+        try:
+            os.waitpid(result["qemu_pid"], 0)
+        except:
+            pass
+
+        if result['crash_detected']:
+            crash_at = result.get('crash_at_request', -1)
+
+            if crash_at >= 0:
+                needed_requests = crash_at + 1  # +1 because we need indices 0 through crash_at
+                print(f"[\033[32m✓\033[0m] Crash at request {crash_at} (0-indexed), need first {needed_requests} requests")
+
+                num_discarded = len(current_requests) - needed_requests
+                for j in range(needed_requests, len(current_requests)):
+                    removed_indices.append(j)
+                current_requests = current_requests[:needed_requests]
+
+                if num_discarded > 0:
+                    print(f"[\033[32m+\033[0m] Discarded {num_discarded} trailing requests (after request {crash_at})")
+
+                break
+            else:
+                print(f"[\033[32m✓\033[0m] Crash still occurs, discarding request {i+1}")
+                for j in range(i, len(current_requests)):
+                    removed_indices.append(j)
+                current_requests = test_requests
+                i -= 1
+        else:
+            print(f"[\033[31m✗\033[0m] No crash, need at least {i+1} requests")
+            num_already_removed = original_count - len(current_requests)
+            if num_already_removed > 0:
+                print(f"[\033[32m+\033[0m] Crash point found: discarded {num_already_removed} trailing requests")
+            break
+
+    print(f"\n[\033[36m*\033[0m] Fine-grained minimization on remaining {len(current_requests)} requests...")
 
     i = len(current_requests) - 1
     while i >= 0:
@@ -1295,13 +1357,11 @@ def minimize_crash_seed(container_name, firmware_name, seed_path, port=80, timeo
             i -= 1
             continue
 
-        print(f"[\033[90m→\033[0m] Testing without request {i+1}/{len(current_requests)}...", end="\n")
+        print(f"[\033[90m→\033[0m] Testing without request {i+1}/{len(current_requests)}...", end=" ")
 
-        temp_seed_path = seed_path + ".minimize_test"
         with open(temp_seed_path, 'wb') as f:
             f.write(delimiter.join(test_requests))
 
-        # try:
         result = send_and_monitor_seed(
             container_name,
             firmware_name,
@@ -1328,12 +1388,8 @@ def minimize_crash_seed(container_name, firmware_name, seed_path, port=80, timeo
             print(f"[\033[31m✗\033[0m] No crash, keeping request {i+1}")
             i -= 1
 
-        # except Exception as e:
-        #     print(f"[\033[31m!\033[0m] Error during test: {e}")
-        #     i -= 1
-        # finally:
-        #     if os.path.exists(temp_seed_path):
-        #         os.remove(temp_seed_path)
+    if os.path.exists(temp_seed_path):
+        os.remove(temp_seed_path)
 
     minimized_data = delimiter.join(current_requests)
     minimized_size = len(minimized_data)
@@ -2928,6 +2984,315 @@ def pre_analysis(container_name):
                     print(f"PRE-ANALYSIS dir: {taint_dir}")
                     taint(FIRMAE_DIR, taint_dir, work_dir, mode, os.path.join(os.path.basename(brand), os.path.basename(device)), sleep, config["GENERAL_FUZZING"]["timeout"], config["PRE-ANALYSIS"]["subregion_divisor"], config["PRE-ANALYSIS"]["min_subregion_len"], config["PRE-ANALYSIS"]["delta_threshold"], config["EMULATION_TRACING"]["include_libraries"], config["AFLNET_FUZZING"]["region_delimiter"])
 
+def _generate_crash_report_for_seed(output_dir, brand, firmware, firmware_path, module_name,
+                                     function_name, process_name, seed_path, trace_path,
+                                     serial_log_path, work_dir, extract_dir):
+    global config
+
+    def read_arch_from_workdir(work_dir: str) -> Optional[str]:
+        p = os.path.join(work_dir, "architecture")
+        try:
+            with open(p, "r", encoding="utf-8", errors="ignore") as f:
+                return f.read().strip().lower()
+        except Exception:
+            return None
+
+    def pick_capstone_arch_mode(arch: Optional[str]) -> Tuple[int, int]:
+        if not arch:
+            return (capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 | capstone.CS_MODE_LITTLE_ENDIAN)
+        arch = arch.replace(" ", "").strip().lower()
+        if arch in ("mipsel", "mipsle", "little", "le"):
+            return (capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 | capstone.CS_MODE_LITTLE_ENDIAN)
+        if arch in ("mipseb", "mipsbe", "mips", "big", "be"):
+            return (capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 | capstone.CS_MODE_BIG_ENDIAN)
+        return (capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 | capstone.CS_MODE_LITTLE_ENDIAN)
+
+    def is_angr_loadable(binary_path: str) -> bool:
+        try:
+            angr.Project(binary_path, auto_load_libs=False)
+            return True
+        except Exception:
+            return False
+
+    def find_module_path(extract_dir: str, module_name: str) -> Optional[str]:
+        for d, _, files in os.walk(extract_dir):
+            if module_name in files:
+                candidate = os.path.join(d, module_name)
+                if is_angr_loadable(candidate):
+                    return candidate
+        return None
+
+    def load_symbols_angr(binary_path: str) -> Tuple[Dict[str, Tuple[int, int, int]], angr.Project]:
+        try:
+            proj = angr.Project(binary_path, auto_load_libs=False)
+            mobj = proj.loader.main_object
+            base = getattr(mobj, "rebased_addr", None) or getattr(mobj, "mapped_base", None) or getattr(mobj, "linked_base", 0)
+            funcs = {}
+            for sym in mobj.symbols:
+                if sym.is_function:
+                    start_va = sym.rebased_addr
+                    size = sym.size if sym.size and sym.size > 0 else 1
+                    end_va = start_va + size
+                    try:
+                        file_offset = mobj.addr_to_offset(start_va)
+                        funcs[sym.name] = (start_va, end_va, file_offset)
+                    except Exception:
+                        pass
+            return funcs, proj
+        except Exception as e:
+            print(f"[WARN] Could not load symbols with angr: {e}")
+            return {}, None
+
+    def disassemble_with_capstone(binary_path: str, binary_name: str, function_names: List[str],
+                                  work_dir: str) -> Tuple[str, List[str]]:
+        try:
+            arch = read_arch_from_workdir(work_dir)
+            cs_arch, cs_mode = pick_capstone_arch_mode(arch)
+            proj = None
+            funcs_dict = {}
+            try:
+                funcs_dict, proj = load_symbols_angr(binary_path)
+            except Exception as e:
+                print(f"[WARN] angr symbol loading failed: {e}, using capstone only")
+            with open(binary_path, 'rb') as f:
+                binary_data = f.read()
+            cs = capstone.Cs(cs_arch, cs_mode)
+            cs.detail = True
+
+            def normalize_function_name(fname: str) -> List[str]:
+                variants = []
+                base_name = fname
+                if '@@' in base_name:
+                    base_name = base_name.split('@@')[0]
+                variants.append(base_name)
+                if '@' in base_name and '@@' not in fname:
+                    base_name = base_name.split('@')[0]
+                    variants.append(base_name)
+                if base_name.startswith('_'):
+                    variants.append(base_name[1:])
+                if not base_name.startswith('_'):
+                    variants.append('_' + base_name)
+                if '.' in base_name:
+                    base_name_no_version = base_name.rsplit('.', 1)[0]
+                    variants.append(base_name_no_version)
+                return list(set(variants))
+
+            disasm_output = []
+            func_set = set()
+            func_map = {}
+            for fname in function_names:
+                variants = normalize_function_name(fname)
+                for variant in variants:
+                    func_set.add(variant)
+                    func_map[variant] = fname
+
+            found_original_names = set()
+            for sym_name, (start_va, end_va, file_offset) in funcs_dict.items():
+                sym_variants = normalize_function_name(sym_name)
+                matched_func = None
+                for variant in sym_variants:
+                    if variant in func_set:
+                        matched_func = func_map[variant]
+                        break
+                if matched_func and matched_func not in found_original_names:
+                    found_original_names.add(matched_func)
+                    disasm_output.append(f"\n{'='*60}\n")
+                    disasm_output.append(f"({binary_name}, {matched_func}):\n")
+                    disasm_output.append(f"[Matched symbol: {sym_name}]\n")
+                    disasm_output.append(f"[VA: 0x{start_va:08x}, File offset: 0x{file_offset:08x}]\n")
+                    disasm_output.append(f"{'='*60}\n")
+                    func_size = end_va - start_va
+                    func_data = binary_data[file_offset:file_offset + func_size]
+                    if len(func_data) < func_size:
+                        disasm_output.append(f"[WARN] Function size mismatch: expected {func_size}, got {len(func_data)} bytes\n")
+                        func_size = len(func_data)
+                    instr_count = 0
+                    for instr in cs.disasm(func_data, start_va):
+                        addr_rebased = instr.address - start_va
+                        disasm_output.append(f"{addr_rebased:8x}:  {instr.mnemonic:12} {instr.op_str}\n")
+                        instr_count += 1
+                    if instr_count == 0:
+                        disasm_output.append(f"[WARN] No instructions disassembled for this function\n")
+
+            not_found = set(function_names) - found_original_names
+            disasm_text = "".join(disasm_output) if disasm_output else "No functions found for disassembly.\n"
+            return disasm_text, sorted(list(not_found))
+        except Exception as e:
+            return f"Error during disassembly: {e}\n", []
+
+    def _format_bytes_as_hex(data: bytes) -> str:
+        result = []
+        for byte in data:
+            if 32 <= byte < 127 and chr(byte) not in '\\':
+                result.append(chr(byte))
+            else:
+                result.append(f"\\x{byte:02x}")
+        return "".join(result)
+
+    def _read_seed_as_poc_hex(seed_path: str, delimiter: bytes) -> str:
+        try:
+            with open(seed_path, 'rb') as f:
+                data = f.read()
+            regions = [r for r in data.split(delimiter) if r]
+            delimiter_str = _format_bytes_as_hex(delimiter)
+            formatted_regions = []
+            for region in regions:
+                formatted_regions.append(_format_bytes_as_hex(region))
+            return f"{delimiter_str}".join(formatted_regions)
+        except Exception:
+            return ""
+
+    PROCESS_RE = re.compile(r".*Process:\s*(\S+)")
+    MODULE_RE = re.compile(r".*module:\s*(\S+)")
+    SYMBOL_RE = re.compile(r", symbol:\s*(\S+)")
+
+    target_process = None
+    unique_functions = []
+    module_functions_map = {}
+    current_module = None
+
+    if trace_path and os.path.exists(trace_path):
+        try:
+            with open(trace_path, 'r', errors='ignore') as tf:
+                for line in tf:
+                    m = PROCESS_RE.match(line)
+                    if m:
+                        target_process = m.group(1)
+                    m_mod = MODULE_RE.match(line)
+                    if m_mod:
+                        current_module = m_mod.group(1).rstrip('.,;:')
+                        if current_module not in module_functions_map:
+                            module_functions_map[current_module] = []
+                    m_sym = SYMBOL_RE.search(line)
+                    if m_sym:
+                        func_name = m_sym.group(1)
+                        if func_name not in unique_functions:
+                            unique_functions.append(func_name)
+                        if current_module and func_name not in module_functions_map[current_module]:
+                            module_functions_map[current_module].append(func_name)
+        except Exception as e:
+            print(f"[WARN] Could not read trace file: {e}")
+
+    disasm_content = ""
+    all_unmatched_functions = []
+    if module_functions_map:
+        print(f"[INFO] Found {len(module_functions_map)} modules for disassembly")
+        for module_name_item, module_functions in module_functions_map.items():
+            if not module_functions:
+                continue
+            module_path_extracted = find_module_path(extract_dir, module_name_item)
+            if not module_path_extracted:
+                print(f"[WARN] Could not find module {module_name_item} for disassembly")
+                all_unmatched_functions.extend(module_functions)
+                continue
+            if os.path.islink(module_path_extracted):
+                print(f"[SKIP] {module_name_item} is a symlink, skipping")
+                continue
+            print(f"[INFO] Disassembling {module_name_item} with {len(module_functions)} functions")
+            binary_disasm, unmatched = disassemble_with_capstone(
+                module_path_extracted,
+                module_name_item,
+                module_functions,
+                work_dir
+            )
+            disasm_content += binary_disasm + "\n"
+            all_unmatched_functions.extend(unmatched)
+
+    delimiter = config["AFLNET_FUZZING"]["region_delimiter"]
+    poc = _read_seed_as_poc_hex(seed_path, delimiter) if seed_path and os.path.exists(seed_path) else ""
+
+    kernel_message = _extract_kernel_message(serial_log_path) if serial_log_path and os.path.exists(serial_log_path) else ""
+
+    trace_content = ""
+    if trace_path and os.path.exists(trace_path):
+        try:
+            with open(trace_path, 'r', errors='ignore') as f:
+                trace_content = f.read()
+        except Exception:
+            pass
+
+    report_path = os.path.join(output_dir, "crash_report.txt")
+    delimiter_str = _format_bytes_as_hex(delimiter)
+
+    with open(report_path, 'w', encoding='utf-8') as rep:
+        rep.write("=" * 80 + "\n")
+        rep.write("FIRMWARE CRASH ANALYSIS REPORT\n")
+        rep.write("=" * 80 + "\n\n")
+
+        rep.write("## EXECUTIVE SUMMARY\n")
+        rep.write("-" * 80 + "\n")
+        rep.write(f"Firmware: {firmware}\n")
+        rep.write(f"Vulnerable Binary: {module_name}\n")
+        rep.write(f"Target Process: {target_process if target_process else process_name}\n")
+        rep.write(f"Crash Type: Segmentation Fault (SIGSEGV)\n")
+        rep.write(f"Affected Functions: {', '.join(unique_functions) if unique_functions else 'Unknown'}\n\n")
+
+        rep.write("## PROOF OF CONCEPT (PoC)\n")
+        rep.write("-" * 80 + "\n")
+        rep.write("The following HTTP requests trigger the crash when sent in sequence.\n")
+        rep.write(f"Note: Multiple requests are separated by the delimiter: {delimiter_str}\n\n")
+        rep.write(poc + "\n\n")
+
+        rep.write("## AFFECTED CODE - DISASSEMBLY\n")
+        rep.write("-" * 80 + "\n")
+        if disasm_content:
+            rep.write(disasm_content + "\n\n")
+        else:
+            rep.write("No disassembly available for the affected functions.\n\n")
+
+        if all_unmatched_functions:
+            rep.write("## FUNCTIONS NOT FOUND IN BINARY\n")
+            rep.write("-" * 80 + "\n")
+            rep.write("The following functions from the trace could not be matched in the binary.\n")
+            rep.write("This may indicate dynamic loading, stripped symbols, or inlined functions.\n\n")
+            for func_name in all_unmatched_functions:
+                rep.write(f"  - {func_name}\n")
+            rep.write("\n")
+
+        rep.write("## EXECUTION TRACE AT CRASH\n")
+        rep.write("-" * 80 + "\n")
+        rep.write("Call stack and instruction sequence leading to the crash:\n\n")
+        rep.write(trace_content + "\n\n")
+
+        rep.write("## KERNEL/SYSTEM MESSAGE\n")
+        rep.write("-" * 80 + "\n")
+        rep.write("Crash details captured from system logs:\n\n")
+        rep.write(kernel_message if kernel_message else "No crash message available\n")
+        rep.write("\n\n")
+
+        rep.write("## ANALYSIS REQUEST FOR SECURITY RESEARCHER\n")
+        rep.write("-" * 80 + "\n")
+        rep.write("Please analyze the above crash information and provide:\n\n")
+        rep.write("1. ROOT CAUSE ANALYSIS:\n")
+        rep.write("   - What is the vulnerability (buffer overflow, use-after-free, etc.)?\n")
+        rep.write("   - Where in the code does it occur?\n")
+        rep.write("   - What conditions trigger it?\n\n")
+
+        rep.write("2. ATTACK VECTOR:\n")
+        rep.write("   - How can this vulnerability be exploited?\n")
+        rep.write("   - What is the severity (remote code execution, DoS, etc.)?\n")
+        rep.write("   - What privileges are required to exploit it?\n\n")
+
+        rep.write("3. IMPACT ASSESSMENT:\n")
+        rep.write("   - What are the security implications?\n")
+        rep.write("   - Can it lead to privilege escalation?\n")
+        rep.write("   - Is arbitrary code execution possible?\n\n")
+
+        rep.write("4. REMEDIATION RECOMMENDATIONS:\n")
+        rep.write("   - What code changes would fix this issue?\n")
+        rep.write("   - Are there input validation improvements needed?\n")
+        rep.write("   - What defensive programming practices apply?\n\n")
+
+        rep.write("5. SIMILAR VULNERABILITIES:\n")
+        rep.write("   - Are there similar patterns elsewhere in the codebase?\n")
+        rep.write("   - What preventive measures should be implemented?\n\n")
+
+        rep.write("=" * 80 + "\n")
+        rep.write("END OF REPORT\n")
+        rep.write("=" * 80 + "\n")
+
+    print(f"[SAVE] Crash report: {report_path}")
+
 def crash_analysis(container_name):
     global config
     global removed_wait_for_container_init
@@ -3291,31 +3656,9 @@ def crash_analysis(container_name):
                             shutil.move(old_path, new_path)
 
     if not os.path.exists(CRASH_DIR):
-        print(f"[\033[33m!\033[0m] CRASH_DIR not found: {CRASH_DIR}")
-        print(f"[\033[36m*\033[0m] Running extract_crashes.py to create crash directory...")
-
-        extract_crashes_script = os.path.join(ANALYSIS_DIR, "extract_crashes.py")
-        crashes_csv = os.path.join(ANALYSIS_DIR, "crashes.csv")
-
-        try:
-            subprocess.run(
-                [
-                    "python3", extract_crashes_script,
-                    EXPERIMENTS_DIR_0,
-                    "--extracted_root", CRASH_DIR,
-                    "--update",
-                    "--annotate",
-                    "--crashes-csv", crashes_csv,
-                    "--show-exp-count",
-                    "--include-zero-crashes"
-                ],
-                check=True,
-                cwd=STAFF_DIR
-            )
-            print(f"[\033[32m+\033[0m] extract_crashes.py completed successfully")
-        except subprocess.CalledProcessError as e:
-            print(f"[\033[31m!\033[0m] extract_crashes.py failed: {e}")
-            raise RuntimeError(f"Failed to create CRASH_DIR with extract_crashes.py")
+        print(f"[\033[33m!\033[0m] unique_crashes directory not found: {CRASH_DIR}")
+        print(f"[\033[36m*\033[0m] Please run extract_crashes.py first to generate unique_crashes/")
+        return
 
     firmware_path = config["GENERAL"]["firmware"]
     base_fw = os.path.basename(firmware_path)
@@ -3333,517 +3676,250 @@ def crash_analysis(container_name):
             os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
         return
 
-    print(f"[\033[36m*\033[0m] Processing crashes from: {crash_root}")
+    print(f"[\033[36m*\033[0m] Processing unique crashes from: {crash_root}")
 
-    fw_index   = build_fw_index(FIRMWARE_DIR)
+    if '/' in firmware_with_brand:
+        brand, firmware = firmware_with_brand.split('/', 1)
+    else:
+        brand = "unknown"
+        firmware = firmware_with_brand
 
-    for root, dirs, files in os.walk(crash_root):
-        if os.path.basename(root) != "crashes":
-            continue
+    output_crash_root = os.path.join(STAFF_DIR, "unique_crashes_analyzed", firmware_with_brand)
+    os.makedirs(output_crash_root, exist_ok=True)
 
-        extract_dir = tempfile.mkdtemp(prefix="extracted_")
-        try:
-            fw_file = fw_index.get(base_fw)
-            if not fw_file:
-                print(f"[WARN] Firmware '{firmware_with_brand}' not found under {FIRMWARE_DIR}")
+    fw_index = build_fw_index(FIRMWARE_DIR)
+
+    extract_dir = tempfile.mkdtemp(prefix="extracted_")
+    try:
+        fw_file = fw_index.get(base_fw)
+        if not fw_file:
+            print(f"[WARN] Firmware '{firmware_with_brand}' not found under {FIRMWARE_DIR}")
+            return
+
+        run_extractor(fw_file, extract_dir)
+        set_permissions_recursive(extract_dir)
+
+        tars = glob.glob(os.path.join(extract_dir, "*.tar.gz"))
+        if not tars:
+            raise FileNotFoundError("No .tar.gz in extracted/")
+        latest = max(tars, key=os.path.getmtime)
+        with tarfile.open(latest, "r:gz") as tar:
+            tar.extractall(path=extract_dir)
+
+        for module_name in os.listdir(crash_root):
+            module_path = os.path.join(crash_root, module_name)
+            if not os.path.isdir(module_path):
                 continue
 
-            run_extractor(fw_file, extract_dir)
-            set_permissions_recursive(extract_dir)
+            print(f"[\033[36m*\033[0m] Processing module: {module_name}")
 
-            tars = glob.glob(os.path.join(extract_dir, "*.tar.gz"))
-            if not tars:
-                raise FileNotFoundError("No .tar.gz in extracted/")
-            latest = max(tars, key=os.path.getmtime)
-            with tarfile.open(latest, "r:gz") as tar:
-                tar.extractall(path=extract_dir)
+            output_module_path = os.path.join(output_crash_root, module_name)
+            os.makedirs(output_module_path, exist_ok=True)
 
-            for crash_file in files:
-
-                crash_file_path = os.path.join(root, crash_file)
-
-                if "README" in crash_file:
+            for function_name in os.listdir(module_path):
+                function_path = os.path.join(module_path, function_name)
+                if not os.path.isdir(function_path):
+                    print(f"[\033[33m!\033[0m] Skipping non-directory in module path: {function_path}")
                     continue
 
-                if crash_file.endswith(".lock"):
-                    continue
+                print(f"[\033[36m*\033[0m] Processing function: {module_name}/{function_name}")
 
-                if crash_file.endswith(".succ") or crash_file.endswith(".fail"):
-                    continue
+                output_function_path = os.path.join(output_module_path, function_name)
+                os.makedirs(output_function_path, exist_ok=True)
 
-                lock_file_path = crash_file_path + ".lock"
-                try:
-                    lock_fd = os.open(lock_file_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-                except FileExistsError:
-                    print(f"[SKIP] Seed {crash_file} is locked by another container")
-                    continue
-                except OSError as e:
-                    print(f"[ERROR] Failed to create lock for {crash_file}: {e}")
-                    continue
+                all_files = os.listdir(function_path)
 
-                try:
+                processed_bases = set()
+
+                for file_name in sorted(all_files):
+                    file_path = os.path.join(function_path, file_name)
+                    
+                    print(f"[\033[36m*\033[0m] Found file: {file_name}")
+
+                    if os.path.isdir(file_path):
+                        continue
+                    if file_name.startswith('.') or "README" in file_name:
+                        continue
+                    if file_name.endswith(".lock"):
+                        continue
+
+                    if file_name.endswith(".succ"):
+                        base_name = file_name[:-5]
+                        crash_file = base_name
+                        crash_file_path = file_path
+                    else:
+                        base_name = file_name
+                        crash_file = file_name
+                        crash_file_path = file_path
+
+                    if base_name in processed_bases:
+                        continue
+                    processed_bases.add(base_name)
+
+                    output_crash_dir = os.path.join(output_function_path, crash_file)
+
+                    if os.path.exists(output_crash_dir):
+                        print(f"[SKIP] Already analyzed: {crash_file}")
+                        continue
+
+                    trace_file_path = os.path.join(function_path, base_name)
+                    if not os.path.isfile(trace_file_path):
+                        print(f"[WARN] No trace file found for {crash_file}, skipping")
+                        continue
+
+                    lock_file_path = crash_file_path + ".lock"
                     try:
-                        print(f"lock_file_path: {lock_file_path}")
+                        lock_fd = os.open(lock_file_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+                    except FileExistsError:
+                        print(f"[SKIP] Seed {crash_file} is locked by another container")
+                        continue
+                    except OSError as e:
+                        print(f"[ERROR] Failed to create lock for {crash_file}: {e}")
+                        continue
+
+                    try:
                         fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     except (OSError, IOError) as e:
                         if e.errno in (errno.EWOULDBLOCK, errno.EAGAIN):
                             print(f"[SKIP] Seed {crash_file} is being processed by another container")
+                            os.close(lock_fd)
                             continue
                         else:
+                            os.close(lock_fd)
                             raise
 
-                    print(f"[LOCK ACQUIRED] Processing seed: {crash_file}")
-
-                    if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
-                        os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
-
-                    succ_seed_path = crash_file_path + ".succ"
-                    fail_seed_path = crash_file_path + ".fail"
-                    if os.path.exists(succ_seed_path) or os.path.exists(fail_seed_path):
-                        print(f"[SKIP] Already processed: {crash_file}")
-                        continue
-
-                    crash_trace = crash_file_path.replace("/crashes", "/crash_traces")
-                    if not os.path.isfile(crash_trace):
-                        print(f"[WARN] No trace file found for {crash_file}, skipping")
-                        continue
-
-                    crash_trace_dir = os.path.dirname(crash_trace)
-
-                    path_parts = root.rstrip('/').split('/')
                     try:
-                        crashes_idx = path_parts.index('crashes')
-                        exp_name = path_parts[crashes_idx - 1]
-                        method_name = path_parts[crashes_idx - 2]
-                    except (ValueError, IndexError):
-                        print(f"[WARN] Could not extract method/exp from path: {root}")
-                        method_name = "unknown"
-                        exp_name = "unknown"
+                        print(f"[LOCK ACQUIRED] Processing seed: {crash_file}")
 
-                    target_process = None
-                    module_name = None
-                    with open(crash_trace) as tf:
-                        for line in tf:
-                            m = PROCESS_RE.match(line)
-                            if m:
-                                target_process = m.group(1)
-                            m_mod = MODULE_RE.match(line)
-                            if m_mod:
-                                module_name = m_mod.group(1).rstrip('.,;:')
-                            if target_process and module_name:
-                                break
+                        if os.path.exists(os.path.join(STAFF_DIR, "wait_for_container_init")):
+                            os.remove(os.path.join(STAFF_DIR, "wait_for_container_init"))
 
-                    process_list_for_monitoring = []
-                    if target_process:
-                        process_list_for_monitoring.append(target_process)
-                    if module_name and module_name != target_process:
-                        process_list_for_monitoring.append(module_name)
-                        if module_name == "atp" and "xgi" not in process_list_for_monitoring:
-                            process_list_for_monitoring.append("xgi")
+                        iid = str(check_firmware(firmware_path, "run"))
+                        work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
 
-                    process_names_csv = ",".join(process_list_for_monitoring) if process_list_for_monitoring else target_process
+                        process_names_csv = module_name
 
-                    if module_name:
-                        from analysis.extract_crashes import SKIP_MODULES
-                        fw_name_only = base_fw
-                        if (fw_name_only, method_name, module_name) in SKIP_MODULES or \
-                           (fw_name_only, "any", module_name) in SKIP_MODULES:
-                            print(f"[\033[33m!\033[0m] Seed filtered by SKIP_MODULES: {fw_name_only}/{method_name}/{module_name}")
+                        with open(crash_file_path, 'rb') as f:
+                            original_seed_data = f.read()
 
-                            tte = extract_tte_from_filename(crash_file)
-                            log_processed_crash(
-                                status="FAILED_4",
-                                firmware_name=firmware_with_brand,
-                                method_name=method_name,
-                                exp_name=exp_name,
-                                module_name=module_name or "unknown",
-                                func_name="unknown",
-                                seed_path=crash_file_path,
-                                tte=tte,
-                                src_requests=-1,
-                                original_requests=-1,
-                                minimized_requests=-1
-                            )
+                        os.makedirs(output_crash_dir, exist_ok=True)
 
-                            lock_file = crash_file_path + ".lock"
-                            if os.path.isfile(lock_file):
-                                os.remove(lock_file)
-                                print(f"[CLEANUP] Removed lock file: {lock_file}")
+                        working_seed_path = os.path.join(output_crash_dir, "seed_original")
+                        with open(working_seed_path, 'wb') as f:
+                            f.write(original_seed_data)
+                        print(f"[COPY] Seed copied to: {working_seed_path}")
 
-                            minimize_test_file = crash_file_path + ".minimize_test"
-                            if os.path.isfile(minimize_test_file):
-                                os.remove(minimize_test_file)
-                                print(f"[CLEANUP] Removed minimize test file: {minimize_test_file}")
+                        print(f"[\033[36m*\033[0m] Replaying crash for {crash_file}...")
+                        print(f"[DEBUG] Monitoring process: {process_names_csv}")
 
-                            fail_seed_path = crash_file_path + ".fail"
-                            if os.path.isfile(crash_file_path):
-                                os.rename(crash_file_path, fail_seed_path)
-                                print(f"[✗] Marked as failed (renamed): {crash_file} -> {os.path.basename(fail_seed_path)}")
+                        crash_detected = replay_firmware(
+                            firmware_path,
+                            work_dir,
+                            crash_analysis=True,
+                            crash_seed=working_seed_path,  # Use the COPIED seed
+                            target_procname=process_names_csv
+                        )
 
-                            # print(f"[\033[33m!\033[0m] Removing crash seed and trace...")
-                            # for path in [crash_file_path, crash_trace]:
-                            #     if os.path.isfile(path):
-                            #         os.remove(path)
-                            #         print(f"[REMOVED] {path}")
+                        if not crash_detected:
+                            print(f"[\033[31m!\033[0m] Crash NOT reproducible, skipping: {crash_file}")
+                            shutil.rmtree(output_crash_dir, ignore_errors=True)
                             continue
 
-                    if not target_process:
-                        print(f"[WARN] No target process found in trace file, skipping")
-                        continue
+                        print(f"[\033[32m✓\033[0m] Crash reproduced successfully!")
 
-                    original_req_count = None
-                    try:
-                        delimiter = config["AFLNET_FUZZING"]["region_delimiter"]
-                        with open(crash_file_path, 'rb') as f:
-                            seed_data = f.read()
-                        original_requests = [r for r in seed_data.split(delimiter) if r]
-                        original_req_count = len(original_requests)
-                        print(f"[INFO] Original request count: {original_req_count}")
-                    except Exception as e:
-                        print(f"[WARN] Could not count original requests: {e}")
-
-                    print(f"[\033[36m*\033[0m] Verifying crash reproducibility for {crash_file}...")
-                    print(f"[DEBUG] Monitoring processes: {process_names_csv}")
-                    # try:
-                    verify_result = send_and_monitor_seed(
-                        container_name,
-                        firmware_path,
-                        crash_file_path,
-                        port=80,
-                        timeout=config["GENERAL_FUZZING"]["timeout"],
-                        check_crashes=True,
-                        process_name=process_names_csv
-                    )
-
-                    if verify_result["crash_detected"]:
-                        test_requests = original_requests[:verify_result["crash_at_request"]+1]
-                        len_test_requests = len(test_requests)
-                        minimized_data = delimiter.join(test_requests)
-                        print(f"Write minimized seed ({len_test_requests}): {crash_file_path}")
-                        with open(crash_file_path, 'wb') as f:
-                            f.write(minimized_data)
-
-                    send_signal_recursive(verify_result["qemu_pid"], signal.SIGINT)
-                    try:
-                        os.waitpid(verify_result["qemu_pid"], 0)
-                    except:
-                        pass
-
-                    if not verify_result['crash_detected']:
-                        print(f"[\033[31m!\033[0m] Crash NOT reproducible, removing seed and trace...")
-
-                        tte = extract_tte_from_filename(crash_file)
-                        log_processed_crash(
-                            status="FAILED_3",
-                            firmware_name=firmware_with_brand,
-                            method_name=method_name,
-                            exp_name=exp_name,
-                            module_name=module_name or "unknown",
-                            func_name="unknown",
-                            seed_path=crash_file_path,
-                            tte=tte,
-                            src_requests=-1,
-                            original_requests=original_req_count if original_req_count else -1,
-                            minimized_requests=-1
-                        )
-
-                        lock_file = crash_file_path + ".lock"
-                        if os.path.isfile(lock_file):
-                            os.remove(lock_file)
-                            print(f"[CLEANUP] Removed lock file: {lock_file}")
-
-                        minimize_test_file = crash_file_path + ".minimize_test"
-                        if os.path.isfile(minimize_test_file):
-                            os.remove(minimize_test_file)
-                            print(f"[CLEANUP] Removed minimize test file: {minimize_test_file}")
-
-                        fail_seed_path = crash_file_path + ".fail"
-                        if os.path.isfile(crash_file_path):
-                            os.rename(crash_file_path, fail_seed_path)
-                            print(f"[✗] Marked as failed (renamed): {crash_file} -> {os.path.basename(fail_seed_path)}")
-
-                        # for path in [crash_file_path, crash_trace]:
-                        #     if os.path.isfile(path):
-                        #         os.remove(path)
-                        #         print(f"[REMOVED] {path}")
-                        continue
-                    else:
-                        print(f"[\033[32m✓\033[0m] Crash verified as reproducible")
-                    # except Exception as e:
-                    #     print(f"[\033[31m!\033[0m] Verification failed: {e}, skipping this seed")
-                    #     continue
-
-                    src_req_count = None
-                    if "id&1" in crash_file:
-                        print(f"[DEBUG] Detected id&1 seed, extracting source info...")
-                        src_req_count = get_source_seed_info(
-                            crash_file,
-                            EXPERIMENTS_DIR_0,
-                            firmware_with_brand,
-                            method_name,
-                            exp_name
-                        )
-                        print(f"[DEBUG] Source request count: {src_req_count}")
-
-                    minimized_req_count = None
-
-                    if target_process:
-                        print(f"[\033[36m*\033[0m] Starting automatic minimization for {crash_file}...")
-                        # try:
-                        minimization_result = minimize_crash_seed(
-                            container_name,
-                            firmware_path,
-                            crash_file_path,
-                            port=80,
-                            timeout=config["GENERAL_FUZZING"]["timeout"],
-                            process_name=process_names_csv
-                        )
-                        #original_req_count = minimization_result['original_count']
-                        minimized_req_count = minimization_result['minimized_count']
-                        print(f"[\033[32m✓\033[0m] Minimization complete: {original_req_count} → {minimized_req_count} requests")
-                        # except Exception as e:
-                        #     print(f"[\033[33m!\033[0m] Minimization failed: {e}, continuing with original seed")
-
-                    with open(crash_trace) as tf:
-                        not_reproducible = False
-                        for line in tf:
-                            m = PROCESS_RE.match(line)
-                            if not m:
-                                continue
-                            iid = str(check_firmware(
+                        try:
+                            print(f"[\033[36m*\033[0m] Attempting seed minimization...")
+                            minimization_result = minimize_crash_seed(
+                                container_name,
                                 firmware_path,
-                                "run"
-                            ))
-                            work_dir = os.path.join(FIRMAE_DIR, "scratch", "run", iid)
-                            if "true" in open(os.path.join(work_dir, "web_check")).read():
-                                if "/seed" not in crash_trace:
-                                    crash_detected = replay_firmware(
-                                        firmware_path,
-                                        work_dir, True,
-                                        crash_file_path,
-                                        process_names_csv
-                                    )
+                                working_seed_path,  # Use the COPIED seed
+                                port=80,
+                                timeout=config["GENERAL_FUZZING"]["timeout"],
+                                process_name=process_names_csv
+                            )
+                            if minimization_result:
+                                orig_count = minimization_result.get('original_count', 0)
+                                min_count = minimization_result.get('minimized_count', 0)
+                                if min_count > 0 and min_count < orig_count:
+                                    minimized_seed_path = os.path.join(output_crash_dir, "seed_minimized")
+                                    with open(working_seed_path, 'rb') as f:
+                                        minimized_data = f.read()
+                                    with open(minimized_seed_path, 'wb') as f:
+                                        f.write(minimized_data)
+                                    print(f"[\033[32m✓\033[0m] Minimized seed saved ({orig_count} → {min_count} requests)")
+                                else:
+                                    minimized_seed_path = os.path.join(output_crash_dir, "seed_minimized")
+                                    with open(minimized_seed_path, 'wb') as f:
+                                        f.write(original_seed_data)
+                                    print(f"[\033[33m!\033[0m] Minimization did not reduce seed size, saved original ({orig_count} requests)")
+                            else:
+                                minimized_seed_path = os.path.join(output_crash_dir, "seed_minimized")
+                                with open(minimized_seed_path, 'wb') as f:
+                                    f.write(original_seed_data)
+                                print(f"[\033[33m!\033[0m] Minimization returned no result, saved original seed")
+                        except Exception as e:
+                            minimized_seed_path = os.path.join(output_crash_dir, "seed_minimized")
+                            with open(minimized_seed_path, 'wb') as f:
+                                f.write(original_seed_data)
+                            print(f"[\033[33m!\033[0m] Minimization failed: {e}, saved original seed")
 
-                                    if not crash_detected:
-                                        print(f"[\033[31m!\033[0m] Crash NOT reproducible during replay, removing seed...")
+                        serial_log_src = os.path.join(work_dir, "qemu.final.serial.log")
+                        if os.path.exists(serial_log_src):
+                            serial_log_dest = os.path.join(output_crash_dir, "qemu.final.serial.log")
+                            shutil.copy2(serial_log_src, serial_log_dest)
+                            print(f"[SAVE] Serial log: {serial_log_dest}")
 
-                                        tte = extract_tte_from_filename(crash_file)
-                                        log_processed_crash(
-                                            status="FAILED_2",
-                                            firmware_name=firmware_with_brand,
-                                            method_name=method_name,
-                                            exp_name=exp_name,
-                                            module_name=module_name or "unknown",
-                                            func_name="unknown",
-                                            seed_path=crash_file_path,
-                                            tte=tte,
-                                            src_requests=src_req_count if src_req_count else -1,
-                                            original_requests=original_req_count if original_req_count else -1,
-                                            minimized_requests=-1
-                                        )
+                        crash_analysis_dir = os.path.join(work_dir, "crash_analysis")
+                        trace_annotated_path = None
+                        if os.path.exists(crash_analysis_dir):
+                            trace_files = [f for f in os.listdir(crash_analysis_dir) if not f.endswith('.succ')]
+                            if trace_files:
+                                trace_src = os.path.join(crash_analysis_dir, trace_files[0])
+                                trace_annotated_path = os.path.join(output_crash_dir, "trace_annotated")
+                                shutil.copy2(trace_src, trace_annotated_path)
+                                annotate_log_file(trace_annotated_path, extract_dir)
+                                print(f"[SAVE] Annotated trace: {trace_annotated_path}")
+                            else:
+                                print(f"[\033[33m!\033[0m] No trace file found in {crash_analysis_dir}")
+                        else:
+                            print(f"[\033[33m!\033[0m] crash_analysis directory not found: {crash_analysis_dir}")
 
-                                        lock_file = crash_file_path + ".lock"
-                                        if os.path.isfile(lock_file):
-                                            os.remove(lock_file)
-                                            print(f"[CLEANUP] Removed lock file: {lock_file}")
+                        print(f"[\033[36m*\033[0m] Generating crash report with disassembly...")
+                        try:
+                            _generate_crash_report_for_seed(
+                                output_crash_dir,
+                                brand,
+                                firmware,
+                                fw_file,
+                                module_name,
+                                function_name,
+                                process_names_csv,
+                                minimized_seed_path,
+                                trace_annotated_path,
+                                serial_log_dest,
+                                work_dir,
+                                extract_dir
+                            )
+                        except Exception as e:
+                            print(f"[\033[33m!\033[0m] Failed to generate crash report: {e}")
+                            import traceback
+                            traceback.print_exc()
 
-                                        minimize_test_file = crash_file_path + ".minimize_test"
-                                        if os.path.isfile(minimize_test_file):
-                                            os.remove(minimize_test_file)
-                                            print(f"[CLEANUP] Removed minimize test file: {minimize_test_file}")
+                        print(f"[\033[32m✓\033[0m] Analysis complete: {output_crash_dir}")
 
-                                        fail_seed_path = crash_file_path + ".fail"
-                                        if os.path.isfile(crash_file_path):
-                                            os.rename(crash_file_path, fail_seed_path)
-                                            print(f"[✗] Marked as failed (renamed): {crash_file} -> {os.path.basename(fail_seed_path)}")
-
-                                        # for path in [crash_file_path, crash_trace]:
-                                        #     if os.path.isfile(path):
-                                        #         os.remove(path)
-                                        #         print(f"[REMOVED] {path}")
-                                        # not_reproducible = True
-                                        break
-
-                                dest_trace_file = crash_file_path.replace("/crashes/", "/crash_traces/")
-                                dest_trace_dir = dest_trace_file + "_traces"
-
-                                old_module_name = None
-                                if os.path.isfile(dest_trace_file):
-                                    try:
-                                        with open(dest_trace_file, 'r') as f:
-                                            process_found = False
-                                            for line in f:
-                                                if "Process:" in line:
-                                                    process_found = True
-                                                    continue
-                                                if process_found and "module:" in line:
-                                                    m_mod = MODULE_RE.search(line)
-                                                    if m_mod:
-                                                        old_module_name = m_mod.group(1).rstrip('.,;:')
-                                                        break
-                                        print(f"[DEBUG] Old trace module: {old_module_name}")
-                                    except Exception as e:
-                                        print(f"[WARN] Could not read old trace file: {e}")
-
-                                os.makedirs(dest_trace_dir, exist_ok=True)
-
-                                if "/seed" not in crash_trace:
-                                    ret = move_dir_contents(os.path.join(work_dir, "crash_analysis"), dest_trace_dir)
-                                    if ret is False:
-                                        not_reproducible = True
-                                        break
-                                    shutil.copy(os.path.join(work_dir, "qemu.final.serial.log"), dest_trace_dir)
-
-                                annotated_trace = None
-                                matching_log = None
-                                module_mismatch = False
-
-                                for fn in os.listdir(dest_trace_dir):
-                                    if "qemu" not in fn and "/seed" not in fn:
-                                        trace_path = os.path.join(dest_trace_dir, fn)
-
-                                        if old_module_name and matching_log is None:
-                                            try:
-                                                new_module_name = None
-                                                with open(trace_path, 'r') as f:
-                                                    process_found = False
-                                                    for line in f:
-                                                        if "Process:" in line:
-                                                            process_found = True
-                                                            continue
-                                                        if process_found and "module:" in line:
-                                                            m_mod = MODULE_RE.search(line)
-                                                            if m_mod:
-                                                                new_module_name = m_mod.group(1).rstrip('.,;:')
-                                                                break
-
-                                                print(f"[DEBUG] New trace {fn} module: {new_module_name}")
-
-                                                if new_module_name == old_module_name:
-                                                    matching_log = trace_path
-                                                    print(f"[INFO] Found matching trace (module: {new_module_name}): {fn}")
-                                                elif new_module_name and new_module_name != old_module_name:
-                                                    print(f"[WARN] Module mismatch: old={old_module_name}, new={new_module_name}")
-                                                    module_mismatch = True
-                                            except Exception as e:
-                                                print(f"[WARN] Could not read {fn}: {e}")
-
-                                        print(os.path.join(dest_trace_dir, fn))
-                                        annotate_log_file(trace_path, extract_dir)
-                                        if annotated_trace is None:
-                                            annotated_trace = trace_path
-
-                                if module_mismatch and not matching_log:
-                                    print(f"[\033[31m!\033[0m] Module mismatch detected, crash trace inconsistent")
-
-                                    tte = extract_tte_from_filename(crash_file)
-                                    log_processed_crash(
-                                        status="FAILED_1",
-                                        firmware_name=firmware_with_brand,
-                                        method_name=method_name,
-                                        exp_name=exp_name,
-                                        module_name=module_name or "unknown",
-                                        func_name="unknown",
-                                        seed_path=crash_file_path,
-                                        tte=tte,
-                                        src_requests=src_req_count if src_req_count else -1,
-                                        original_requests=original_req_count if original_req_count else -1,
-                                        minimized_requests=-1
-                                    )
-                                    not_reproducible = True
-
-                                    lock_file = crash_file_path + ".lock"
-                                    if os.path.isfile(lock_file):
-                                        os.remove(lock_file)
-                                        print(f"[CLEANUP] Removed lock file: {lock_file}")
-
-                                    minimize_test_file = crash_file_path + ".minimize_test"
-                                    if os.path.isfile(minimize_test_file):
-                                        os.remove(minimize_test_file)
-                                        print(f"[CLEANUP] Removed minimize test file: {minimize_test_file}")
-
-                                    fail_seed_path = crash_file_path + ".fail"
-                                    if os.path.isfile(crash_file_path):
-                                        os.rename(crash_file_path, fail_seed_path)
-                                        print(f"[✗] Marked as failed (renamed): {crash_file} -> {os.path.basename(fail_seed_path)}")
-
-                                    break
-
-                                if matching_log:
-                                    if os.path.isfile(dest_trace_file):
-                                        os.remove(dest_trace_file)
-                                    shutil.copy2(matching_log, dest_trace_file)
-                                    print(f"[INFO] Replaced crash trace with matching log: {os.path.basename(matching_log)}")
-                                    annotated_trace = dest_trace_file
-                                elif annotated_trace:
-                                    if os.path.isfile(dest_trace_file):
-                                        os.remove(dest_trace_file)
-                                    shutil.copy2(annotated_trace, dest_trace_file)
-                                    print(f"[WARN] No matching trace found, using first trace: {os.path.basename(annotated_trace)}")
-                                    annotated_trace = dest_trace_file
-
-                                func_name = extract_func_from_trace(annotated_trace, firmware_name=firmware_with_brand)
-                                tte = extract_tte_from_filename(crash_file)
-
-                                log_processed_crash(
-                                    status="SUCCEEDED",
-                                    firmware_name=firmware_with_brand,
-                                    method_name=method_name,
-                                    exp_name=exp_name,
-                                    module_name=module_name or "unknown",
-                                    func_name=func_name,
-                                    seed_path=crash_file_path,
-                                    tte=tte,
-                                    src_requests=src_req_count if src_req_count else -1,
-                                    original_requests=original_req_count if original_req_count else -1,
-                                    minimized_requests=minimized_req_count if minimized_req_count else -1
-                                )
-
-                                if os.path.isdir(dest_trace_dir):
-                                    shutil.rmtree(dest_trace_dir, ignore_errors=True)
-                                    print(f"[CLEANUP] Removed trace directory: {dest_trace_dir}")
-
-                                lock_file = crash_file_path + ".lock"
-                                if os.path.isfile(lock_file):
-                                    os.remove(lock_file)
-                                    print(f"[CLEANUP] Removed lock file: {lock_file}")
-
-                                minimize_test_file = crash_file_path + ".minimize_test"
-                                if os.path.isfile(minimize_test_file):
-                                    os.remove(minimize_test_file)
-                                    print(f"[CLEANUP] Removed minimize test file: {minimize_test_file}")
-
-                                succ_seed_path = crash_file_path + ".succ"
-                                if os.path.isfile(crash_file_path):
-                                    os.rename(crash_file_path, succ_seed_path)
-                                    print(f"[✓] Marked as processed (renamed): {crash_file} -> {os.path.basename(succ_seed_path)}")
-
-                        if not_reproducible:
-                            print("NOT REPRODUCIBLE!", crash_file_path, crash_file_path.replace("crashes", "crash_traces"))
-
-                            for path in [crash_file_path, crash_file_path.replace("crashes", "crash_traces")]:
-                                if os.path.isdir(path):
-                                    shutil.rmtree(path, ignore_errors=True)
-                                    with open(CRASH_ANALYSIS_LOG, "a+") as log_file:
-                                        log_file.write(f"Removed directory: {path}\n")
-                                elif os.path.isfile(path):
-                                    os.remove(path)
-                                    with open(CRASH_ANALYSIS_LOG, "a+") as log_file:
-                                        log_file.write(f"Removed file: {path}\n")
-
-                finally:
-                    try:
-                        fcntl.flock(lock_fd, fcntl.LOCK_UN)
-                        os.close(lock_fd)
-                    except:
-                        pass
-                    try:
-                        os.remove(lock_file_path)
-                    except:
-                        pass
-                    print(f"[LOCK RELEASED] Finished processing seed: {crash_file}")
-        finally:
-            shutil.rmtree(extract_dir, ignore_errors=True)
+                    finally:
+                        try:
+                            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                            os.close(lock_fd)
+                        except:
+                            pass
+                        try:
+                            os.remove(lock_file_path)
+                        except:
+                            pass
+                        print(f"[LOCK RELEASED] Finished processing seed: {crash_file}")
+    finally:
+        shutil.rmtree(extract_dir, ignore_errors=True)
 
 def start(keep_config, reset_firmware_images, replay_exp, out_dir, container_name, crash_dir=None, config_dict=None):
     global PSQL_IP, config

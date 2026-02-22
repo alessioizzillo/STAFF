@@ -1027,15 +1027,30 @@ def map_key_by_range_and_groups_standalone(fw, module, pc_str, pc_ranges):
                 return (fw, module, fun_name, category, cve_id)
     return raw
 
-def extract_unique_crashes_per_function(extracted_root="extracted_crashes", output_dir="unique_crashes", verbose=True):
+def extract_unique_crashes_per_function(extracted_root="extracted_crashes", output_dir="unique_crashes", verbose=True, require_succ=True):
     if not os.path.isdir(extracted_root):
         if verbose:
             print(f"[ERROR] extracted_root does not exist: {extracted_root}")
         return
 
+    def parse_tte_from_filename(filename):
+        if "$" in filename:
+            try:
+                suf = filename.rsplit("$", 1)[1]
+                suf = suf.split(".")[0]
+                m = re.match(r"(\d+)", suf)
+                if m:
+                    return int(m.group(1))
+            except Exception:
+                pass
+        return None
+
     unique_crashes = {}
 
-    print(f"\n[INFO] Scanning {extracted_root} for unique crashes...")
+    if require_succ:
+        print(f"\n[INFO] Scanning {extracted_root} for unique crashes (only .succ included)...")
+    else:
+        print(f"\n[INFO] Scanning {extracted_root} for unique crashes (.succ preferred, unprocessed accepted)...")
 
     for root, dirs, files in os.walk(extracted_root):
         if not (root.endswith("/crashes") or "/crashes/" in root or root.endswith("crashes")):
@@ -1044,18 +1059,22 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
         if "/aflnet_base/" in root or root.endswith("/aflnet_base"):
             continue
 
-        parts = root.split(os.sep)
         try:
-            extracted_idx = parts.index(extracted_root)
-            if extracted_idx + 2 < len(parts):
-                firmware = parts[extracted_idx + 2]
-                brand = parts[extracted_idx + 1]
+            rel_path = os.path.relpath(root, extracted_root)
+            parts = rel_path.split(os.sep)
+
+            if len(parts) >= 3 and parts[0] != "." and not rel_path.startswith(".."):
+                brand = parts[0]
+                firmware = parts[1]
+                method = parts[2]
             else:
-                firmware = "unknown"
                 brand = "unknown"
+                firmware = "unknown"
+                method = "unknown"
         except (ValueError, IndexError):
-            firmware = "unknown"
             brand = "unknown"
+            firmware = "unknown"
+            method = "unknown"
 
         for file in files:
             if file.endswith(".lock") or file.endswith(".minimize_test"):
@@ -1066,10 +1085,10 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
                 status = "succ"
                 seed_path = os.path.join(root, file)
             elif file.endswith(".fail"):
-                base_name = file[:-5]
-                status = "fail"
-                seed_path = os.path.join(root, file)
+                continue
             else:
+                if require_succ:
+                    continue
                 base_name = file
                 status = "unprocessed"
                 seed_path = os.path.join(root, file)
@@ -1103,55 +1122,93 @@ def extract_unique_crashes_per_function(extracted_root="extracted_crashes", outp
                 module = "unknown"
                 function = "unknown"
 
+            fw_name_only = os.path.basename(firmware)
+            if ((fw_name_only, method, module) in SKIP_MODULES or
+                (fw_name_only, "any", module) in SKIP_MODULES or
+                ("any", method, "any") in SKIP_MODULES or
+                ("any", "any", module) in SKIP_MODULES):
+                if verbose:
+                    print(f"[SKIP] Filtered by SKIP_MODULES: {firmware}/{method}/{module}")
+                continue
+
             unique_key = (brand, firmware, module, function)
 
-            status_priority = {"succ": 3, "fail": 2, "unprocessed": 1}
+            tte = parse_tte_from_filename(file)
+
+            status_priority = {"succ": 2, "unprocessed": 1}
 
             if unique_key not in unique_crashes:
                 unique_crashes[unique_key] = {
                     'seed_path': seed_path,
                     'trace_path': trace_path,
+                    'tte': tte,
                     'status': status,
                     'priority': status_priority[status]
                 }
             else:
-                if status_priority[status] > unique_crashes[unique_key]['priority']:
+                current = unique_crashes[unique_key]
+                if status_priority[status] > current['priority']:
                     unique_crashes[unique_key] = {
                         'seed_path': seed_path,
                         'trace_path': trace_path,
+                        'tte': tte,
                         'status': status,
                         'priority': status_priority[status]
                     }
+                elif status_priority[status] == current['priority']:
+                    current_tte = current['tte']
+                    if tte is not None and (current_tte is None or tte < current_tte):
+                        unique_crashes[unique_key] = {
+                            'seed_path': seed_path,
+                            'trace_path': trace_path,
+                            'tte': tte,
+                            'status': status,
+                            'priority': status_priority[status]
+                        }
 
     if os.path.exists(output_dir):
         if verbose:
-            print(f"[INFO] Output directory exists, will add/overwrite files: {output_dir}")
+            print(f"[INFO] Output directory exists, will update with new crashes: {output_dir}")
     else:
         os.makedirs(output_dir, exist_ok=True)
         if verbose:
             print(f"[INFO] Created output directory: {output_dir}")
 
     copied_count = 0
+    skipped_count = 0
+
     for (brand, firmware, module, function), info in sorted(unique_crashes.items()):
         fw_dir = os.path.join(output_dir, brand, firmware)
         module_dir = os.path.join(fw_dir, module)
-        os.makedirs(module_dir, exist_ok=True)
 
         safe_function = function.replace('/', '_').replace('\\', '_')
+        function_dir = os.path.join(module_dir, safe_function)
+        os.makedirs(function_dir, exist_ok=True)
 
         seed_basename = os.path.basename(info['seed_path'])
-        dest_seed = os.path.join(module_dir, f"{safe_function}__{seed_basename}")
-        shutil.copy2(info['seed_path'], dest_seed)
+        dest_seed = os.path.join(function_dir, f"{seed_basename}")
 
-        trace_basename = os.path.basename(info['trace_path'])
-        dest_trace = os.path.join(module_dir, f"{safe_function}__{trace_basename}")
-        shutil.copy2(info['trace_path'], dest_trace)
+        if os.path.exists(dest_seed):
+            skipped_count += 1
+            if verbose:
+                tte_str = f"TTE={info['tte']}s" if info['tte'] is not None else "TTE=unknown"
+                status_str = f"[{info['status']}]"
+                print(f"[SKIP] {brand}/{firmware}/{module}/{function} {status_str} ({tte_str}) -> already exists")
+        else:
+            shutil.copy2(info['seed_path'], dest_seed)
+            copied_count += 1
 
-        copied_count += 1
-        if verbose:
-            print(f"[COPY] {brand}/{firmware}/{module}/{function} ({info['status']}) -> {dest_seed}")
+            tte_str = f"TTE={info['tte']}s" if info['tte'] is not None else "TTE=unknown"
+            status_str = f"[{info['status']}]"
+            if verbose:
+                print(f"[COPY] {brand}/{firmware}/{module}/{function} {status_str} ({tte_str}) -> {dest_seed}")
 
-    print(f"\n[SUCCESS] Extracted {copied_count} unique crashes to: {output_dir}")
+    total_processed = copied_count + skipped_count
+    if require_succ:
+        print(f"\n[SUCCESS] Processed {total_processed} unique crashes (.succ only, earliest TTE) to: {output_dir}")
+    else:
+        print(f"\n[SUCCESS] Processed {total_processed} unique crashes (.succ preferred, earliest TTE) to: {output_dir}")
+    print(f"           New: {copied_count}, Skipped (already present): {skipped_count}")
     print(f"           Organized by: firmware/module/function\n")
 
 def events_to_crash_times(events: List[Tuple[int, int, int]]) -> Dict[int, int]:
@@ -3132,7 +3189,8 @@ if __name__ == "__main__":
         extract_unique_crashes_per_function(
             extracted_root=args.extracted_root,
             output_dir=args.extract_unique,
-            verbose=verbose
+            verbose=verbose,
+            require_succ=REQUIRE_SUCC_FLAG
         )
 
     chmod_recursive(args.extract_unique, 0o777)
