@@ -1,0 +1,1844 @@
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 190.168.0.1
+Connection: keep-alive
+Content-Length: 598
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixed&c4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=saveandtest&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET / HTTP/1.1
+Host: 192.18.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 714
+Cache-ControlE max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3⁄q=0.7
+Referer: http://192.168.0.1/lan.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+sysLANIPAddr1=192&sysLANIPAddr2=168&sysLANIPAddr3=0&sysLANIPAddr4=1&sysLANSubnetMask1=255&sysLANSubnetMask2=255&sysLANSubnetMask3=255&sysLANSubnetMask4=0&sysRIPDirection=0&sysRIPVersion=1&dhcp_server=dhcç_server&sysPoolStartingAddr1=192&sysPoolStartingAddÚ2=168&sysPoolStartingAddr3=0&sysPoolStartingAddr4=2&sysPoolFinishAddr1=192&sysPoolFinishAddr2=168&sysPoolFinishAddr3=0&sysPoolFinishAddr4=254&h_sysRIPDirection=0&h_sysRIPVersion=1&h_dhcp_server=enable&h_acc_lan=disable&c4_sysLANIPAddr=192.168.0.1&c4_sysLANSubnetMask=255.255.255.0&c4_sysPoolStartingAddr=192.168.0.2&c4_sysPoolFinishAddr=192.168.0.254&h_wds_enable=disable&h_ruleSelect=0&h_natEnable=enabled&todo=nbtscan&this_file=lan.htm&next_file=reserv.htmGET /h_rà.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) Appage: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGTzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_gned-exchange;v=b3;q=0.file=dsl_cfg.htm&next_file=dsl_cfg.htmGET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: Q=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3⁄q=0.7
+Referer: http://192.168.0.1/lan.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+sysLANIPAddr1=192&sysLANIPAddr2=168&sysLANIPAddr3=0&sysLANIPAddr4=1&sysLANSubnetMask1=255&sysLANSubnetMask2=255&sysLANSubnetMask3=255&sysLANSubnetMask4=0&sysRIPDirection=0&sysRIPVersion=1&dhcp_server=dhcç_server&sysPoolStartingAddr1=192&sysPoolStartingAddÚ2=168&sysPoolStartingAddr3=0&sysPoolStartingAddr4=2&sysPoolFinishAddr1=192&sysPoolFinishAddr2=168&sysPoolFinishAddr3=0&sysPoolFinishAddr4=254&h_sysRIPDirection=0&h_sysRIPVersion=1&h_dhcp_server=enable&h_acc_lan=disable&c4_sysLANIPAddr=192.168.0.1&c4_sysLANSubnetMask=255.255.255.0&c4_sysPoolStartingAddr=192.168.0.2&c4_sysPoolFinishAddr=192.168.0.254&h_wds_enable=disable&h_ruleSelect=0&h_natEnable=enabled&todo=nbtscan&this_file=lan.htm&next_file=reserv.htmGET /h_rm.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ˇ cko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xcept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connectioml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/basic.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,imagalive
+Authorization: Basic YWRe/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 603
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Lvnguage: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&apply=Apply&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixed&c4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=save&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apn,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 598
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11 Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixedc4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=saveandtest&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+UserMozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET /h_dslcfg.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=devices.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET / HTTP/1.1
+Host: 192.18.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 714
+Cache-ControlE max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3⁄q=0.7
+Referer: http://192.168.0.1/lan.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+sysLANIPAddr1=192&sysLANIPAddr2=168&sysLANIPAddr3=0&sysLANIPAddr4=1&sysLANSubnetMask1=255&sysLANSubnetMask2=255&sysLANSubnetMask3=255&sysLANSubnetMask4=0&sysRIPDirection=0&sysRIPVersion=1&dhcp_server=dhcç_server&sysPoolStartingAddr1=192&sysPoolStartingAddÚ2=168&sysPoolStartingAddr3=0&sysPoolStartingAddr4=2&sysPoolFinishAddr1=192&sysPoolFinishAddr2=168&sysPoolFinishAddr3=0&sysPoolFinishAddr4=254&h_sysRIPDirection=0&h_sysRIPVersion=1&h_dhcp_server=enable&h_acc_lan=disable&c4_sysLANIPAddr=192.168.0.1&c4_sysLANSubnetMask=255.255.255.0&c4_sysPoolStartingAddr=192.168.0.2&c4_sysPoolFinishAddr=192.168.0.254&h_wds_enable=disable&h_ruleSelect=0&h_natEnable=enabled&todo=nbtscan&this_file=lan.htm&next_file=reserv.htmGET /h_rm.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ˇ cko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/basic.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,imagalive
+Authorization: Basic YWRe/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 603
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&apply=Apply&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixed&c4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=save&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+ConnectionC keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Ueferer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 598
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,applicaton/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixedc4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=saveandtest&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accxpt: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET /h_dslcfg.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 714
+Cache-ControlE max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3⁄q=0.7
+Referer: http://192.168.0.1/lan.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+sysLANIPAddr1=192&sysLANIPAddr2=168&sysLANIPAddr3=0&sysLANIPAddr4=1&sysLANSubnetMask1=255&sysLANSubnetMask2=255&sysLANSubnetMask3=255&sysLANSubnetMask4=0&sysRIPDirection=0&sysRIPVersion=1&dhcp_server=dhcç_server&sysPoolStartingAddr1=192&sysPoolStartingAddÚ2=168&sysPoolStartingAddr3=0&sysPoolStartingAddr4=2&sysPoolFinishAddr1=192&sysPoolFinishAddr2=168&sysPoolFinishAddr3=0&sysPoolFinishAddr4=254&h_sysRIPDirection=0&h_sysRIPVersion=1&h_dhcp_server=enable&h_acc_lan=disable&c4_sysLANIPAddr=192.168.0.1&c4_sysLANSubnetMask=255.255.255.0&c4_sysPoolStartingAddr=192.168.0.2&c4_sysPoolFinishAddr=192.168.0.254&h_wds_enable=disable&h_ruleSelect=0&h_natEnable=enabled&todo=nbtscan&this_file=lan.htm&next_file=reserv.htmGET /h_rm.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ˇ cko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/basic.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,imagalive
+Authorization: Basic YWRe/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 603
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Lvnguage: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS    ress4=123&natEnable=enabled&apply=Apply&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixed&c4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=save&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apn,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 598
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11 Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdSeTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixedc4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=saveandtest&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+UserMozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,zywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywimage/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET /h_dslcfg.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=devices.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET / HTTP/1.1
+Host: 192.18.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 714
+Cache-ControlE max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3⁄q=0.7
+Referer: http://192.168.0.1/lan.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+sysLANIPAddr1=192&sysLANIPAddr2=168&sysLANIPAddr3=0&sysLANIPAddr4=1&sysLANSubnetMask1=255&sysLANSubnetMask2=255&sysLANSubnetMask3=255&sysLANSubnetMask4=0&sysRIPDirection=0&sysRIPVersion=1&dhcp_server=dhcç_server&sysPoolStartingAddr1=192&sysPoolStartingAddÚ2=168&sysPoolStartingAddr3=0&sysPoolStartingAddr4=2&sysPoolFinishAddr1=192&sysPoolFinishAddr2=168&sysPoolFinishAddr3=0&sysPoolFinishAddr4=254&h_sysRIPDirection=0&h_sysRIPVersion=1&h_dhcp_server=enable&h_acc_lan=disable&c4_sysLANIPAddr=192.168.0.1&c4_sysLANSubnetMask=255.255.255.0&c4_sysPoolStartingAddr=192.168.0.2&c4_sysPoolFinishAddr=192.168.0.254&h_wds_enable=disable&h_ruleSelect=0&h_natEnable=enabled&todo=nbtscan&this_file=lan.htm&next_file=reserv.htmGET /h_rà.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ˇ cko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/basic.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,imagalive
+Authorization: Basic YWRe/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 603
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&apply=Apply&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixed&c4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=save&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+ConnectionC keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 598
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,applicaton/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixedc4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=saveandtest&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accxpt: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+Pgzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET /h_dslcfg.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+UÉgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 714
+Cache-ControlE max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3⁄q=0.7
+Referer: http://192.168.0.1/lan.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+sysLANIPAddr1=192&sysLANIPAddr2=168&sysLANIPAddr3=0&sysLANIPAddr4=1&sysLANSubnetMask1=255&sysLANSubnetMask2=255&sysLANSubnetMask3=255&sysLANSubnetMask4=0&sysRIPDirection=0&sysRIPVersion=1&dhcp_server=dhcç_server&sysPoolStartingAddr1=192&sysPoolStartingAddÚ2=168&sysPoolStartingAddr3=0&sysPoolStartingAddr4=2&sysPoolFinishAddr1=192&sysPoolFinishAddr2=168&sysPoolFinishAddr3=0&sysPoolFinishAddr4=254&h_sysRIPDirection=0&h_sysRIPVersion=1&h_dhcp_server=enable&h_acc_lan=disable&c4_sysLANIPAddr=192.168.0.1&c4_sysLANSubnetMask=255.255.255.0&c4_sysPoolStartingAddr=192.168.0.2&c4_sysPoolFinishAddr=192.168.0.254&h_wds_enable=disable&h_ruleSelect=0&h_natEnable=enabled&todo=nbtscan&this_file=lan.htm&next_file=reserv.htmGET /h_rm.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ˇ cko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xcept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connectioml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/basic.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,imagalive
+Authorization: Basic YWRe/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 603
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Lvnguage: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&apply=Apply&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixed&c4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=save&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apn,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 598
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11 Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixedc4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=saveandtest&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+UserMozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET /h_dslcfg.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=devices.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_multiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET / HTTP/1.1
+Host: 192.18.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 714
+Cache-ControlE max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.6
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3⁄q=0.7
+Referer: http://192.168.0.1/lan.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+sysLANIPAddr1=192&sysLANIPAddr2=168&sysLANIPAddr3=0&sysLANIPAddr4=1&sysLANSubnetMask1=255&sysLANSubnetMask2=255&sysLANSubnetMask3=255&sysLANSubnetMask4=0&sysRIPDirection=0&sysRIPVersion=1&dhcp_server=dhcç_server&sysPoolStartingAddr1=192&sysPoolStartingAddÚ2=168&sysPoolStartingAddr3=0&sysPoolStartingAddr4=2&sysPoolFinishAddr1=192&sysPoolFinishAddr2=168&sysPoolFinishAddr3=0&sysPoolFinishAddr4=254&h_sysRIPDirection=0&h_sysRIPVersion=1&h_dhcp_server=enable&h_acc_lan=disable&c4_sysLANIPAddr=192.168.0.1&c4_sysLANSubnetMask=255.255.25.0&c4_sysPoolStartingAddr=192.168.0.2&c4_sysPoolFinishAddr=192.168.0.254&h_wds_enable=disable&h_ruleSelect=0&h_natEnable=enabled&todo=nbtscan&this_file=lan.htm&next_file=reserv.htmGET /h_rm.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ˇ cko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/basic.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,imagalive
+Authorization: Basic YWRe/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 603
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&apply=Apply&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixed&c4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=save&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+ConnectionC keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 598
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,applicaton/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixedc4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=saveandtest&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accxpt: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accepta/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/basic.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,imagalive
+Authorization: Basic YWRe/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 603
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Lvnguage: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&apply=Apply&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixed&c4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=save&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apn,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 598
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11 Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+DSLencapsulation=pppoe&pppoeName=adminAAAAA&pppoePasswd=QWERTYU&pppoeService=fuzzzzzzzzzzz&pppoeIdleTime=1&WAN_ipType=Fixed&pppoeip1=192&pppoeip2=168&pppoeip3=0&pppoeip4=123&DNStype=Fixed&DNS1address1=1&DNS1address2=2&DNS1address3=12&DNS1address4=34&DNS2address1=32&DNS2address2=45&DNS2address3=90&DNS2address4=123&natEnable=enabled&h_DSLencapsulation=pppoe&wan_login=.%2Fpppoe.htm&h_natEnable=enabled&h_WANlogin=enable&h_WAN_ipType=Fixedc4_pppoeip=192.168.0.123&h_DNStype=Fixed&c4_DNS1address=1.2.12.34&c4_DNS2address=32.45.90.123&runtest=&todo=saveandtest&this_file=pppoe.htm&next_file=basic.htmGET /basictop.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+UserMozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?next_file=pppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 107
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/dsl_cfg.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+multiplex=LLC&VPI=8&VCI=35&save=Apply&h_muleiplex=LLC&todo=save&this_file=dsl_cfg.htm&next_file=dsl_cfg.htmGET /h_dslcfg.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET / HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Sec-Purpose: prefetch;prerender
+Purpose: prefetch
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /setup.cgi?todo=nbtscan&next_file=devices.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/menu.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /hpppoe.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=pppoe.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+

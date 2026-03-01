@@ -2983,7 +2983,7 @@ def build_crash_level_tables(
 
             row[f"{METHOD_ABBR.get(m, m)}_avg_tte"] = format_time_hm(avg_tte) if avg_tte is not None else ""
             row[f"{METHOD_ABBR.get(m, m)}_avg_taint"] = (round(avg_taint, 3) if avg_taint is not None else "")
-            row[f"{METHOD_ABBR.get(m, m)}_taint_causality"] = (round(taint_causality, 3) if taint_causality is not None else "")
+            #row[f"{METHOD_ABBR.get(m, m)}_taint_causality"] = (round(taint_causality, 3) if taint_causality is not None else "")
 
         num_requests = 0
         succ_paths = [p for p in all_crash_seed_paths if p and p.endswith(".succ")]
@@ -2998,7 +2998,7 @@ def build_crash_level_tables(
     for m in DEFAULT_METHODS:
         headers2.append(f"{METHOD_ABBR.get(m, m)}_cnt")
         headers2.append(f"{METHOD_ABBR.get(m, m)}_avg_tte")
-        headers2.append(f"{METHOD_ABBR.get(m, m)}_taint_causality")
+        #headers2.append(f"{METHOD_ABBR.get(m, m)}_taint_causality")
 
     write_csv_and_latex(headers2, table2_rows, out_tte_csv, out_tte_tex, caption="TTE crashes", count_tte_table=True, add_category_col=True, add_taint_col=True)
 
@@ -4594,7 +4594,7 @@ def generate_ablation_tables(pc_ranges, experiments_dir, experiments_ablation_di
 
             row[f"{METHOD_ABBR.get(m, m)}_avg_tte"] = format_time_hm(avg_tte) if avg_tte is not None else ""
             row[f"{METHOD_ABBR.get(m, m)}_avg_taint"] = (round(avg_taint, 3) if avg_taint is not None else "")
-            row[f"{METHOD_ABBR.get(m, m)}_taint_causality"] = (round(taint_causality, 3) if taint_causality is not None else "")
+            #row[f"{METHOD_ABBR.get(m, m)}_taint_causality"] = (round(taint_causality, 3) if taint_causality is not None else "")
 
         num_requests = 0
         succ_paths = [p for p in all_crash_seed_paths if p and p.endswith(".succ")]
@@ -4609,7 +4609,7 @@ def generate_ablation_tables(pc_ranges, experiments_dir, experiments_ablation_di
     for m in ablation_methods:
         headers2_ablation.append(f"{METHOD_ABBR.get(m, m)}_cnt")
         headers2_ablation.append(f"{METHOD_ABBR.get(m, m)}_avg_tte")
-        headers2_ablation.append(f"{METHOD_ABBR.get(m, m)}_taint_causality")
+        #headers2_ablation.append(f"{METHOD_ABBR.get(m, m)}_taint_causality")
 
     write_csv_and_latex(headers2_ablation, table2_ablation_rows, out_tte_csv_ablation, out_tte_tex_ablation, caption="TTE crashes (Ablation)", count_tte_table=True, add_category_col=True, add_taint_col=True)
 

@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: ledschd
+  [00] inode: 32793, pc: 0x00002320, module: ledschd
+  [01] inode: 32793, pc: 0x00001748, module: ledschd
+  [02] inode: 32793, pc: 0x000017b4, module: ledschd
+  [03] inode: 32793, pc: 0x0000179c, module: ledschd
+  [04] inode: 32793, pc: 0x0000165c, module: ledschd
+

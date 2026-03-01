@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: hotplug2
+  [00] inode: 57354, pc: 0x00005e5c, module: hotplug2
+  [01] inode: 57354, pc: 0x00005dbc, module: hotplug2
+  [02] inode: 57354, pc: 0x00005dac, module: hotplug2
+  [03] inode: 57354, pc: 0x00005e54, module: hotplug2
+  [04] inode: 57354, pc: 0x00005e3c, module: hotplug2
+

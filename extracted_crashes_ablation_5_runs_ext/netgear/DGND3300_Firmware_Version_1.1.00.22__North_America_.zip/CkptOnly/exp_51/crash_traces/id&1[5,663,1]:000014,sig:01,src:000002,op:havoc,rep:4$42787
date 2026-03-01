@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: setup.cgi
+  [00] inode: 24746, pc: 0x0000cad0, module: setup.cgi
+  [01] inode: 24746, pc: 0x000084f8, module: setup.cgi
+  [02] inode: 24746, pc: 0x000084f0, module: setup.cgi
+  [03] inode: 24746, pc: 0x000084e8, module: setup.cgi
+  [04] inode: 24746, pc: 0x0000851c, module: setup.cgi
+

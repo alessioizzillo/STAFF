@@ -1,0 +1,76 @@
+GET /setup.cgi?todo=nbtscan&next_file=m_access.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi?next_file=adv_wire_setting.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 716
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+UpgrJde-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,^pplication/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/schedule.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+checkboxNameSun=checkboxNameSun&checkboxNameTue=checkboxNameTue&checkboxNameWed=checkboxNameWed&checkboxNameFri=checkboxNameFri&checkboxNameSat=checkboxNameSat&cfSchedule_StartHour=1&cfSchedule_StartMinute=2&cfSchedule_EndHour=2&cfSchedule_EndMinute=3&TimeZone=-6b&adjust=adjõst&use_ntpserver=use_ntpserver&ts2_ip1=3&ts2_ip2=4&ts2_ip3=6&ts2_ip4=7&save=Apply&h_checkboxNameAll=disable&h_checkboxNameSun=enable&h_checkboxNameMon=disable&h_checkboxNameTue=enable&h_checkboxNameWed=enable&h_checkboxNameThu=disable&h_checkbox=ameFri=enable&h_checkboxNameSat=enable&h_checkboxNamehours=disable&h_TimeZone=-6b&h_adjust=enable&h_use_ntpserver=enable&c4_ts2_ip=3.4.6.7&todo=save&this_file=schedule.htm&next_qqqqqqqqqqqqqqqqqqqPOST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 716
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+UpgrJde-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,^pplication/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1edule.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+checkboxNameSun=checkboxNameSun&checkboxNameTue=checkboxNameTue&checkboxNameWed=checkboxNameWed&checkboxNameFri=checkboxNameFri&checkboxNameSat=checkboxNameSat&cfSchedule_StartHour=1&cfSchedule_StartMinute=2&cfSchedule_EndHour=2&cfSchedule_EndMinute=3&TimeZone=-6b&adjust=adjõst&use_ntpserver=use_ntpserver&ts2_ip1=3&ts2_ip2=4&ts2_ip3=6&ts2_ip4=7&save=Apply&h_checkboxNameAll=disable&h_checkboxNameSun=enable&h_checkboxNameMon=disable&h_checkboxNameTue=enable&h_checkboxNameWed=enable&h_czywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzy1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111erver&ts2_ip1=3&ts2_ip2=4&ts2_ip3=6&ts2_ip4=7&save=Apply&h_checkboxNameAll=disable&h_checkboxNameSun=enable&h_checkboxNameMon=disable&hwzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywheckboxNameThu=disable&h_checkbox=ameFri=enable&h_checkboxNameSat=enable&h_checkboxNamehours=disable&h_TimeZone=-6b&h_adjust=enable&h_use_ntpserver=enable&c4_ts2_ip=3.4.6.7&todo=save&this_file=schedule.htm&next_qqqcoded
+UpgrJde-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,^pplication/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/schedule.htm&todo=cfg_init
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+checkboxNameSun=checkboxNameSun&checkboxNameTue=checkboxNameTue&checkboxNameWed=checkboxNameWed&checkboxNameFri=checkboxNameFri&checkboxNameSat=checkboxNameSat&cfSchedule_StartHour=1&cfSchedu`e_StartMinute=2&cfSchedule_EndHour=2&cfSchedule_EndMinute=3&TimeZone=-6b&adjust=adjõst&use_ntpserver=use_ntpserver&ts2_ip1=3&ts2_ip2=4&ts2_ip3=6&ts2_ip4=7&save=Apply&h_checkboxNameAll=disable&h_checkboxNameSun=enable&h_checkboxNameMon=disable&h_checkboxNameTue=enable&h_checkboxNameWed=enable&h_czywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzpwzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywheckboxNameThu=disable&h_checkbox=ameFri=enable&h_checkboxNameSat=enable&h_checkboxNamehours=disable&h_TimeZone=-6b&h_adjust=enable&h_use_ntpserver=enable&c4_ts2_ip=3.4.6.7&todo=save&this_file=schedule.htm&next_qqqqqqqqqqqqqqqqqqq                                                                       zywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyw                                                                                                                                                                                                                                                                                                                                                                                                                                                         POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 601
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Req|ests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/Þpng,*/*;q=0.8,application/signeR-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+service_list=Any%28ALL%29@fwout_action=1&zywzywzywzywzywzyazywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzxwzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyÿzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywfwout_laniptype=rangeip&lan_start_ip1=1&lan_start_ip2=2&lan_start_ip3=3&lan_start_ip4=4&lan_finish_ip1=3&lan_finish_ip2=4&lan_finish_ip3=5&lan_finish_ip4=6&fwout_wanzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywfywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyZzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzymzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywiptype=singleip&wan_start_ip1=12&wan_start_ip2=34&wan_start_ip3=5&wan_start_ip4=7&fwout_logging=1&save=Apply&h_fwout_action=1&h_fwout_laniptype=rangeip&h_fwout_waniptype=singleip&h_fwout_logging=1&h_service_list=Any%29ALL%29&c4_lan_start_ip=1.2.3.4&c4_lan_finish   3.4.5.6&c4_wan_start_ip=12.34.5.7&c4_wan_finish_ip=&h_ruleSelect=0&edit=0&todo=save&this_file=rule_out.htm&next_file=fw_rules.htT /blank.htm HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;u=08ÿ pplication/signed-exchange;v=b3;q=0.7
+Referer: htZp://192.V68.°.1/setup.cgi
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+

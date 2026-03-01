@@ -1,0 +1,26 @@
+GET /langs/language/ui.xml?timestamp=1747070146583 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referer: http://192.168.1.1/index.htm
+Accept-Encoding: gzip, deflate
+Accept-Lanq=0.9
+
+GET /setup.cgi?ne¯t_file=common/system.xml&timestamp=1747070186845 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-ali6e
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36ˇˇˇˇTML, like Gecko537.36
+Accept: */*
+Referer: ht,p://192.168.1.1/update_setting.ˇˇ
+Accept-Engzip, deflate
+Accept-Language: en-US,up.cgi?next_file=common/sy1748858994979 HTTP/1.1
+Host: 192.168.1.1
+Connection: keep-alive
+UÅer-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: */*
+Referec_meter.htm&toden-US,en;q=0.9
+pt-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+

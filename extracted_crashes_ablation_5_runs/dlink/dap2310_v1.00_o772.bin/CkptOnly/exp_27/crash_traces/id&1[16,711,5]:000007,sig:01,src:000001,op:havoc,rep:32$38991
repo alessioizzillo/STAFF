@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: udhcpd
+  [00] inode: 24715, pc: 0x000034e0, module: udhcpd
+  [01] inode: 24715, pc: 0x000034c0, module: udhcpd
+  [02] inode: 24715, pc: 0x000034b0, module: udhcpd
+  [03] inode: 24715, pc: 0x00003448, module: udhcpd
+  [04] inode: 24715, pc: 0x0000327c, module: udhcpd
+

@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: xgi
+  [00] inode: 49158, pc: 0x000039a8, module: atp
+  [01] inode: 49158, pc: 0x0000398c, module: atp
+  [02] inode: 49158, pc: 0x00003970, module: atp
+  [03] inode: 49158, pc: 0x00003954, module: atp
+  [04] inode: 49158, pc: 0x0000393c, module: atp
+

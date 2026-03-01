@@ -1,0 +1,16 @@
+=== Trace 2 ===
+Process: sh
+  [00] inode: 24681, pc: 0x000035f0, module: neaps_array
+  [01] inode: 24681, pc: 0x000035d4, module: neaps_array
+  [02] inode: 24681, pc: 0x000035b8, module: neaps_array
+  [03] inode: 24681, pc: 0x0000359c, module: neaps_array
+  [04] inode: 24681, pc: 0x00003580, module: neaps_array
+
+=== Trace 3 ===
+Process: S10system.sh
+  [00] inode: 24664, pc: 0x00000b88, module: ethlink
+  [01] inode: 24664, pc: 0x00000b68, module: ethlink
+  [02] inode: 24664, pc: 0x00000b58, module: ethlink
+  [03] inode: 24664, pc: 0x00000b38, module: ethlink
+  [04] inode: 24664, pc: 0x00000b20, module: ethlink
+

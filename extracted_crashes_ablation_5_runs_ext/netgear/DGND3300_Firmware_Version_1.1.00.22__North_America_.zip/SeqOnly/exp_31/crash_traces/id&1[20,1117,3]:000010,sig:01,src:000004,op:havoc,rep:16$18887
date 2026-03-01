@@ -1,0 +1,24 @@
+=== Trace 0 ===
+Process: mini_httpd
+  [00] inode: 24746, pc: 0x0001f59c, module: setup.cgi
+  [01] inode: 24746, pc: 0x0001f588, module: setup.cgi
+  [02] inode: 24746, pc: 0x0001f56c, module: setup.cgi
+  [03] inode: 24746, pc: 0x0001f55c, module: setup.cgi
+  [04] inode: 24746, pc: 0x0001f54c, module: setup.cgi
+
+=== Trace 1 ===
+Process: sh
+  [00] inode: 24674, pc: 0x0001fe28, module: busybox
+  [01] inode: 24674, pc: 0x00014a04, module: busybox
+  [02] inode: 24674, pc: 0x000147a8, module: busybox
+  [03] inode: 24674, pc: 0x0001fe14, module: busybox
+  [04] inode: 24674, pc: 0x00011924, module: busybox
+
+=== Trace 2 ===
+Process: setup.cgi
+  [00] inode: 24746, pc: 0x0001f59c, module: setup.cgi
+  [01] inode: 24746, pc: 0x0001f588, module: setup.cgi
+  [02] inode: 24746, pc: 0x0001f56c, module: setup.cgi
+  [03] inode: 24746, pc: 0x0001f55c, module: setup.cgi
+  [04] inode: 24746, pc: 0x0001f54c, module: setup.cgi
+

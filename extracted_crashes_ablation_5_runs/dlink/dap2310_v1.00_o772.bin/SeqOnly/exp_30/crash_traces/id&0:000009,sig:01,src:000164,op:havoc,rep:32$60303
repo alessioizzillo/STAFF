@@ -1,0 +1,8 @@
+=== Trace 4 ===
+Process: sh
+  [00] inode: 24644, pc: 0x0000336c, module: aparraymsg
+  [01] inode: 24644, pc: 0x00003350, module: aparraymsg
+  [02] inode: 24644, pc: 0x00003334, module: aparraymsg
+  [03] inode: 24644, pc: 0x00003318, module: aparraymsg
+  [04] inode: 24644, pc: 0x000032fc, module: aparraymsg
+

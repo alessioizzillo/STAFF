@@ -1,0 +1,8 @@
+=== Trace 0 ===
+Process: upgrade_flash.c
+  [00] inode: 41344, pc: 0x0004dac4, module: setup.cgi
+  [01] inode: 41344, pc: 0x0004dab8, module: setup.cgi
+  [02] inode: 41344, pc: 0x0004daa4, module: setup.cgi
+  [03] inode: 41344, pc: 0x0004da90, module: setup.cgi
+  [04] inode: 41344, pc: 0x0004da7c, module: setup.cgi
+
