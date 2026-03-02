@@ -24,7 +24,6 @@ pre_analysis_db*
 pc_ranges_generated.py
 warnings.log
 crash_reports_analysis/*
-unique_crashes/
 crash_analysis_processed.log
 crash_seed_count.log
 cpu_ids.csv

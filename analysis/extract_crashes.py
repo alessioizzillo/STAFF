@@ -40,13 +40,14 @@ CAUSALITY_CATEGORY_ORDER = ["OIB", "OID", "OII", "MIB", "MID", "MII"]
 # COMPETITORS = ["triforce", "aflnet_state_aware", "aflnet_base"]
 DEFAULT_METHODS = ["triforce", "aflnet_state_aware", "staff_state_aware"]
 COMPETITORS = ["triforce", "aflnet_state_aware"]
-ABLATION_VARIANTS = ["CkptOnly", "SeqOnly", "NoOpt", "FullOpt"]
+ABLATION_VARIANTS = ["NoTaint", "NoOpt", "SeqOnly", "CkptOnly", "FullOpt"]
 
 METHOD_ABBR = {
     "aflnet_base": "AB",
     "aflnet_state_aware": "ASA",
     "triforce": "TRI",
     "staff_state_aware": "STAFF",
+    "NoTaint": "NoTaint",
     "FullOpt": "STAFF",
     "CkptOnly": "Ckpt",
     "SeqOnly": "Seq",
@@ -625,7 +626,7 @@ def calculate_confidence_interval(data, confidence=0.95, clamp_lower_at_zero=Tru
 
 
 def plot_per_category_with_error_bars(category_data_per_method, output_dir=".", output_prefix="crashes_per_category",
-                                       methods=None, ylabel="Average Detection Consistency (normalized)",
+                                       methods=None, ylabel="Average Detection Consistency",
                                        title="Detection Consistency Per Category with 95% Confidence Intervals",
                                        verbose=True):
     if methods is None:
@@ -744,7 +745,7 @@ def plot_per_category_with_error_bars(category_data_per_method, output_dir=".", 
 
 def plot_per_firmware_with_error_bars(firmware_data_per_method, firmware_total_runs_per_method,
                                        output_dir=".", output_prefix="crashes_per_firmware",
-                                       methods=None, firmwares=None, ylabel="Average Detection Consistency (normalized)",
+                                       methods=None, firmwares=None, ylabel="Average Detection Consistency",
                                        title="Detection Consistency Per Firmware with 95% Confidence Intervals",
                                        verbose=True):
     if methods is None:
@@ -1156,19 +1157,22 @@ def update_extracted_root_from_ablation_experiments(experiments_ablation_dir, ex
 
     def classify_variant(config):
         try:
+            mode = config.get("GENERAL", "mode", fallback="")
             seq_min = int(config.get("STAFF_FUZZING", "sequence_minimization", fallback="0"))
             ckpt = int(config.get("STAFF_FUZZING", "checkpoint_strategy", fallback="0"))
 
-            if seq_min == 0 and ckpt == 1:
+            if mode == "aflnet_state_aware" and seq_min == 0 and ckpt == 0:
+                return "NoTaint"
+            elif mode == "staff_state_aware" and seq_min == 0 and ckpt == 1:
                 return "CkptOnly"
-            elif seq_min == 1 and ckpt == 0:
+            elif mode == "staff_state_aware" and seq_min == 1 and ckpt == 0:
                 return "SeqOnly"
-            elif seq_min == 0 and ckpt == 0:
+            elif mode == "staff_state_aware" and seq_min == 0 and ckpt == 0:
                 return "NoOpt"
-            elif seq_min == 1 and ckpt == 1:
+            elif mode == "staff_state_aware" and seq_min == 1 and ckpt == 1:
                 return "FullOpt"
             else:
-                return f"seq{seq_min}_ckpt{ckpt}"
+               assert(0)
         except Exception as e:
             if verbose:
                 print(f"[WARN] Error classifying variant: {e}")
@@ -1841,19 +1845,22 @@ def annotate_extracted_with_tte(experiments_dir, extracted_root="extracted_crash
 def annotate_extracted_ablation_with_tte(experiments_ablation_dir, extracted_ablation_root="extracted_crashes_ablation", verbose=True):
     def classify_variant(config):
         try:
+            mode = config.get("GENERAL", "mode", fallback="")
             seq_min = int(config.get("STAFF_FUZZING", "sequence_minimization", fallback="0"))
             ckpt = int(config.get("STAFF_FUZZING", "checkpoint_strategy", fallback="0"))
 
-            if seq_min == 0 and ckpt == 1:
+            if mode == "aflnet_state_aware" and seq_min == 0 and ckpt == 0:
+                return "NoTaint"
+            elif mode == "staff_state_aware" and seq_min == 0 and ckpt == 1:
                 return "CkptOnly"
-            elif seq_min == 1 and ckpt == 0:
+            elif mode == "staff_state_aware" and seq_min == 1 and ckpt == 0:
                 return "SeqOnly"
-            elif seq_min == 0 and ckpt == 0:
+            elif mode == "staff_state_aware" and seq_min == 0 and ckpt == 0:
                 return "NoOpt"
-            elif seq_min == 1 and ckpt == 1:
+            elif mode == "staff_state_aware" and seq_min == 1 and ckpt == 1:
                 return "FullOpt"
             else:
-                return f"seq{seq_min}_ckpt{ckpt}"
+                assert(0)
         except Exception as e:
             if verbose:
                 print(f"[WARN] Error classifying variant: {e}")
@@ -2260,7 +2267,7 @@ def build_agg_from_extracted_ablation(extracted_ablation_root=None, verbose=Fals
                 return int(m2.group(1), 10)
         return None
 
-    ABLATION_VARIANTS = ["CkptOnly", "SeqOnly", "NoOpt", "FullOpt"]
+    ABLATION_VARIANTS = ["NoTaint", "NoOpt", "SeqOnly", "CkptOnly", "FullOpt"]
 
     agg_ablation = defaultdict(lambda: defaultdict(dict))
     variant_counts = defaultdict(int)
@@ -2286,7 +2293,7 @@ def build_agg_from_extracted_ablation(extracted_ablation_root=None, verbose=Fals
 
             fw_name = os.path.join(brand_dir, fw_dir)
 
-            variant_list = ["CkptOnly", "SeqOnly", "NoOpt", "FullOpt"]
+            variant_list = ["NoTaint", "NoOpt", "SeqOnly", "CkptOnly", "FullOpt"]
 
             for variant_name in variant_list:
                 variant_dir = os.path.join(fw_path, variant_name)
@@ -2912,7 +2919,7 @@ def build_crash_level_tables(
         output_dir=OUTPUT_DIR,
         output_prefix="crashes_per_category",
         methods=DEFAULT_METHODS,
-        ylabel="Average Detection Consistency (normalized)",
+        ylabel="Average Detection Consistency",
         title="Crash Detection Consistency Per Category with 95% CI",
         verbose=verbose
     )
@@ -2924,7 +2931,7 @@ def build_crash_level_tables(
         output_prefix="crashes_per_firmware",
         methods=DEFAULT_METHODS,
         firmwares=firmware_set,
-        ylabel="Average Detection Consistency (normalized)",
+        ylabel="Average Detection Consistency",
         title="Crash Detection Consistency Per Firmware with 95% CI",
         verbose=verbose
     )
@@ -3998,6 +4005,8 @@ def generate_cve_cwe_summary_table(bug_agg, bug_sites, fw_map, crashes_csv_path=
 
 
 def generate_ablation_improvement_tables_per_firmware(agg, firmware_set, fw_map, baseline_method, variants, output_csv, output_tex, verbose=True):
+    variants = [v for v in variants if v != baseline_method]
+
     improvement_rows = []
 
     for fw in firmware_set:
@@ -4147,6 +4156,8 @@ def generate_ablation_improvement_tables_per_firmware(agg, firmware_set, fw_map,
 
 
 def generate_ablation_improvement_tables_per_category(agg, baseline_method, variants, output_csv, output_tex, verbose=True):
+    variants = [v for v in variants if v != baseline_method]
+
     all_categories = set()
     for key, method_dict in agg.items():
         if len(key) >= 4:
@@ -4460,7 +4471,7 @@ def generate_ablation_tables(pc_ranges, experiments_dir, experiments_ablation_di
     out_count_csv_ablation = out_count_csv.replace(".csv", f"{suffix}.csv")
     out_count_tex_ablation = out_count_tex.replace(".tex", f"{suffix}.tex")
 
-    baseline_method = "NoOpt"
+    baseline_method = "NoTaint"
     ablation_methods = ABLATION_VARIANTS
 
     table1_ablation_rows = []
@@ -4830,7 +4841,7 @@ if __name__ == "__main__":
         if verbose:
             print("[INFO] skipping annotation step")
 
-    experiments_ablation_dir = os.path.join(os.path.dirname(args.experiments_dir), "experiments_ablation")
+    experiments_ablation_dir = os.path.join(os.path.dirname(args.experiments_dir), "experiments_ablation_ext")
     extracted_ablation_root = None
 
     if os.path.isdir(experiments_ablation_dir):
