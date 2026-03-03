@@ -618,7 +618,7 @@ python3 start.py --test \
 ### Bug #16: JNR3210_setup.cgi
 
 **Module:** setup.cgi  
-**Process:** setup.cgi,upgrade_flash.c  
+**Process:** setup.cgi 
 **Number of PoCs:** 1  
 **Report:** `found_bugs/JNR3210_setup.cgi/JNR3210_setup.cgi.docx`  
 
@@ -630,7 +630,7 @@ python3 start.py --test \
   --port 80 \
   --timeout 150 \
   --seed_input found_bugs/JNR3210_setup.cgi/PoC/html_parser__id_000001_orig_id_000000_sig_01_src_000000_op_ext_UI_pos_19_2730 \
-  --process_name setup.cgi,upgrade_flash.c
+  --process_name setup.cgi
 ```
 
 ---
@@ -807,18 +807,13 @@ python3 start.py --test \
    - The container runs with **bridge network mode** for proper isolation
    - Detach safely with `Ctrl-A + D` to keep processes running
 
-2. **Symbol Links**:
-   - When testing `atp` module, `xgi` is automatically added as a symbol link
-   - When testing `setup.cgi` module, `upgrade_flash.c` is automatically added as a symbol link
-   - This is handled automatically by start.py (see line 1904)
+2. **Timeout**: The `--timeout 150` parameter gives the emulator sufficient time to boot and process requests. Adjust if needed.
 
-3. **Timeout**: The `--timeout 150` parameter gives the emulator sufficient time to boot and process requests. Adjust if needed for your system.
+3. **Port**: All tests use port 80 (HTTP). Bridge network mode handles port isolation automatically.
 
-4. **Port**: All tests use port 80 (HTTP). Bridge network mode handles port isolation automatically.
+4. **Expected Behavior**: Each PoC should trigger a crash in the target process. Check the STAFF output for crash indicators ("SIGSEGV").
 
-5. **Expected Behavior**: Each PoC should trigger a crash in the target process. Check the STAFF output for crash indicators ("SIGSEGV").
-
-6. **Crash Logs**: After reproducing a bug, the kernel log containing SEGV information can be found at:
+5. **Crash Logs**: After reproducing a bug, the kernel log containing SEGV information can be found at:
    ```
    FirmAE/scratch/run/<n>/qemu.final.serial.log
    ```
