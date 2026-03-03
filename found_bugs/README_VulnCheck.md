@@ -816,11 +816,14 @@ python3 start.py --test \
 
 4. **Port**: All tests use port 80 (HTTP). Bridge network mode handles port isolation automatically.
 
-5. **Expected Behavior**: Each PoC should trigger a crash in the target process. Check the STAFF output for crash indicators (e.g., SIGSEGV, NULL pointer dereference, buffer overflow).
+5. **Expected Behavior**: Each PoC should trigger a crash in the target process. Check the STAFF output for crash indicators ("SIGSEGV").
 
-6. **Debugging**: Use `--verbose` flag for more detailed output during reproduction.
+6. **Crash Logs**: After reproducing a bug, the kernel log containing SEGV information can be found at:
+   ```
+   FirmAE/scratch/run/<n>/qemu.final.serial.log
+   ```
+   Where `<n>` is the firmware image ID, which can be looked up in `FirmAE/firm_db_run.csv` by searching for your firmware name.
 
-7. **Firmware Paths**: All firmware paths are relative to `/root/STAFF/` inside the container.
 
 ## Troubleshooting
 
