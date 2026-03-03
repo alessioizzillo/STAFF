@@ -48,22 +48,14 @@ This guide provides step-by-step instructions to reproduce all vulnerabilities d
 
 Before reproducing bugs, you must create FirmAE images for the firmware. This step prepares the emulation environment.
 
-1. **Ensure firmware files are in the correct directories** inside the container:
-   ```
-   firmwares/
-   ├── dlink/
-   ├── linksys/
-   ├── netgear/
-   ├── tplink/
-   └── trendnet/
-   ```
+**Note:** All necessary firmware images are already included in the STAFF repository under the `firmwares/` directory (organized by vendor: dlink/, linksys/, netgear/, tplink/, trendnet/). No additional firmware downloads are required.
 
-2. **Attach to the container**
+1. **Attach to the container**
    ```bash
    ./docker attach STAFF
    ```
 
-3. **Inside the container, edit `config.ini`** to set mode to `check`:
+2. **Inside the container, edit `config.ini`** to set mode to `check`:
    ```ini
    [GENERAL]
    mode = check
@@ -77,7 +69,7 @@ Before reproducing bugs, you must create FirmAE images for the firmware. This st
    firmware = dlink/dap2310_v1.00_o772.bin
    ```
 
-4. **Run the image generation**
+3. **Run the image generation**
    ```bash
    python3 start.py --keep_config 1
    ```
