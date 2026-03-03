@@ -1,0 +1,22 @@
+bug_id,firmware,binary,functions,status,crash_count,bug_dir,num_requests
+0,DGN3500,mini_httpd,FUN_00410e6c,OK,21,DGN3500_mini_httpd,1
+1,DGN3500,rc,get_sd_info,OK,15,DGN3500_rc,6
+2,DGN3500,setup.cgi,"addkeyword, delete, find_val, html_parser, save, set_SRouteMetric, set_TimeZone, set_rule_out",OK,54,DGN3500_setup.cgi,"1,2"
+3,DGND3300,mini_httpd,"FUN_004036e8, FUN_0040427c",OK,18,DGND3300_mini_httpd,1
+4,DGND3300,setup.cgi,"addkeyword, del_list, find_val, get_WAN_ipType, html_parser, save, set_SRouteMetric, set_TimeZone, set_WAN_ipType, set_rule_in, set_rule_out",OK,88,DGND3300_setup.cgi,"1,2"
+5,TV-IP121WN,view.cgi,main,OK,1,TV-IP121WN_view.cgi,1
+7,TV-IP651WI,alphapd,websCgibinProcessor,OK,8,TV-IP651WI_alphapd,2
+8,WRT320N,httpd,"get_cgi, valid_hwaddr, validate_cgi, validate_forward_single, validate_merge_ipaddrs",OK,69,WRT320N_httpd,1
+9,JNR3210,mini_httpd,FUN_00403acc,OK,3,JNR3210_mini_httpd,1
+10,JNR3210,mini_httpd,FUN_00405c88,OK,35,JNR3210_mini_httpd_2,1
+11,JNR3210,setup.cgi,html_parser,OK,38,JNR3210_setup.cgi,1
+12,JNR3210,setup.cgi,upgrade_main,OK,12,JNR3210_setup.cgi_2,1
+15,TL-WPA8630,ledschd,FUN_00402320,OK,3,TL-WPA8630_ledschd,2
+17,DAP-2310,atp,"redirect_htm, rpsubname",OK,15,DAP-2310_atp,2
+18,DAP-2310,udhcpd,FUN_00403448,OK,4,DAP-2310_udhcpd,3
+19,DAP-2310,xmldb,FUN_00408618,OK,5,DAP-2310_xmldb,3
+20,DAP-2310,xmldb,FUN_00408b50,OK,1,DAP-2310_xmldb_2,2
+21,DIR-300,atp,"ExeShell, redirect_htm",OK,16,DIR-300_atp,2
+22,DIR-300,atp,do_xgi,OK,14,DIR-300_atp_2,2
+23,DIR-300,udhcpd,FUN_00402f70,OK,6,DIR-300_udhcpd,4
+24,DIR-300,xmldb,FUN_0040b7e4,OK,14,DIR-300_xmldb,2

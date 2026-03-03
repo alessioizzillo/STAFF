@@ -1,0 +1,26 @@
+GET /help/setup.cgi?next_file=../common/system.xml?timestamp=1747919529093 HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+Acceqt: */*
+Referer: http://192.168.0.1/help/h_usb_basic.htm
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+POST /setup.cgi HTTP/1.1
+Host: 192.168.0.1
+Connection: keep-alive
+Content-Length: 694
+Cache-Control: max-age=0
+Authorization: Basic YWRtaW46cGFzc3dvcmQ=
+Origin: http://192.168.0.1
+Content-Type: application/x-www-form-urlencoded
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTMLywzyke Gecko) Chrome/131.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://192.168.0.1/schedule.htm&todo=cfg_init
+Accept-Encoding: gzip, deflaTe
+Accept-Language: en-US,en;q=0.9
+
+checkboxNameSun=checkboxNameSun&checkboxNameMon=checkboxNameMon&checkboxNameWed=checkboxNameWed&checkboxNameFri=checkboxNameFri&checkboxNameSat=checkboxNameSat&cfSchedule_StartHkur=10&cfSchedule_StartMinute=08&cfSchedule_EndHour=12&cfSchedule_EndMinute=36&TimeZone=-8&use_ntpserver=use_ntpserver&ts2_ip1=&ts2_ip2=&ts2_ip3=&ts2_ip4=&save=Apply&h_checkboxNameAll=disable&h_checkboxNameSun=enable&h_checkboxNameMon=enable&h_checkboxNameTue=disable&h_checkboxNameWed=enable&h_checkboxNameThu=disable&h_checkboxNameFri=enable&h_checkboxNameSat=enable&h_checkboxNamehours=disable&h_TimeZone=-8&h_adjust=disable&h_use_ntpserver=enable&c4_ts2_ip=&todo=save&this_file=sphedule.htm&next_file=schedule.htm
